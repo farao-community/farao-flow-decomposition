@@ -10,6 +10,7 @@ import com.powsybl.iidm.import_.Importers;
 import com.powsybl.iidm.network.*;
 import com.powsybl.loadflow.LoadFlow;
 import com.powsybl.loadflow.LoadFlowParameters;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -36,6 +37,7 @@ class FlowDecompositionTests {
         double expectedLossesOnASingleLine = ((Line) branchWithGeneratorOnTerminal1).getR() * expectedI * expectedI;
         LoadFlowParameters dcLoadFlowParameters = LoadFlowParameters.load();
         dcLoadFlowParameters.setDc(true);
+        //dcLoadFlowParameters.setBalanceType(LoadFlowParameters.BalanceType.PROPORTIONAL_TO_GENERATION_P_MAX); // default
         LoadFlow.run(singleLoadTwoGeneratorsNetwork, dcLoadFlowParameters);
         assertEquals(targetP, branchWithGeneratorOnTerminal1.getTerminal1().getP(), EPSILON);
         assertEquals(targetP, branchWithGeneratorOnTerminal2.getTerminal2().getP(), EPSILON);
@@ -58,5 +60,45 @@ class FlowDecompositionTests {
         assertEquals(-targetP - expectedLossesOnASingleLine, generatorFromBranch1.getTerminal().getP(), EPSILON);
         assertEquals(-targetP - expectedLossesOnASingleLine, generatorFromBranch2.getTerminal().getP(), EPSILON);
         assertEquals(targetP * 2, CentralLoad.getTerminal().getP(), EPSILON);
+    }
+
+    @Test
+    void checkThatLossesCompensationIsIntegratedInNetworkToSendingEndOfBranchWithLoadBalance() {
+        String networkFileName = "NETWORK_SINGLE_LOAD_TWO_GENERATORS.uct";
+        Network singleLoadTwoGeneratorsNetwork = Importers.loadNetwork(networkFileName, getClass().getResourceAsStream(networkFileName));
+        Branch<?> branchWithGeneratorOnTerminal1 = singleLoadTwoGeneratorsNetwork.getBranch("FGEN1 11 FLOAD 11 1");
+        Branch<?> branchWithGeneratorOnTerminal2 = singleLoadTwoGeneratorsNetwork.getBranch("FLOAD 11 FGEN2 11 1");
+        Generator generatorFromBranch1 = singleLoadTwoGeneratorsNetwork.getGenerator("FGEN1 11_generator");
+        Generator generatorFromBranch2 = singleLoadTwoGeneratorsNetwork.getGenerator("FGEN2 11_generator");
+        Load CentralLoad = singleLoadTwoGeneratorsNetwork.getLoad("FLOAD 11_load");
+        double targetV = generatorFromBranch1.getTargetV();
+        double targetP = generatorFromBranch1.getTargetP();
+        double expectedI = targetP / targetV;
+        double expectedLossesOnASingleLine = ((Line) branchWithGeneratorOnTerminal1).getR() * expectedI * expectedI;
+        LoadFlowParameters dcLoadFlowParameters = LoadFlowParameters.load();
+        dcLoadFlowParameters.setDc(true);
+        dcLoadFlowParameters.setBalanceType(LoadFlowParameters.BalanceType.PROPORTIONAL_TO_LOAD);
+        LoadFlow.run(singleLoadTwoGeneratorsNetwork, dcLoadFlowParameters);
+        assertEquals(targetP, branchWithGeneratorOnTerminal1.getTerminal1().getP(), EPSILON);
+        assertEquals(targetP, branchWithGeneratorOnTerminal2.getTerminal2().getP(), EPSILON);
+        assertEquals(-targetP, generatorFromBranch1.getTerminal().getP(), EPSILON);
+        assertEquals(-targetP, generatorFromBranch2.getTerminal().getP(), EPSILON);
+        assertEquals(targetP * 2, CentralLoad.getTerminal().getP(), EPSILON);
+
+        LossesCompensationEngine engine = new LossesCompensationEngine(dcLoadFlowParameters);
+        engine.compensateLosses(singleLoadTwoGeneratorsNetwork);
+
+        Load lossesLoadFromBranch1 = singleLoadTwoGeneratorsNetwork.getLoad("LOSSES FGEN1 11 FLOAD 11 1");
+        assertNotNull(lossesLoadFromBranch1);
+        assertEquals(expectedLossesOnASingleLine, lossesLoadFromBranch1.getP0(), EPSILON);
+        Load lossesLoadFromBranch2 = singleLoadTwoGeneratorsNetwork.getLoad("LOSSES FLOAD 11 FGEN2 11 1");
+        assertNotNull(lossesLoadFromBranch2);
+        assertEquals(expectedLossesOnASingleLine, lossesLoadFromBranch2.getP0(), EPSILON);
+        LoadFlow.run(singleLoadTwoGeneratorsNetwork, dcLoadFlowParameters);
+        assertEquals(targetP - expectedLossesOnASingleLine, branchWithGeneratorOnTerminal1.getTerminal1().getP(), EPSILON);
+        assertEquals(targetP - expectedLossesOnASingleLine, branchWithGeneratorOnTerminal2.getTerminal2().getP(), EPSILON);
+        assertEquals(-targetP, generatorFromBranch1.getTerminal().getP(), EPSILON);
+        assertEquals(-targetP, generatorFromBranch2.getTerminal().getP(), EPSILON);
+        assertEquals((targetP - expectedLossesOnASingleLine) * 2, CentralLoad.getTerminal().getP(), EPSILON);
     }
 }
