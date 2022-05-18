@@ -6,12 +6,33 @@
  */
 package com.farao_community.farao.flow_decomposition;
 
+import com.farao_community.farao.commons.EICode;
+import com.farao_community.farao.data.refprog.reference_program.ReferenceProgram;
+import com.farao_community.farao.data.refprog.reference_program.ReferenceProgramBuilder;
+import com.powsybl.commons.datasource.FileDataSource;
+import com.powsybl.contingency.BranchContingency;
+import com.powsybl.contingency.Contingency;
+import com.powsybl.contingency.ContingencyContext;
+import com.powsybl.iidm.export.Exporters;
 import com.powsybl.iidm.import_.Importers;
 import com.powsybl.iidm.network.*;
 import com.powsybl.loadflow.LoadFlow;
 import com.powsybl.loadflow.LoadFlowParameters;
-import org.junit.jupiter.api.BeforeEach;
+import com.powsybl.math.matrix.DenseMatrixFactory;
+import com.powsybl.openloadflow.OpenLoadFlowParameters;
+import com.powsybl.openloadflow.network.SlackBusSelectionMode;
+import com.powsybl.openloadflow.sensi.OpenSensitivityAnalysisProvider;
+import com.powsybl.sensitivity.*;
 import org.junit.jupiter.api.Test;
+//import com.powsybl.openloadflow.network.FourBusNetworkFactory;
+
+import java.nio.file.Path;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Properties;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -100,5 +121,141 @@ class FlowDecompositionTests {
         assertEquals(-targetP, generatorFromBranch1.getTerminal().getP(), EPSILON);
         assertEquals(-targetP, generatorFromBranch2.getTerminal().getP(), EPSILON);
         assertEquals((targetP - expectedLossesOnASingleLine) * 2, CentralLoad.getTerminal().getP(), EPSILON);
+    }
+
+    @Test
+    void flowPSTNetworkTest() {
+        String networkFileName = "NETWORK_PST.uct";
+        Network pstNetwork = Importers.loadNetwork(networkFileName, getClass().getResourceAsStream(networkFileName));
+        Exporters.export("XIIDM", pstNetwork, new Properties(), new FileDataSource(Path.of("/tmp"), "000-PST_init"));
+        TwoWindingsTransformer twt = pstNetwork.getTwoWindingsTransformer("FGEN1 11 FLOAD111 2");
+        assertNotNull(twt);
+        LoadFlowParameters dcLoadFlowParameters = LoadFlowParameters.load();
+        dcLoadFlowParameters.setDc(true);
+        LoadFlow.run(pstNetwork, dcLoadFlowParameters); // Fonctionne pas correctement ?
+        Exporters.export("XIIDM", pstNetwork, new Properties(), new FileDataSource(Path.of("/tmp"), "001-PST_afterDCLoadFlow"));
+        System.out.println(twt.getPhaseTapChanger().getTapPosition());
+        twt.getPhaseTapChanger().setTapPosition(twt.getPhaseTapChanger().getTapPosition() + 1);
+        System.out.println(twt.getPhaseTapChanger().getTapPosition());
+        LoadFlow.run(pstNetwork, dcLoadFlowParameters); // Fonctionne pas correctement ?
+        Exporters.export("XIIDM", pstNetwork, new Properties(), new FileDataSource(Path.of("/tmp"), "002-PST_afterDCLoadFlow-tapChange"));
+        System.out.println("plop");
+    }
+
+    protected static SensitivityAnalysisParameters createParameters(boolean dc, String slackBusId, boolean distributedSlack) {
+        return createParameters(dc, List.of(slackBusId), distributedSlack);
+    }
+
+    protected static SensitivityAnalysisParameters createParameters(boolean dc, List<String> slackBusesIds, boolean distributedSlack) {
+        SensitivityAnalysisParameters sensiParameters = new SensitivityAnalysisParameters();
+        LoadFlowParameters lfParameters = sensiParameters.getLoadFlowParameters();
+        lfParameters.setDc(dc)
+            .setDistributedSlack(distributedSlack);
+        OpenLoadFlowParameters.create(lfParameters)
+            .setSlackBusSelectionMode(SlackBusSelectionMode.NAME)
+            .setSlackBusesIds(slackBusesIds);
+        return sensiParameters;
+    }
+
+    protected static SensitivityFactor createBranchFlowPerInjectionIncrease(String functionId, String variableId, String contingencyId, Branch.Side side) {
+        SensitivityFunctionType ftype = side.equals(Branch.Side.ONE) ? SensitivityFunctionType.BRANCH_ACTIVE_POWER_1 : SensitivityFunctionType.BRANCH_ACTIVE_POWER_2;
+        return new SensitivityFactor(ftype, functionId, SensitivityVariableType.INJECTION_ACTIVE_POWER, variableId, false, Objects.isNull(contingencyId) ? ContingencyContext.all() : ContingencyContext.specificContingency(contingencyId));
+    }
+
+    protected static <T extends Injection<T>> List<SensitivityFactor> createFactorMatrix(List<T> injections, List<Branch> branches, String contingencyId, Branch.Side side) {
+        Objects.requireNonNull(injections);
+        Objects.requireNonNull(branches);
+        return injections.stream().flatMap(injection -> branches.stream().map(branch -> createBranchFlowPerInjectionIncrease(branch.getId(), injection.getId(), contingencyId, side))).collect(Collectors.toList());
+    }
+
+    protected static <T extends Injection<T>> List<SensitivityFactor> createFactorMatrix(List<T> injections, List<Branch> branches, Branch.Side side) {
+        return createFactorMatrix(injections, branches, null, side);
+    }
+
+    protected static <T extends Injection<T>> List<SensitivityFactor> createFactorMatrix(List<T> injections, List<Branch> branches) {
+        return createFactorMatrix(injections, branches, null, Branch.Side.ONE);
+    }
+
+    @Test
+    void singleLoadNetworkSensitivityAnalysisAndFlowDecompositionTest() {
+        //Network network = FourBusNetworkFactory.create();
+        //runDcLf(network);
+        String networkFileName = "NETWORK_SINGLE_LOAD_TWO_GENERATORS_WITH_COUNTRIES.uct";
+        String gen1_id = "FGEN1 11_generator";
+        String gen2_id = "BGEN2 11_generator";
+        String line1_id = "FGEN1 11 BLOAD 11 1";
+        String line2_id = "BLOAD 11 BGEN2 11 1";
+        String load1_id = "BLOAD 11_load";
+        String contingency1_id = "FGEN1 11 BLOAD 11 1_contingency";
+        String contingency2_id = "BLOAD 11 BGEN2 11 1_contingency";
+        String slackBus_id = "FGEN1 1_0";
+        slackBus_id = "BLOAD 1_0";
+        Network network = Importers.loadNetwork(networkFileName, getClass().getResourceAsStream(networkFileName));
+        Exporters.export("XIIDM", network, new Properties(), new FileDataSource(Path.of("/tmp"), "000-LF_init"));
+        LoadFlowParameters dcLoadFlowParameters = LoadFlowParameters.load();
+        dcLoadFlowParameters.setDc(true);
+        LoadFlow.run(network, dcLoadFlowParameters);
+
+        List injectionList = Stream.concat(network.getLoadStream(), network.getGeneratorStream()).collect(Collectors.toList());
+        List branchList = network.getBranchStream().collect(Collectors.toList());
+        SensitivityAnalysisParameters sensiParameters = createParameters(true, slackBus_id, true);
+        sensiParameters.getLoadFlowParameters().setBalanceType(LoadFlowParameters.BalanceType.PROPORTIONAL_TO_GENERATION_P_MAX);
+
+        List<Contingency> contingencies = Collections.emptyList();
+        contingencies = List.of(new Contingency(contingency1_id, new BranchContingency(line1_id)), new Contingency(contingency2_id, new BranchContingency(line2_id)));
+        List<SensitivityFactor> factors = createFactorMatrix(injectionList, branchList);
+        DenseMatrixFactory matrixFactory = new DenseMatrixFactory();
+        OpenSensitivityAnalysisProvider sensiProvider = new OpenSensitivityAnalysisProvider(matrixFactory);
+        SensitivityAnalysis.Runner sensiRunner = new SensitivityAnalysis.Runner(sensiProvider);
+        SensitivityAnalysisResult sensiResult = sensiRunner.run(network, factors, contingencies, Collections.emptyList(), sensiParameters);
+
+        System.out.println(sensiResult.getValues());
+        assertEquals(6, sensiResult.getPreContingencyValues().size());
+        assertEquals(+0.5d, sensiResult.getBranchFlow1SensitivityValue(gen1_id, line1_id), EPSILON);
+        assertEquals(+0.5d, sensiResult.getBranchFlow1SensitivityValue(gen1_id, line2_id), EPSILON);
+        assertEquals(-0.5d, sensiResult.getBranchFlow1SensitivityValue(gen2_id, line1_id), EPSILON);
+        assertEquals(-0.5d, sensiResult.getBranchFlow1SensitivityValue(gen2_id, line2_id), EPSILON);
+        assertEquals(-0.5d, sensiResult.getBranchFlow1SensitivityValue(load1_id, line1_id), EPSILON);
+        assertEquals(+0.5d, sensiResult.getBranchFlow1SensitivityValue(load1_id, line2_id), EPSILON);
+        assertEquals(+100d, sensiResult.getBranchFlow1FunctionReferenceValue(line1_id), EPSILON);
+        assertEquals(-100d, sensiResult.getBranchFlow1FunctionReferenceValue(line2_id), EPSILON);
+
+        if (contingencies.size() != 0) {
+            assertEquals(6, sensiResult.getValues(contingency1_id).size()); // disconnect slack bus  if slack bus is gen1 ?!
+            assertEquals(+0.0d, sensiResult.getBranchFlow1SensitivityValue(contingency1_id, gen1_id, line1_id), EPSILON);
+            assertEquals(+0.0d, sensiResult.getBranchFlow1SensitivityValue(contingency1_id, gen1_id, line2_id), EPSILON);
+            assertEquals(+0.0d, sensiResult.getBranchFlow1SensitivityValue(contingency1_id, gen2_id, line1_id), EPSILON);
+            assertEquals(-0.0d, sensiResult.getBranchFlow1SensitivityValue(contingency1_id, gen2_id, line2_id), EPSILON);
+            assertEquals(+0.0d, sensiResult.getBranchFlow1SensitivityValue(contingency1_id, load1_id, line1_id), EPSILON);
+            assertEquals(+1.0d, sensiResult.getBranchFlow1SensitivityValue(contingency1_id, load1_id, line2_id), EPSILON);
+            assertEquals(+0.0d, sensiResult.getBranchFlow1FunctionReferenceValue(contingency1_id, line1_id), EPSILON);
+            assertEquals(-200d, sensiResult.getBranchFlow1FunctionReferenceValue(contingency1_id, line2_id), EPSILON);
+
+            assertEquals(6, sensiResult.getValues(contingency2_id).size());
+            assertEquals(+0.0d, sensiResult.getBranchFlow1SensitivityValue(contingency2_id, gen1_id, line1_id), EPSILON);
+            assertEquals(+0.0d, sensiResult.getBranchFlow1SensitivityValue(contingency2_id, gen1_id, line2_id), EPSILON);
+            assertEquals(+0.0d, sensiResult.getBranchFlow1SensitivityValue(contingency2_id, gen2_id, line1_id), EPSILON);
+            assertEquals(+0.0d, sensiResult.getBranchFlow1SensitivityValue(contingency2_id, gen2_id, line2_id), EPSILON);
+            assertEquals(-1.0d, sensiResult.getBranchFlow1SensitivityValue(contingency2_id, load1_id, line1_id), EPSILON);
+            assertEquals(+0.0d, sensiResult.getBranchFlow1SensitivityValue(contingency2_id, load1_id, line2_id), EPSILON);
+            assertEquals(+200d, sensiResult.getBranchFlow1FunctionReferenceValue(contingency2_id, line1_id), EPSILON);
+            assertEquals(-0.0d, sensiResult.getBranchFlow1FunctionReferenceValue(contingency2_id, line2_id), EPSILON);
+        }
+
+        ReferenceProgram referenceProgram = ReferenceProgramBuilder.buildReferenceProgram(network, "default-impl-name", dcLoadFlowParameters);
+        System.out.println(referenceProgram.getAllGlobalNetPositions());
+        EICode eiCodeFrance = new EICode(Country.FR);
+        EICode eiCodeBelgium = new EICode(Country.BE);
+        System.out.println(eiCodeFrance);
+        // Comment lister les pays présents dans un network ?
+        assertEquals(+100d, referenceProgram.getGlobalNetPosition(eiCodeFrance), EPSILON);
+        assertEquals(-100d, referenceProgram.getGlobalNetPosition(eiCodeBelgium), EPSILON);
+
+        var nodalInjectionForAllocatedFlowGen1 = referenceProgram.getGlobalNetPosition(eiCodeFrance) * 1.0; // GSK = 1
+        var nodalInjectionForAllocatedFlowGen2 = referenceProgram.getGlobalNetPosition(eiCodeBelgium) * 1.0; // GSK = 1
+        var nodalInjectionForAllocatedFlowLoad = referenceProgram.getGlobalNetPosition(eiCodeBelgium) * 0.0; // GSK = 0
+        var allocatedFlowFr = nodalInjectionForAllocatedFlowGen1 * sensiResult.getBranchFlow1SensitivityValue(gen1_id, line1_id); // "node to hub" PTDF ???
+
+        // Comment avoir le réference flow ?
     }
 }
