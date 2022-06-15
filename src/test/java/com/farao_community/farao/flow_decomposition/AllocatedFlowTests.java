@@ -9,8 +9,6 @@ package com.farao_community.farao.flow_decomposition;
 import com.powsybl.iidm.network.*;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -63,5 +61,19 @@ class AllocatedFlowTests {
         assertTrue(zoneList.contains(Country.FR));
         assertTrue(zoneList.contains(Country.BE));
         assertEquals(2, zoneList.size(), EPSILON);
+    }
+
+    @Test
+    void checkThatGlskAreAutomaticallyGenerated_TestFAR670_05() {
+        String networkFileName = "NETWORK_SINGLE_LOAD_TWO_GENERATORS_WITH_COUNTRIES.uct";
+        NetworkInterface networkInterface = new NetworkInterface(networkFileName);
+        Network basicNetwork = networkInterface.getNetwork();
+
+        ZoneInterface zoneInterface = new ZoneInterface();
+        Set<Country> zoneList = zoneInterface.getZones(basicNetwork);
+
+        GlskInterface glskInterface = new GlskInterface();
+        glskInterface.getAutoGlsk(basicNetwork);//, zoneList);
+        assertTrue(true);
     }
 }
