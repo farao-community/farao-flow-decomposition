@@ -1,11 +1,15 @@
 package com.farao_community.farao.flow_decomposition;
 
-import java.util.Collections;
-import java.util.List;
+import com.powsybl.iidm.network.Country;
+import com.powsybl.iidm.network.Network;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class ZoneInterface {
 
-    public List<Object> getZones() {
-        return Collections.emptyList();
+    private static final Country DEFAULTCOUNTRY = null;
+    public Set<Country> getZones(Network network) {
+        return network.getSubstationStream().map(substation -> substation.getCountry().orElse(DEFAULTCOUNTRY)).collect(Collectors.toSet());
     }
 }

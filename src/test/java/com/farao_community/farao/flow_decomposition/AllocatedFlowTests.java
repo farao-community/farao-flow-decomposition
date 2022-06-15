@@ -10,9 +10,10 @@ import com.powsybl.iidm.network.*;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
@@ -56,8 +57,11 @@ class AllocatedFlowTests {
         Network basicNetwork = networkInterface.getNetwork();
 
         ZoneInterface zoneInterface = new ZoneInterface();
-        List<Object> zoneList = zoneInterface.getZones();
+        Set<Country> zoneList = zoneInterface.getZones(basicNetwork);
 
-        assertTrue(zoneList.contains("FR"));
+        System.out.println(zoneList);
+        assertTrue(zoneList.contains(Country.FR));
+        assertTrue(zoneList.contains(Country.BE));
+        assertEquals(2, zoneList.size(), EPSILON);
     }
 }
