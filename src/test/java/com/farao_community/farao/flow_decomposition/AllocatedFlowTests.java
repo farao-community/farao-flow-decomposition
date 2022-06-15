@@ -6,11 +6,13 @@
  */
 package com.farao_community.farao.flow_decomposition;
 
-import com.powsybl.iidm.import_.Importers;
 import com.powsybl.iidm.network.*;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
@@ -45,5 +47,17 @@ class AllocatedFlowTests {
         assertNotNull(busWithGenerator1);
         assertNotNull(busWithGenerator2);
         assertNotNull(busWithLoad);
+    }
+
+    @Test
+    void checkThatZonesAreAutomaticallyGenerated_TestFAR670_03() {
+        String networkFileName = "NETWORK_SINGLE_LOAD_TWO_GENERATORS_WITH_COUNTRIES.uct";
+        NetworkInterface networkInterface = new NetworkInterface(networkFileName);
+        Network basicNetwork = networkInterface.getNetwork();
+
+        ZoneInterface zoneInterface = new ZoneInterface();
+        List<Object> zoneList = zoneInterface.getZones();
+
+        assertTrue(zoneList.contains("FR"));
     }
 }
