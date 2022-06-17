@@ -32,10 +32,12 @@ class AllocatedFlowTests {
 
     @Test
     void checkThatAllocatedFlowIsExtractedForEachXnecGivenANetwork_TestFAR670_01() {
+        //String networkFileName = "20220611_2130_2D6_UX2_FEXPORTGRIDMODEL_CGM_17XTSO-CS------W.uct";
         String networkFileName = "NETWORK_SINGLE_LOAD_TWO_GENERATORS_WITH_COUNTRIES.uct";
         Network network = importNetwork(networkFileName);
         AllocatedFlowComputer allocatedFlowComputer = new AllocatedFlowComputer();
         Map<String, Double> allocatedFlowsMap = allocatedFlowComputer.run(network);
+        assertNotNull(allocatedFlowsMap.get("FGEN1 11 BLOAD 11 1"));
         assertEquals(100, allocatedFlowsMap.get("FGEN1 11 BLOAD 11 1"), EPSILON);
     }
 
