@@ -13,7 +13,6 @@ import com.powsybl.loadflow.LoadFlowParameters;
 import org.ejml.data.*;
 import com.powsybl.openloadflow.sensi.OpenSensitivityAnalysisProvider;
 import com.powsybl.sensitivity.*;
-import org.ejml.ops.DConvertMatrixStruct;
 import org.ejml.simple.SimpleOperations;
 import org.ejml.simple.ops.SimpleOperations_DSCC;
 
@@ -29,6 +28,7 @@ import java.util.stream.IntStream;
 public class AllocatedFlowComputer {
     private static final double EPSILON = 1e-5;
     private static final double DEFAULT_GLSK_FACTOR = 0.0;
+    public static final String ALLOCATED_COLUMN_NAME = "Allocated";
     private final LoadFlowParameters loadFlowParameters;
     private final SensitivityAnalysisParameters sensitivityAnalysisParameters;
 
@@ -108,18 +108,18 @@ public class AllocatedFlowComputer {
                 );
     }
 
-    private DMatrixSparseCSC convertToMatrix(Map<String, Double> nodalInjections, Map<String, Integer> nodeIndex) {
+    private SparseMatrixWithIndexes convertToMatrix(Map<String, Double> nodalInjections, Map<String, Integer> nodeIndex) {
         Map<String, Double> nonZeroInjections = nodalInjections.entrySet().stream()
                 .filter(this::isNotZero)
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
                         Map.Entry::getValue
         ));
-        DMatrixSparseTriplet work = new DMatrixSparseTriplet(nodalInjections.size(), 1, nonZeroInjections.size());
+        SparseMatrixWithIndexes nodalInjectionMatrix = new SparseMatrixWithIndexes(nodeIndex, ALLOCATED_COLUMN_NAME, nonZeroInjections.size());
         nonZeroInjections.forEach(
-                (injectionId, injectionValue) -> work.addItem(nodeIndex.get(injectionId), 0, injectionValue)
+                (injectionId, injectionValue) -> nodalInjectionMatrix.addItem(injectionId, ALLOCATED_COLUMN_NAME, injectionValue)
         );
-        return DConvertMatrixStruct.convert(work, (DMatrixSparseCSC) null);
+        return nodalInjectionMatrix;
     }
 
     private boolean isNotZero(Map.Entry<String, Double> stringDoubleEntry) {
@@ -165,25 +165,20 @@ public class AllocatedFlowComputer {
         return sensiRunner.run(network, factors, sensitivityAnalysisParameters);
     }
 
-    private DMatrixSparseTriplet getPtdfMatrixTriplet(Map<String, Integer> xnecIndex, Map<String, Integer> nodeIndex, List<SensitivityFactor> factors, SensitivityAnalysisResult sensiResult) {
-        DMatrixSparseTriplet ptdfMatrixTriplet = new DMatrixSparseTriplet(xnecIndex.size(), nodeIndex.size(), factors.size() + 1);
+    private SparseMatrixWithIndexes getPtdfMatrixTriplet(Map<String, Integer> xnecIndex, Map<String, Integer> nodeIndex, List<SensitivityFactor> factors, SensitivityAnalysisResult sensiResult) {
+        SparseMatrixWithIndexes ptdfMatrixTriplet = new SparseMatrixWithIndexes(xnecIndex, nodeIndex, factors.size()+1);
         for (Iterator<SensitivityValue> iterator = sensiResult.getValues().iterator(); iterator.hasNext(); ) {
             SensitivityValue sensitivityValue = iterator.next();
             SensitivityFactor factor = factors.get(sensitivityValue.getFactorIndex());
-            String xnecId = factor.getFunctionId();
-            int xnecI = xnecIndex.get(xnecId);
-            String nodeId = factor.getVariableId();
-            int nodeI = nodeIndex.get(nodeId);
-            ptdfMatrixTriplet.addItem(xnecI, nodeI, sensitivityValue.getValue());
+            ptdfMatrixTriplet.addItem(factor.getFunctionId(), factor.getVariableId(), sensitivityValue.getValue());
         }
         return ptdfMatrixTriplet;
     }
 
-    private DMatrixSparseCSC getPtdfMatrix(Network network, List<Branch> xnecList, Map<String, Integer> xnecIndex, List<String> nodeList, Map<String, Integer> nodeIndex) {
+    private SparseMatrixWithIndexes getPtdfMatrix(Network network, List<Branch> xnecList, Map<String, Integer> xnecIndex, List<String> nodeList, Map<String, Integer> nodeIndex) {
         List<SensitivityFactor> factors = getFactors(xnecList, nodeList);
         SensitivityAnalysisResult sensiResult = getSensitivityAnalysisResult(network, factors);
-        DMatrixSparseTriplet ptdfMatrixTriplet = getPtdfMatrixTriplet(xnecIndex, nodeIndex, factors, sensiResult);
-        return DConvertMatrixStruct.convert(ptdfMatrixTriplet, (DMatrixSparseCSC) null);
+        return getPtdfMatrixTriplet(xnecIndex, nodeIndex, factors, sensiResult);
     }
 
     private List<String> getNodeList(Network network) {
@@ -202,22 +197,16 @@ public class AllocatedFlowComputer {
             ));
     }
 
-    private DMatrixSparseCSC getAllocatedFlowsMatrix(List<Branch> xnecList, DMatrixSparseCSC ptdfMatrix, DMatrixSparseCSC nodalInjectionsSparseMatrix) {
-        DMatrixSparseCSC allocatedFlowsMatrix = new DMatrixSparseCSC(xnecList.size(), 1);
+    private SparseMatrixWithIndexes getAllocatedFlowsMatrix(Map<String, Integer> xnecIndex, SparseMatrixWithIndexes ptdfMatrix, SparseMatrixWithIndexes nodalInjectionsSparseMatrix) {
+        SparseMatrixWithIndexes allocatedFlowTripletMatrix = new SparseMatrixWithIndexes(xnecIndex, ALLOCATED_COLUMN_NAME);
+        DMatrixSparseCSC allocatedFlowMatrix = allocatedFlowTripletMatrix.getCDCMatrix();
         SimpleOperations simpleOperationsDscc = new SimpleOperations_DSCC();
-        simpleOperationsDscc.mult(ptdfMatrix, nodalInjectionsSparseMatrix, allocatedFlowsMatrix);
-        return allocatedFlowsMatrix;
+        simpleOperationsDscc.mult(ptdfMatrix.getCDCMatrix(), nodalInjectionsSparseMatrix.getCDCMatrix(), allocatedFlowMatrix);
+        allocatedFlowTripletMatrix.setTo(allocatedFlowMatrix);
+        return allocatedFlowTripletMatrix;
     }
 
-    private Map<String, Double> getAllocatedFlowMap(List<Branch> xnecList, DMatrixSparseCSC allocatedFlowsMatrix) {
-        Map<String, Double> allocatedFlowMap = new HashMap<>();
-        for (int row = 0; row< allocatedFlowsMatrix.getNumRows(); row++) {
-            allocatedFlowMap.put(xnecList.get(row).getId(), allocatedFlowsMatrix.get(row, 0, 0.0));
-        }
-        return allocatedFlowMap;
-    }
-
-    public Map<String, Double> run(Network network) {
+    public Map<String, Map<String, Double>> run(Network network) {
         List<Branch> xnecList = selectXnecs(network);
         List<String> nodeList = getNodeList(network);
         Map<String, Integer> xnecIndex = getXnecIndex(xnecList);
@@ -225,10 +214,10 @@ public class AllocatedFlowComputer {
 
         Map<Country, Map<String, Double>> glsks = buildAutoGlsks(network);
         Map<String, Double> nodalInjectionsForAllocatedFlow = getNodalInjectionsForAllocatedFlows(network, glsks);
+        SparseMatrixWithIndexes nodalInjectionsMatrix = convertToMatrix(nodalInjectionsForAllocatedFlow, nodeIndex);
 
-        DMatrixSparseCSC ptdfMatrix = getPtdfMatrix(network, xnecList, xnecIndex, nodeList, nodeIndex);
-        DMatrixSparseCSC nodalInjectionsMatrix = convertToMatrix(nodalInjectionsForAllocatedFlow, nodeIndex);
-        DMatrixSparseCSC allocatedFlowsMatrix = getAllocatedFlowsMatrix(xnecList, ptdfMatrix, nodalInjectionsMatrix);
-        return getAllocatedFlowMap(xnecList, allocatedFlowsMatrix);
+        SparseMatrixWithIndexes ptdfMatrix = getPtdfMatrix(network, xnecList, xnecIndex, nodeList, nodeIndex);
+        SparseMatrixWithIndexes allocatedFlowsMatrix = getAllocatedFlowsMatrix(xnecIndex, ptdfMatrix, nodalInjectionsMatrix);
+        return allocatedFlowsMatrix.toMap();
     }
 }
