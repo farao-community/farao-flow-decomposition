@@ -6,9 +6,11 @@
  */
 package com.farao_community.farao.flow_decomposition;
 
+import com.powsybl.iidm.import_.Importers;
 import com.powsybl.iidm.network.*;
 import org.junit.jupiter.api.Test;
 
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -23,11 +25,17 @@ import static org.junit.jupiter.api.Assertions.*;
 class AllocatedFlowTests {
     private static final double EPSILON = 1e-3;
 
+    private Network importNetwork(String networkResourcePath) {
+        String networkName = Paths.get(networkResourcePath).getFileName().toString();
+        return Importers.loadNetwork(networkName, getClass().getResourceAsStream(networkResourcePath));
+    }
+
     @Test
     void checkThatAllocatedFlowIsExtractedForEachXnecGivenANetwork_TestFAR670_01() {
         String networkFileName = "NETWORK_SINGLE_LOAD_TWO_GENERATORS_WITH_COUNTRIES.uct";
+        Network network = importNetwork(networkFileName);
         AllocatedFlowComputer allocatedFlowComputer = new AllocatedFlowComputer();
-        Map<String, Double> allocatedFlowsMap = allocatedFlowComputer.run(networkFileName);
+        Map<String, Double> allocatedFlowsMap = allocatedFlowComputer.run(network);
         assertEquals(100, allocatedFlowsMap.get("FGEN1 11 BLOAD 11 1"), EPSILON);
     }
 
