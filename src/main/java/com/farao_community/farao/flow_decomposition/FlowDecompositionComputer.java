@@ -22,7 +22,7 @@ import java.util.stream.IntStream;
  * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
  */
-public class FlowDecompositionComputer {
+public class FlowDecompositionComputer{
     private static final double EPSILON = 1e-5;
     private static final double DEFAULT_GLSK_FACTOR = 0.0;
     private static final String ALLOCATED_COLUMN_NAME = "Allocated";
@@ -205,7 +205,7 @@ public class FlowDecompositionComputer {
         return allocatedFlowTripletMatrix;
     }
 
-    public Map<String, Map<String, Double>> run(Network network) {
+    public FlowDecompositionResults run(Network network, boolean saveIntermediate) {
         List<Branch> xnecList = selectXnecs(network);
         List<String> nodeList = getNodeList(network);
         Map<String, Integer> xnecIndex = getXnecIndex(xnecList);
@@ -216,10 +216,15 @@ public class FlowDecompositionComputer {
 
         SparseMatrixWithIndexesTriplet ptdfMatrix = getPtdfMatrix(network, xnecList, xnecIndex, nodeList, nodeIndex);
         SparseMatrixWithIndexesCSC allocatedFlowsMatrix = getAllocatedFlowsMatrix(xnecIndex, ptdfMatrix, nodalInjectionsMatrix);
-        return allocatedFlowsMatrix.toMap();
-    }
 
-    public Map<String, Map<String, Double>> getAllocatedFlowMap() {
-        return null;
+        FlowDecompositionResults flowDecompositionResults = new FlowDecompositionResults(saveIntermediate);
+        flowDecompositionResults.getIntermediateResults().setGlsks(glsks);
+        flowDecompositionResults.getIntermediateResults().setNodalInjectionsMatrix(nodalInjectionsMatrix);
+        flowDecompositionResults.getIntermediateResults().setPtdfMatrix(ptdfMatrix);
+        flowDecompositionResults.setAllocatedFlowsMatrix(allocatedFlowsMatrix);
+        return flowDecompositionResults;
+    }
+    public FlowDecompositionResults run(Network network) {
+        return run(network, true);
     }
 }

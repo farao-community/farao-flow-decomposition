@@ -35,7 +35,8 @@ class AllocatedFlowTests {
         String networkFileName = "NETWORK_SINGLE_LOAD_TWO_GENERATORS_WITH_COUNTRIES.uct";
         Network network = importNetwork(networkFileName);
         FlowDecompositionComputer allocatedFlowComputer = new FlowDecompositionComputer();
-        Map<String, Map<String, Double>> allocatedFlowsMap = allocatedFlowComputer.run(network);
+        FlowDecompositionResults flowDecompositionResult = allocatedFlowComputer.run(network);
+        Map<String, Map<String, Double>> allocatedFlowsMap = flowDecompositionResult.getAllocatedFlowsMatrix().toMap();
         assertNotNull(allocatedFlowsMap.get("FGEN1 11 BLOAD 11 1").get("Allocated"));
         assertEquals(100, allocatedFlowsMap.get("FGEN1 11 BLOAD 11 1").get("Allocated"), EPSILON);
     }
