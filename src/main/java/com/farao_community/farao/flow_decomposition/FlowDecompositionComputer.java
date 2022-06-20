@@ -25,7 +25,7 @@ import java.util.stream.IntStream;
 public class FlowDecompositionComputer {
     private static final double EPSILON = 1e-5;
     private static final double DEFAULT_GLSK_FACTOR = 0.0;
-    public static final String ALLOCATED_COLUMN_NAME = "Allocated";
+    private static final String ALLOCATED_COLUMN_NAME = "Allocated";
     private final LoadFlowParameters loadFlowParameters;
     private final SensitivityAnalysisParameters sensitivityAnalysisParameters;
 
