@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 
 import java.nio.file.Paths;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -58,7 +59,6 @@ class AllocatedFlowTests {
         Map<String, Map<String, Double>> nodalInjection = intermediateResults.getNodalInjectionsMap();
         assertEquals(-100, nodalInjection.get(gen_be).get(allocated));
         assertEquals(+100, nodalInjection.get(gen_fr).get(allocated));
-
         System.out.println("done");
     }
 }

@@ -218,9 +218,11 @@ public class FlowDecompositionComputer{
         SparseMatrixWithIndexesCSC allocatedFlowsMatrix = getAllocatedFlowsMatrix(xnecIndex, ptdfMatrix, nodalInjectionsMatrix);
 
         FlowDecompositionResults flowDecompositionResults = new FlowDecompositionResults(saveIntermediate);
-        flowDecompositionResults.getIntermediateResults().setGlsks(glsks);
-        flowDecompositionResults.getIntermediateResults().setNodalInjectionsMatrix(nodalInjectionsMatrix);
-        flowDecompositionResults.getIntermediateResults().setPtdfMatrix(ptdfMatrix);
+        if (flowDecompositionResults.hasIntermediateResults()) {
+            flowDecompositionResults.getIntermediateResults().setGlsks(glsks);
+            flowDecompositionResults.getIntermediateResults().setNodalInjectionsMatrix(nodalInjectionsMatrix);
+            flowDecompositionResults.getIntermediateResults().setPtdfMatrix(ptdfMatrix);
+        }
         flowDecompositionResults.setAllocatedFlowsMatrix(allocatedFlowsMatrix);
         return flowDecompositionResults;
     }

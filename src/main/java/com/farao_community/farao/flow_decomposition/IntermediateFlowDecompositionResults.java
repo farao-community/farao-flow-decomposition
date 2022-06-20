@@ -5,13 +5,11 @@ import com.powsybl.iidm.network.Country;
 import java.util.Map;
 
 class IntermediateFlowDecompositionResults {
-    private final boolean saveIntermediate;
     private Map<Country, Map<String, Double>> glsks;
     private SparseMatrixWithIndexesTriplet nodalInjectionsMatrix;
     private SparseMatrixWithIndexesTriplet ptdfMatrix;
 
-    IntermediateFlowDecompositionResults(boolean saveIntermediate) {
-        this.saveIntermediate = saveIntermediate;
+    IntermediateFlowDecompositionResults() {
     }
 
     public Map<Country, Map<String, Double>> getGlsks() {
@@ -19,9 +17,7 @@ class IntermediateFlowDecompositionResults {
     }
 
     void setGlsks(Map<Country, Map<String, Double>> glsks) {
-        if (saveIntermediate) {
-            this.glsks = glsks;
-        }
+        this.glsks = glsks;
     }
 
     public Map<String, Map<String, Double>> getNodalInjectionsMap() {
@@ -29,9 +25,7 @@ class IntermediateFlowDecompositionResults {
     }
 
     void setNodalInjectionsMatrix(SparseMatrixWithIndexesTriplet nodalInjectionsMatrix) {
-        if (saveIntermediate) {
-            this.nodalInjectionsMatrix = nodalInjectionsMatrix;
-        }
+        this.nodalInjectionsMatrix = nodalInjectionsMatrix;
     }
 
     public Map<String, Map<String, Double>> getPtdfMap() {
@@ -39,8 +33,6 @@ class IntermediateFlowDecompositionResults {
     }
 
     void setPtdfMatrix(SparseMatrixWithIndexesTriplet ptdfMatrix) {
-        if (saveIntermediate) {
-            this.ptdfMatrix = ptdfMatrix;
-        }
+        this.ptdfMatrix = ptdfMatrix;
     }
 }

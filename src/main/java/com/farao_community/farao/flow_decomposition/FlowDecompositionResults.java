@@ -6,16 +6,22 @@
  */
 package com.farao_community.farao.flow_decomposition;
 
+import java.util.Optional;
+
 /**
  * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
  */
 class FlowDecompositionResults {
-    private IntermediateFlowDecompositionResults intermediateResults;
+    private Optional<IntermediateFlowDecompositionResults> intermediateResults;
     private SparseMatrixWithIndexesCSC allocatedFlowsMatrix;
 
     public FlowDecompositionResults(boolean saveIntermediate) {
-        intermediateResults = new IntermediateFlowDecompositionResults(saveIntermediate);
+        if (saveIntermediate) {
+            intermediateResults = Optional.of(new IntermediateFlowDecompositionResults());
+        } else {
+            intermediateResults = Optional.empty();
+        }
     }
 
     public SparseMatrixWithIndexesCSC getAllocatedFlowsMatrix() {
@@ -26,7 +32,14 @@ class FlowDecompositionResults {
         this.allocatedFlowsMatrix = allocatedFlowsMatrix;
     }
 
+    public boolean hasIntermediateResults() {
+        return intermediateResults.isPresent();
+    }
+
     public IntermediateFlowDecompositionResults getIntermediateResults() {
-        return intermediateResults;
+        if (hasIntermediateResults()) {
+            return intermediateResults.get();
+        }
+        return null;
     }
 }
