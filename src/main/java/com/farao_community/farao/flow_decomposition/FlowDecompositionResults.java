@@ -6,7 +6,11 @@
  */
 package com.farao_community.farao.flow_decomposition;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
@@ -14,7 +18,8 @@ import java.util.Optional;
  */
 class FlowDecompositionResults {
     private Optional<IntermediateFlowDecompositionResults> intermediateResults;
-    private SparseMatrixWithIndexesCSC allocatedFlowsMatrix;
+    private SparseMatrixWithIndexesCSC decomposedFlowsMatrix;
+    private static final String ALLOCATED_COLUMN_NAME = "Allocated";
 
     public FlowDecompositionResults(boolean saveIntermediate) {
         if (saveIntermediate) {
@@ -24,12 +29,15 @@ class FlowDecompositionResults {
         }
     }
 
-    public SparseMatrixWithIndexesCSC getAllocatedFlowsMatrix() {
-        return allocatedFlowsMatrix;
+    public Map<String, DecomposedFlow> getDecomposedFlowsMap() {
+        Map<String, Map<String, Double>> decomposedFlowsMapMap = decomposedFlowsMatrix.toMap();
+        return decomposedFlowsMapMap.keySet()
+            .stream()
+            .collect(Collectors.toMap(Function.identity(), xnec -> new DecomposedFlow(decomposedFlowsMapMap.get(xnec).get(ALLOCATED_COLUMN_NAME))));
     }
 
-    void setAllocatedFlowsMatrix(SparseMatrixWithIndexesCSC allocatedFlowsMatrix) {
-        this.allocatedFlowsMatrix = allocatedFlowsMatrix;
+    void setDecomposedFlowsMatrix(SparseMatrixWithIndexesCSC decomposedFlowsMatrix) {
+        this.decomposedFlowsMatrix = decomposedFlowsMatrix;
     }
 
     public boolean hasIntermediateResults() {

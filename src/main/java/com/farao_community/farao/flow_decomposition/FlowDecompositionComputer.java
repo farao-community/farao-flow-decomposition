@@ -223,7 +223,7 @@ public class FlowDecompositionComputer{
             flowDecompositionResults.getIntermediateResults().setNodalInjectionsMatrix(nodalInjectionsMatrix);
             flowDecompositionResults.getIntermediateResults().setPtdfMatrix(ptdfMatrix);
         }
-        flowDecompositionResults.setAllocatedFlowsMatrix(allocatedFlowsMatrix);
+        flowDecompositionResults.setDecomposedFlowsMatrix(allocatedFlowsMatrix);
         return flowDecompositionResults;
     }
     public FlowDecompositionResults run(Network network) {

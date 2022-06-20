@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Test;
 
 import java.nio.file.Paths;
 import java.util.Map;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -43,8 +42,8 @@ class AllocatedFlowTests {
         FlowDecompositionComputer allocatedFlowComputer = new FlowDecompositionComputer();
         FlowDecompositionResults flowDecompositionResults = allocatedFlowComputer.run(network, true);
 
-        Map<String, Map<String, Double>> allocatedFlowsMap = flowDecompositionResults.getAllocatedFlowsMatrix().toMap();
-        assertEquals(100, allocatedFlowsMap.get(xnec_fr_be).get(allocated), EPSILON);
+        Map<String, DecomposedFlow> allocatedFlowsMap = flowDecompositionResults.getDecomposedFlowsMap();
+        assertEquals(100, allocatedFlowsMap.get(xnec_fr_be).getAllocatedFlow(), EPSILON);
 
         IntermediateFlowDecompositionResults intermediateResults = flowDecompositionResults.getIntermediateResults();
         Map<Country, Map<String, Double>> glsks = intermediateResults.getGlsks();
