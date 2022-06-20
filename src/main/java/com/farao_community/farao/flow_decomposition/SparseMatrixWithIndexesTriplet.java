@@ -37,4 +37,8 @@ public class SparseMatrixWithIndexesTriplet extends SparseMatrixWithIndexes {
         DMatrixSparseCSC cdcMatrix = DConvertMatrixStruct.convert(tripletMatrix, (DMatrixSparseCSC) null);
         return new SparseMatrixWithIndexesCSC(this.rowIndex, this.colIndex, cdcMatrix);
     }
+
+    public Map<String, Map<String, Double>> toMap() {
+        return getCSCMatrix().toMap();
+    }
 }

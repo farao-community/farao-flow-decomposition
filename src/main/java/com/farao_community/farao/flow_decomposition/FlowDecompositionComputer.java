@@ -225,6 +225,6 @@ public class FlowDecompositionComputer{
         return flowDecompositionResults;
     }
     public FlowDecompositionResults run(Network network) {
-        return run(network, true);
+        return run(network, false);
     }
 }

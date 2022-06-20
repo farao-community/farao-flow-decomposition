@@ -24,8 +24,8 @@ class IntermediateFlowDecompositionResults {
         }
     }
 
-    public SparseMatrixWithIndexesTriplet getNodalInjectionsMatrix() {
-        return nodalInjectionsMatrix;
+    public Map<String, Map<String, Double>> getNodalInjectionsMap() {
+        return nodalInjectionsMatrix.toMap();
     }
 
     void setNodalInjectionsMatrix(SparseMatrixWithIndexesTriplet nodalInjectionsMatrix) {
@@ -34,8 +34,8 @@ class IntermediateFlowDecompositionResults {
         }
     }
 
-    public SparseMatrixWithIndexesTriplet getPtdfMatrix() {
-        return ptdfMatrix;
+    public Map<String, Map<String, Double>> getPtdfMap() {
+        return ptdfMatrix.toMap();
     }
 
     void setPtdfMatrix(SparseMatrixWithIndexesTriplet ptdfMatrix) {

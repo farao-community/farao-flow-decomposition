@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Test;
 
 import java.nio.file.Paths;
 import java.util.Map;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -30,14 +29,36 @@ class AllocatedFlowTests {
     }
 
     @Test
-    void checkThatAllocatedFlowIsExtractedForEachXnecGivenANetwork_TestFAR670_01() {
+    void checkThatAllocatedFlowAreExtractedForEachXnecGivenANetwork() {
         //String networkFileName = "20220611_2130_2D6_UX2_FEXPORTGRIDMODEL_CGM_17XTSO-CS------W.uct";
         String networkFileName = "NETWORK_SINGLE_LOAD_TWO_GENERATORS_WITH_COUNTRIES.uct";
+        String gen_be = "BGEN2 11_generator";
+        String load_be = "BLOAD 11_load";
+        String gen_fr = "FGEN1 11_generator";
+        String xnec_fr_be = "FGEN1 11 BLOAD 11 1";
+        String allocated = "Allocated";
+
         Network network = importNetwork(networkFileName);
         FlowDecompositionComputer allocatedFlowComputer = new FlowDecompositionComputer();
-        FlowDecompositionResults flowDecompositionResult = allocatedFlowComputer.run(network);
-        Map<String, Map<String, Double>> allocatedFlowsMap = flowDecompositionResult.getAllocatedFlowsMatrix().toMap();
-        assertNotNull(allocatedFlowsMap.get("FGEN1 11 BLOAD 11 1").get("Allocated"));
-        assertEquals(100, allocatedFlowsMap.get("FGEN1 11 BLOAD 11 1").get("Allocated"), EPSILON);
+        FlowDecompositionResults flowDecompositionResults = allocatedFlowComputer.run(network, true);
+
+        Map<String, Map<String, Double>> allocatedFlowsMap = flowDecompositionResults.getAllocatedFlowsMatrix().toMap();
+        assertEquals(100, allocatedFlowsMap.get(xnec_fr_be).get(allocated), EPSILON);
+
+        IntermediateFlowDecompositionResults intermediateResults = flowDecompositionResults.getIntermediateResults();
+        Map<Country, Map<String, Double>> glsks = intermediateResults.getGlsks();
+        assertEquals(1.0, glsks.get(Country.FR).get(gen_fr), EPSILON);
+        assertEquals(1.0, glsks.get(Country.BE).get(gen_be), EPSILON);
+
+        Map<String, Map<String, Double>> ptdfMatrix = intermediateResults.getPtdfMap();
+        assertEquals(-0.5, ptdfMatrix.get(xnec_fr_be).get(load_be));
+        assertEquals(-0.5, ptdfMatrix.get(xnec_fr_be).get(gen_be));
+        assertEquals(+0.5, ptdfMatrix.get(xnec_fr_be).get(gen_fr));
+
+        Map<String, Map<String, Double>> nodalInjection = intermediateResults.getNodalInjectionsMap();
+        assertEquals(-100, nodalInjection.get(gen_be).get(allocated));
+        assertEquals(+100, nodalInjection.get(gen_fr).get(allocated));
+
+        System.out.println("done");
     }
 }
