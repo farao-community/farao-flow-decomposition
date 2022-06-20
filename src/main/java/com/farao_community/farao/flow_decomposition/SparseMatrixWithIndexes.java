@@ -4,6 +4,7 @@ import org.ejml.data.DMatrixSparse;
 import org.ejml.data.DMatrixSparseCSC;
 import org.ejml.data.DMatrixSparseTriplet;
 import org.ejml.ops.DConvertMatrixStruct;
+import org.ejml.simple.ops.SimpleOperations_DSCC;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -16,11 +17,14 @@ public class SparseMatrixWithIndexes {
     private Map<String, Integer> colIndex;
     private DMatrixSparseTriplet tripletMatrix;
     private DMatrixSparseCSC cscMatrix;
+    private final SimpleOperations_DSCC simpleOperationsDscc;
 
     public SparseMatrixWithIndexes(Map<String, Integer> rowIndex, Map<String, Integer> colIndex, Integer initLength) {
         this.rowIndex = rowIndex;
         this.colIndex = colIndex;
         this.tripletMatrix = new DMatrixSparseTriplet(rowIndex.size(), colIndex.size(), initLength);
+        this.simpleOperationsDscc = new SimpleOperations_DSCC();
+
     }
     public SparseMatrixWithIndexes(Map<String, Integer> rowIndex, String colName, Integer initLength) {
         this(rowIndex, Map.of(colName, 0), initLength);
@@ -78,5 +82,9 @@ public class SparseMatrixWithIndexes {
             result.get(rowIndexInversed.get(cell.row)).put(colIndexInversed.get(cell.col), cell.value);
         }
         return result;
+    }
+
+    public void setCDCtoMatMult(SparseMatrixWithIndexes sparseMatrix1, SparseMatrixWithIndexes sparseMatrix2) {
+        simpleOperationsDscc.mult(sparseMatrix1.getCDCMatrix(), sparseMatrix2.getCDCMatrix(), this.getCDCMatrix());
     }
 }

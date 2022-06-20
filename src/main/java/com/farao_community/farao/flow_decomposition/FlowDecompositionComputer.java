@@ -10,11 +10,8 @@ import com.powsybl.contingency.ContingencyContext;
 import com.powsybl.iidm.network.*;
 import com.powsybl.loadflow.LoadFlow;
 import com.powsybl.loadflow.LoadFlowParameters;
-import org.ejml.data.*;
 import com.powsybl.openloadflow.sensi.OpenSensitivityAnalysisProvider;
 import com.powsybl.sensitivity.*;
-import org.ejml.simple.SimpleOperations;
-import org.ejml.simple.ops.SimpleOperations_DSCC;
 
 import java.util.*;
 import java.util.function.Function;
@@ -25,14 +22,14 @@ import java.util.stream.IntStream;
  * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
  */
-public class AllocatedFlowComputer {
+public class FlowDecompositionComputer {
     private static final double EPSILON = 1e-5;
     private static final double DEFAULT_GLSK_FACTOR = 0.0;
     public static final String ALLOCATED_COLUMN_NAME = "Allocated";
     private final LoadFlowParameters loadFlowParameters;
     private final SensitivityAnalysisParameters sensitivityAnalysisParameters;
 
-    public AllocatedFlowComputer() {
+    public FlowDecompositionComputer() {
         this.loadFlowParameters = initLoadFlowParameters();
         this.sensitivityAnalysisParameters = initSensitivityAnalysisParameters(loadFlowParameters);
     }
@@ -108,7 +105,7 @@ public class AllocatedFlowComputer {
                 );
     }
 
-    private SparseMatrixWithIndexes convertToMatrix(Map<String, Double> nodalInjections, Map<String, Integer> nodeIndex) {
+    private SparseMatrixWithIndexes convertToNodalInjectionMatrix(Map<String, Double> nodalInjections, Map<String, Integer> nodeIndex) {
         Map<String, Double> nonZeroInjections = nodalInjections.entrySet().stream()
                 .filter(this::isNotZero)
                 .collect(Collectors.toMap(
@@ -120,6 +117,11 @@ public class AllocatedFlowComputer {
                 (injectionId, injectionValue) -> nodalInjectionMatrix.addItem(injectionId, ALLOCATED_COLUMN_NAME, injectionValue)
         );
         return nodalInjectionMatrix;
+    }
+
+    private SparseMatrixWithIndexes getNodalInjectionsForAllocatedFlowsMatrix(Network network, Map<Country, Map<String, Double>> glsks, Map<String, Integer> nodeIndex) {
+        Map<String, Double> nodalInjectionsForAllocatedFlow = getNodalInjectionsForAllocatedFlows(network, glsks);
+        return convertToNodalInjectionMatrix(nodalInjectionsForAllocatedFlow, nodeIndex);
     }
 
     private boolean isNotZero(Map.Entry<String, Double> stringDoubleEntry) {
@@ -199,10 +201,7 @@ public class AllocatedFlowComputer {
 
     private SparseMatrixWithIndexes getAllocatedFlowsMatrix(Map<String, Integer> xnecIndex, SparseMatrixWithIndexes ptdfMatrix, SparseMatrixWithIndexes nodalInjectionsSparseMatrix) {
         SparseMatrixWithIndexes allocatedFlowTripletMatrix = new SparseMatrixWithIndexes(xnecIndex, ALLOCATED_COLUMN_NAME);
-        DMatrixSparseCSC allocatedFlowMatrix = allocatedFlowTripletMatrix.getCDCMatrix();
-        SimpleOperations simpleOperationsDscc = new SimpleOperations_DSCC();
-        simpleOperationsDscc.mult(ptdfMatrix.getCDCMatrix(), nodalInjectionsSparseMatrix.getCDCMatrix(), allocatedFlowMatrix);
-        allocatedFlowTripletMatrix.setTo(allocatedFlowMatrix);
+        allocatedFlowTripletMatrix.setCDCtoMatMult(ptdfMatrix, nodalInjectionsSparseMatrix);
         return allocatedFlowTripletMatrix;
     }
 
@@ -213,11 +212,14 @@ public class AllocatedFlowComputer {
         Map<String, Integer> nodeIndex = getNodeIndex(nodeList);
 
         Map<Country, Map<String, Double>> glsks = buildAutoGlsks(network);
-        Map<String, Double> nodalInjectionsForAllocatedFlow = getNodalInjectionsForAllocatedFlows(network, glsks);
-        SparseMatrixWithIndexes nodalInjectionsMatrix = convertToMatrix(nodalInjectionsForAllocatedFlow, nodeIndex);
+        SparseMatrixWithIndexes nodalInjectionsMatrix = getNodalInjectionsForAllocatedFlowsMatrix(network, glsks, nodeIndex);
 
         SparseMatrixWithIndexes ptdfMatrix = getPtdfMatrix(network, xnecList, xnecIndex, nodeList, nodeIndex);
         SparseMatrixWithIndexes allocatedFlowsMatrix = getAllocatedFlowsMatrix(xnecIndex, ptdfMatrix, nodalInjectionsMatrix);
         return allocatedFlowsMatrix.toMap();
+    }
+
+    public Map<String, Map<String, Double>> getAllocatedFlowMap() {
+        return null;
     }
 }
