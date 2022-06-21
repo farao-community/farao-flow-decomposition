@@ -31,7 +31,9 @@ class AllocatedFlowTests {
     @Test
     void checkThatAllocatedFlowAreExtractedForEachXnecGivenANetwork() {
         //String networkFileName = "20220611_2130_2D6_UX2_FEXPORTGRIDMODEL_CGM_17XTSO-CS------W.uct";
-        String networkFileName = "NETWORK_SINGLE_LOAD_TWO_GENERATORS_WITH_COUNTRIES.uct";
+        //String networkFileName = "20211117_1030_2D3_UX0.uct";
+        //String networkFileName = "NETWORK_SINGLE_LOAD_TWO_GENERATORS_WITH_COUNTRIES.uct";
+        String networkFileName = "NETWORK_HLBP.uct";
         String gen_be = "BGEN2 11_generator";
         String load_be = "BLOAD 11_load";
         String gen_fr = "FGEN1 11_generator";
