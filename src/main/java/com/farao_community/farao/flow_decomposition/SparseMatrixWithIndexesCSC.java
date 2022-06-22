@@ -10,9 +10,9 @@ import org.ejml.data.DMatrixSparse;
 import org.ejml.data.DMatrixSparseCSC;
 import org.ejml.sparse.csc.CommonOps_DSCC;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 /**
@@ -45,7 +45,9 @@ class SparseMatrixWithIndexesCSC extends SparseMatrixWithIndexes {
             .entrySet().stream()
             .collect(Collectors.toMap(
                 Map.Entry::getKey,
-                stringIntegerEntry -> new HashMap<String, Double>(colIndex.size())
+                stringIntegerEntry -> new TreeMap<String, Double>(),
+                (stringDoubleMap, stringDoubleMap2) -> stringDoubleMap,
+                TreeMap::new
             ));
         Map<Integer, String> colIndexInversed = inverseIndex(colIndex);
         Map<Integer, String> rowIndexInversed = inverseIndex(rowIndex);

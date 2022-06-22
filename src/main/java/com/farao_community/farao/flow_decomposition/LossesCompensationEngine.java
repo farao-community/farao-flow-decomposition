@@ -23,6 +23,10 @@ public class LossesCompensationEngine {
         this.loadFlowParameters = enforceAcLoadFlowCalculation(initialLoadFlowParameters);
     }
 
+    public LossesCompensationEngine() {
+        this(new LoadFlowParameters());
+    }
+
     private LoadFlowParameters enforceAcLoadFlowCalculation(LoadFlowParameters initialLoadFlowParameters) {
         LoadFlowParameters acEnforcedParameters = initialLoadFlowParameters.copy();
         acEnforcedParameters.setDc(false);

@@ -20,7 +20,4 @@ class SparseMatrixWithIndexes {
         this.rowIndex = rowIndex;
         this.colIndex = colIndex;
     }
-    protected SparseMatrixWithIndexes(Map<String, Integer> rowIndex, String colName) {
-        this(rowIndex, Map.of(colName, 0));
-    }
 }

@@ -9,6 +9,7 @@ package com.farao_community.farao.flow_decomposition;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -33,7 +34,12 @@ class FlowDecompositionResults {
         Map<String, Map<String, Double>> decomposedFlowsMapMap = decomposedFlowsMatrix.toMap();
         return decomposedFlowsMapMap.keySet()
             .stream()
-            .collect(Collectors.toMap(Function.identity(), xnec -> new DecomposedFlow(decomposedFlowsMapMap.get(xnec).get(ALLOCATED_COLUMN_NAME))));
+            .collect(Collectors.toMap(
+                Function.identity(),
+                xnec -> new DecomposedFlow(decomposedFlowsMapMap.get(xnec).get(ALLOCATED_COLUMN_NAME)),
+                (decomposedFlow, decomposedFlow2) -> decomposedFlow,
+                TreeMap::new
+            ));
     }
 
     void setDecomposedFlowsMatrix(SparseMatrixWithIndexesCSC decomposedFlowsMatrix) {
