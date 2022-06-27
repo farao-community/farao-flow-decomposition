@@ -6,8 +6,6 @@
  */
 package com.farao_community.farao.flow_decomposition;
 
-import java.util.Optional;
-
 /**
  * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}

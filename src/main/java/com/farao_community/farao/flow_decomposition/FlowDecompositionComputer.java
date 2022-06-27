@@ -12,6 +12,8 @@ import com.powsybl.loadflow.LoadFlow;
 import com.powsybl.loadflow.LoadFlowParameters;
 import com.powsybl.openloadflow.sensi.OpenSensitivityAnalysisProvider;
 import com.powsybl.sensitivity.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.function.Function;
@@ -22,10 +24,11 @@ import java.util.stream.IntStream;
  * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
  */
-public class FlowDecompositionComputer{
+public class FlowDecompositionComputer {
     private static final double EPSILON = 1e-5;
     private static final double DEFAULT_GLSK_FACTOR = 0.0;
     private static final String ALLOCATED_COLUMN_NAME = "Allocated";
+    private static final Logger LOGGER = LoggerFactory.getLogger(FlowDecompositionComputer.class);
     private final LoadFlowParameters loadFlowParameters;
     private final SensitivityAnalysisParameters sensitivityAnalysisParameters;
 
@@ -37,21 +40,15 @@ public class FlowDecompositionComputer{
     private static SensitivityAnalysisParameters initSensitivityAnalysisParameters(LoadFlowParameters loadFlowParameters) {
         SensitivityAnalysisParameters parameters = SensitivityAnalysisParameters.load();
         parameters.setLoadFlowParameters(loadFlowParameters);
+        LOGGER.debug("Using following sensitivity analysis parameters: " + parameters);
         return parameters;
     }
 
     private static LoadFlowParameters initLoadFlowParameters() {
         LoadFlowParameters parameters = LoadFlowParameters.load();
         parameters.setDc(true);
+        LOGGER.debug("Using following load flow parameters: " + parameters);
         return parameters;
-    }
-
-    private Optional<Country> getTerminalCountry(Terminal terminal) {
-        return terminal.getVoltageLevel().getSubstation().get().getCountry();
-    }
-
-    private Country getInjectionCountry(Injection<?> injection) {
-        return getTerminalCountry(injection.getTerminal()).orElse(null);
     }
 
     private Map<Country, Map<String, Double>> buildAutoGlsks(Network network) {
@@ -59,9 +56,8 @@ public class FlowDecompositionComputer{
                 Function.identity(),
                 country -> new HashMap<>()));
         network.getGeneratorStream()
-                .filter(this::isValid)
                 .forEach(generator -> {
-                        Country generatorCountry = getInjectionCountry(generator);
+                        Country generatorCountry = NetworkUtil.getInjectionCountry(generator);
                         glsks.get(generatorCountry).put(generator.getId(), generator.getTargetP());
                     }
                 );
@@ -76,22 +72,20 @@ public class FlowDecompositionComputer{
         return network.getConnectableStream()
                 .filter(Injection.class::isInstance)
                 .map(connectable -> (Injection<?>) connectable)
-                .filter(this::isValid)
                 .collect(Collectors.toList());
     }
 
-    private boolean isValid(Injection<?> injection) {
-        return true;
-    }
-
-    private double getIndividualNodalInjectionForAllocatedFlows(Injection<?> injection, Map<Country, Map<String, Double>> glsks, Map<Country, Double> netPositions) {
-        Country injectionCountry = getInjectionCountry(injection);
+    private double getIndividualNodalInjectionForAllocatedFlows(
+            Injection<?> injection,
+            Map<Country, Map<String, Double>> glsks,
+            Map<Country, Double> netPositions) {
+        Country injectionCountry = NetworkUtil.getInjectionCountry(injection);
         return glsks.get(injectionCountry).getOrDefault(injection.getId(), DEFAULT_GLSK_FACTOR) * netPositions.get(injectionCountry);
     }
 
     private Map<Country, Double> getZonesNetPosition(Network network) {
         LoadFlow.run(network, loadFlowParameters);
-        return new CountryNetPositionComputation(network).getNetPositions();
+        return NetworkUtil.computeNetPositions(network);
     }
 
     private Map<String, Double> getNodalInjectionsForAllocatedFlows(Network network, Map<Country, Map<String, Double>> glsks) {
@@ -112,14 +106,18 @@ public class FlowDecompositionComputer{
                         Map.Entry::getKey,
                         Map.Entry::getValue
         ));
-        SparseMatrixWithIndexesTriplet nodalInjectionMatrix = new SparseMatrixWithIndexesTriplet(nodeIndex, ALLOCATED_COLUMN_NAME, nonZeroInjections.size());
+        SparseMatrixWithIndexesTriplet nodalInjectionMatrix = new SparseMatrixWithIndexesTriplet(
+                nodeIndex, ALLOCATED_COLUMN_NAME, nonZeroInjections.size());
         nonZeroInjections.forEach(
                 (injectionId, injectionValue) -> nodalInjectionMatrix.addItem(injectionId, ALLOCATED_COLUMN_NAME, injectionValue)
         );
         return nodalInjectionMatrix;
     }
 
-    private SparseMatrixWithIndexesTriplet getNodalInjectionsForAllocatedFlowsMatrix(Network network, Map<Country, Map<String, Double>> glsks, Map<String, Integer> nodeIndex) {
+    private SparseMatrixWithIndexesTriplet getNodalInjectionsForAllocatedFlowsMatrix(
+            Network network,
+            Map<Country, Map<String, Double>> glsks,
+            Map<String, Integer> nodeIndex) {
         Map<String, Double> nodalInjectionsForAllocatedFlow = getNodalInjectionsForAllocatedFlows(network, glsks);
         return convertToNodalInjectionMatrix(nodalInjectionsForAllocatedFlow, nodeIndex);
     }
@@ -144,13 +142,18 @@ public class FlowDecompositionComputer{
     }
 
     private boolean isAnInterconnection(Branch<?> branch) {
-        Optional<Country> country1 = getTerminalCountry(branch.getTerminal1());
-        Optional<Country> country2 = getTerminalCountry(branch.getTerminal2());
-        return country1.isPresent() && country2.isPresent() && !country1.equals(country2);
+        Country country1 = NetworkUtil.getTerminalCountry(branch.getTerminal1());
+        Country country2 = NetworkUtil.getTerminalCountry(branch.getTerminal2());
+        return !country1.equals(country2);
     }
 
     private SensitivityFactor getSensitivityFactor(String node, Branch xnec) {
-        return new SensitivityFactor(SensitivityFunctionType.BRANCH_ACTIVE_POWER_1, xnec.getId(), SensitivityVariableType.INJECTION_ACTIVE_POWER, node, false, ContingencyContext.none());
+        return new SensitivityFactor(
+                SensitivityFunctionType.BRANCH_ACTIVE_POWER_1, xnec.getId(),
+                SensitivityVariableType.INJECTION_ACTIVE_POWER, node,
+                false,
+                ContingencyContext.none()
+        );
     }
 
     private List<SensitivityFactor> getFactors(List<Branch> xnecList, List<String> nodeList) {
@@ -167,10 +170,13 @@ public class FlowDecompositionComputer{
         return sensiRunner.run(network, factors, sensitivityAnalysisParameters);
     }
 
-    private SparseMatrixWithIndexesTriplet getPtdfMatrixTriplet(Map<String, Integer> xnecIndex, Map<String, Integer> nodeIndex, List<SensitivityFactor> factors, SensitivityAnalysisResult sensiResult) {
+    private SparseMatrixWithIndexesTriplet getPtdfMatrixTriplet(
+            Map<String, Integer> xnecIndex,
+            Map<String, Integer> nodeIndex,
+            List<SensitivityFactor> factors,
+            SensitivityAnalysisResult sensiResult) {
         SparseMatrixWithIndexesTriplet ptdfMatrixTriplet = new SparseMatrixWithIndexesTriplet(xnecIndex, nodeIndex, factors.size()+1);
-        for (Iterator<SensitivityValue> iterator = sensiResult.getValues().iterator(); iterator.hasNext(); ) {
-            SensitivityValue sensitivityValue = iterator.next();
+        for (SensitivityValue sensitivityValue : sensiResult.getValues()) {
             SensitivityFactor factor = factors.get(sensitivityValue.getFactorIndex());
             ptdfMatrixTriplet.addItem(factor.getFunctionId(), factor.getVariableId(), sensitivityValue.getValue());
         }
@@ -199,33 +205,32 @@ public class FlowDecompositionComputer{
             ));
     }
 
-    private SparseMatrixWithIndexesCSC getAllocatedFlowsMatrix(Map<String, Integer> xnecIndex, SparseMatrixWithIndexesTriplet ptdfMatrix, SparseMatrixWithIndexesTriplet nodalInjectionsSparseMatrix) {
-        SparseMatrixWithIndexesCSC allocatedFlowTripletMatrix = new SparseMatrixWithIndexesCSC(xnecIndex, ALLOCATED_COLUMN_NAME);
-        allocatedFlowTripletMatrix.mult(ptdfMatrix.getCSCMatrix(), nodalInjectionsSparseMatrix.getCSCMatrix());
-        return allocatedFlowTripletMatrix;
+    private SparseMatrixWithIndexesCSC getAllocatedFlowsMatrix(SparseMatrixWithIndexesTriplet ptdfMatrix, SparseMatrixWithIndexesTriplet nodalInjectionsSparseMatrix) {
+        return SparseMatrixWithIndexesCSC.mult(ptdfMatrix.toCSCMatrix(), nodalInjectionsSparseMatrix.toCSCMatrix());
     }
 
     public FlowDecompositionResults run(Network network, boolean saveIntermediate) {
+        FlowDecompositionResults flowDecompositionResults = new FlowDecompositionResults(saveIntermediate);
         List<Branch> xnecList = selectXnecs(network);
         List<String> nodeList = getNodeList(network);
         Map<String, Integer> xnecIndex = getXnecIndex(xnecList);
         Map<String, Integer> nodeIndex = getNodeIndex(nodeList);
 
         Map<Country, Map<String, Double>> glsks = buildAutoGlsks(network);
+        flowDecompositionResults.saveGlsks(glsks);
+
         SparseMatrixWithIndexesTriplet nodalInjectionsMatrix = getNodalInjectionsForAllocatedFlowsMatrix(network, glsks, nodeIndex);
+        flowDecompositionResults.saveNodalInjectionsMatrix(nodalInjectionsMatrix);
 
         SparseMatrixWithIndexesTriplet ptdfMatrix = getPtdfMatrix(network, xnecList, xnecIndex, nodeList, nodeIndex);
-        SparseMatrixWithIndexesCSC allocatedFlowsMatrix = getAllocatedFlowsMatrix(xnecIndex, ptdfMatrix, nodalInjectionsMatrix);
+        flowDecompositionResults.savePtdfMatrix(ptdfMatrix);
 
-        FlowDecompositionResults flowDecompositionResults = new FlowDecompositionResults(saveIntermediate);
-        if (flowDecompositionResults.hasIntermediateResults()) {
-            flowDecompositionResults.getIntermediateResults().setGlsks(glsks);
-            flowDecompositionResults.getIntermediateResults().setNodalInjectionsMatrix(nodalInjectionsMatrix);
-            flowDecompositionResults.getIntermediateResults().setPtdfMatrix(ptdfMatrix);
-        }
-        flowDecompositionResults.setDecomposedFlowsMatrix(allocatedFlowsMatrix);
+        SparseMatrixWithIndexesCSC allocatedFlowsMatrix = getAllocatedFlowsMatrix(ptdfMatrix, nodalInjectionsMatrix);
+        flowDecompositionResults.saveDecomposedFlowsMatrix(allocatedFlowsMatrix);
+
         return flowDecompositionResults;
     }
+
     public FlowDecompositionResults run(Network network) {
         return run(network, false);
     }

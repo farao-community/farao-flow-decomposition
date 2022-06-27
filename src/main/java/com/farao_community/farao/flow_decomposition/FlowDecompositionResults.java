@@ -6,9 +6,9 @@
  */
 package com.farao_community.farao.flow_decomposition;
 
-import java.util.HashMap;
+import com.powsybl.iidm.network.Country;
+
 import java.util.Map;
-import java.util.Optional;
 import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -18,16 +18,19 @@ import java.util.stream.Collectors;
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
  */
 class FlowDecompositionResults {
-    private Optional<IntermediateFlowDecompositionResults> intermediateResults;
+    private final boolean saveIntermediates;
     private SparseMatrixWithIndexesCSC decomposedFlowsMatrix;
     private static final String ALLOCATED_COLUMN_NAME = "Allocated";
+    private Map<Country, Map<String, Double>> glsks;
+    private SparseMatrixWithIndexesTriplet nodalInjectionsMatrix;
+    private SparseMatrixWithIndexesTriplet ptdfMatrix;
 
-    public FlowDecompositionResults(boolean saveIntermediate) {
-        if (saveIntermediate) {
-            intermediateResults = Optional.of(new IntermediateFlowDecompositionResults());
-        } else {
-            intermediateResults = Optional.empty();
-        }
+    FlowDecompositionResults(boolean saveIntermediates) {
+        this.saveIntermediates = saveIntermediates;
+    }
+
+    public FlowDecompositionResults() {
+        this(false);
     }
 
     public Map<String, DecomposedFlow> getDecomposedFlowsMap() {
@@ -42,18 +45,37 @@ class FlowDecompositionResults {
             ));
     }
 
-    void setDecomposedFlowsMatrix(SparseMatrixWithIndexesCSC decomposedFlowsMatrix) {
+    void saveDecomposedFlowsMatrix(SparseMatrixWithIndexesCSC decomposedFlowsMatrix) {
         this.decomposedFlowsMatrix = decomposedFlowsMatrix;
     }
 
-    public boolean hasIntermediateResults() {
-        return intermediateResults.isPresent();
+    void saveGlsks(Map<Country, Map<String, Double>> glsks) {
+        if (saveIntermediates) {
+            this.glsks = glsks;
+        }
     }
 
-    public IntermediateFlowDecompositionResults getIntermediateResults() {
-        if (hasIntermediateResults()) {
-            return intermediateResults.get();
+    void saveNodalInjectionsMatrix(SparseMatrixWithIndexesTriplet nodalInjectionsMatrix) {
+        if (saveIntermediates) {
+            this.nodalInjectionsMatrix = nodalInjectionsMatrix;
         }
-        return null;
+    }
+
+    void savePtdfMatrix(SparseMatrixWithIndexesTriplet ptdfMatrix) {
+        if (saveIntermediates) {
+            this.ptdfMatrix = ptdfMatrix;
+        }
+    }
+
+    Map<Country, Map<String, Double>> getGlsks() {
+        return glsks;
+    }
+
+    Map<String, Map<String, Double>> getNodalInjectionsMap() {
+        return nodalInjectionsMatrix.toMap();
+    }
+
+    Map<String, Map<String, Double>> getPtdfMap() {
+        return ptdfMatrix.toMap();
     }
 }

@@ -12,7 +12,7 @@ import java.util.Map;
  * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
  */
-class SparseMatrixWithIndexes {
+abstract class SparseMatrixWithIndexes {
     protected Map<String, Integer> rowIndex;
     protected Map<String, Integer> colIndex;
 
@@ -20,4 +20,6 @@ class SparseMatrixWithIndexes {
         this.rowIndex = rowIndex;
         this.colIndex = colIndex;
     }
+
+    abstract Map<String, Map<String, Double>> toMap();
 }

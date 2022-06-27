@@ -16,8 +16,9 @@ import java.util.Map;
  * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
  */
-public class SparseMatrixWithIndexesTriplet extends SparseMatrixWithIndexes {
-    private DMatrixSparseTriplet tripletMatrix;
+class SparseMatrixWithIndexesTriplet extends SparseMatrixWithIndexes {
+    private final DMatrixSparseTriplet tripletMatrix;
+
     public SparseMatrixWithIndexesTriplet(Map<String, Integer> rowIndex, Map<String, Integer> colIndex, Integer initLength) {
         super(rowIndex, colIndex);
         this.tripletMatrix = new DMatrixSparseTriplet(rowIndex.size(), colIndex.size(), initLength);
@@ -33,12 +34,12 @@ public class SparseMatrixWithIndexesTriplet extends SparseMatrixWithIndexes {
         }
     }
 
-    public SparseMatrixWithIndexesCSC getCSCMatrix() {
-        DMatrixSparseCSC cdcMatrix = DConvertMatrixStruct.convert(tripletMatrix, (DMatrixSparseCSC) null);
-        return new SparseMatrixWithIndexesCSC(this.rowIndex, this.colIndex, cdcMatrix);
+    public SparseMatrixWithIndexesCSC toCSCMatrix() {
+        DMatrixSparseCSC cscMatrix = DConvertMatrixStruct.convert(tripletMatrix, (DMatrixSparseCSC) null);
+        return new SparseMatrixWithIndexesCSC(this.rowIndex, this.colIndex, cscMatrix);
     }
 
     public Map<String, Map<String, Double>> toMap() {
-        return getCSCMatrix().toMap();
+        return toCSCMatrix().toMap();
     }
 }

@@ -9,7 +9,6 @@ package com.farao_community.farao.flow_decomposition;
 import com.powsybl.iidm.import_.Importers;
 import com.powsybl.iidm.network.Country;
 import com.powsybl.iidm.network.Network;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
@@ -17,6 +16,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
+ * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
  * @author Peter Mitri {@literal <peter.mitri at rte-france.com>}
  */
 class CountryNetPositionComputationTest {
@@ -25,7 +25,7 @@ class CountryNetPositionComputationTest {
     @Test
     void testLines() {
         Network network = Importers.loadNetwork("testCase.xiidm", getClass().getResourceAsStream("testCase.xiidm"));
-        Map<Country, Double> netPositions = (new CountryNetPositionComputation(network)).getNetPositions();
+        Map<Country, Double> netPositions = NetworkUtil.computeNetPositions(network);
         assertEquals(1000.0, netPositions.get(Country.FR), DOUBLE_TOLERANCE);
         assertEquals(1500.0, netPositions.get(Country.BE), DOUBLE_TOLERANCE);
         assertEquals(0.0, netPositions.get(Country.NL), DOUBLE_TOLERANCE);
@@ -35,7 +35,7 @@ class CountryNetPositionComputationTest {
     @Test
     void testDanglingLines() {
         Network network = Importers.loadNetwork("TestCaseDangling.xiidm", getClass().getResourceAsStream("TestCaseDangling.xiidm"));
-        Map<Country, Double> netPositions = (new CountryNetPositionComputation(network)).getNetPositions();
+        Map<Country, Double> netPositions = NetworkUtil.computeNetPositions(network);
         assertEquals(0.0, netPositions.get(Country.FR), DOUBLE_TOLERANCE);
         assertEquals(300.0, netPositions.get(Country.BE), DOUBLE_TOLERANCE);
     }
@@ -43,7 +43,7 @@ class CountryNetPositionComputationTest {
     @Test
     void testHvdcLines() {
         Network network = Importers.loadNetwork("TestCaseHvdc.xiidm", getClass().getResourceAsStream("TestCaseHvdc.xiidm"));
-        Map<Country, Double> netPositions = (new CountryNetPositionComputation(network)).getNetPositions();
+        Map<Country, Double> netPositions = NetworkUtil.computeNetPositions(network);
         assertEquals(272.0, netPositions.get(Country.FR), DOUBLE_TOLERANCE);
         assertEquals(-272.0, netPositions.get(Country.DE), DOUBLE_TOLERANCE);
     }

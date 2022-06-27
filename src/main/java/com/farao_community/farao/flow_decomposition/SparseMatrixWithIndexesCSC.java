@@ -20,18 +20,15 @@ import java.util.stream.Collectors;
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
  */
 class SparseMatrixWithIndexesCSC extends SparseMatrixWithIndexes {
-    private DMatrixSparseCSC cscMatrix;
+    private final DMatrixSparseCSC cscMatrix;
 
     SparseMatrixWithIndexesCSC(Map<String, Integer> rowIndex, Map<String, Integer> colIndex, DMatrixSparseCSC cscMatrix) {
         super(rowIndex, colIndex);
         this.cscMatrix = cscMatrix;
     }
+
     SparseMatrixWithIndexesCSC(Map<String, Integer> rowIndex, Map<String, Integer> colIndex) {
         this(rowIndex, colIndex, new DMatrixSparseCSC(rowIndex.size(), colIndex.size()));
-    }
-
-    SparseMatrixWithIndexesCSC(Map<String, Integer> rowIndex, String colName) {
-        this(rowIndex, Map.of(colName, 0));
     }
 
     private Map<Integer, String> inverseIndex(Map<String, Integer> index) {
@@ -45,7 +42,7 @@ class SparseMatrixWithIndexesCSC extends SparseMatrixWithIndexes {
             .entrySet().stream()
             .collect(Collectors.toMap(
                 Map.Entry::getKey,
-                stringIntegerEntry -> new TreeMap<String, Double>(),
+                stringIntegerEntry -> new TreeMap<>(),
                 (stringDoubleMap, stringDoubleMap2) -> stringDoubleMap,
                 TreeMap::new
             ));
@@ -58,11 +55,9 @@ class SparseMatrixWithIndexesCSC extends SparseMatrixWithIndexes {
         return result;
     }
 
-    DMatrixSparseCSC getCSCMatrix() {
-        return cscMatrix;
-    }
-
-    public void mult(SparseMatrixWithIndexesCSC matrix1, SparseMatrixWithIndexesCSC matrix2) {
-        CommonOps_DSCC.mult(matrix1.getCSCMatrix(), matrix2.getCSCMatrix(), this.cscMatrix);
+    public static SparseMatrixWithIndexesCSC mult(SparseMatrixWithIndexesCSC matrix1, SparseMatrixWithIndexesCSC matrix2) {
+        SparseMatrixWithIndexesCSC multiplicationResult = new SparseMatrixWithIndexesCSC(matrix1.rowIndex, matrix2.colIndex);
+        CommonOps_DSCC.mult(matrix1.cscMatrix, matrix2.cscMatrix, multiplicationResult.cscMatrix);
+        return multiplicationResult;
     }
 }

@@ -10,6 +10,8 @@ import com.powsybl.commons.datasource.FileDataSource;
 import com.powsybl.iidm.export.Exporters;
 import com.powsybl.iidm.import_.Importers;
 import com.powsybl.iidm.network.*;
+import com.powsybl.loadflow.LoadFlow;
+import com.powsybl.loadflow.LoadFlowParameters;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
@@ -48,19 +50,18 @@ class AllocatedFlowTests {
         FlowDecompositionResults flowDecompositionResults = allocatedFlowComputer.run(network, true);
 
         Map<String, DecomposedFlow> decomposedFlowMap = flowDecompositionResults.getDecomposedFlowsMap();
-        IntermediateFlowDecompositionResults intermediateResults = flowDecompositionResults.getIntermediateResults();
         assertEquals(100, decomposedFlowMap.get(xnec_fr_be).getAllocatedFlow(), EPSILON);
 
-        Map<Country, Map<String, Double>> glsks = intermediateResults.getGlsks();
+        Map<Country, Map<String, Double>> glsks = flowDecompositionResults.getGlsks();
         assertEquals(1.0, glsks.get(Country.FR).get(gen_fr), EPSILON);
         assertEquals(1.0, glsks.get(Country.BE).get(gen_be), EPSILON);
 
-        Map<String, Map<String, Double>> ptdfs = intermediateResults.getPtdfMap();
+        Map<String, Map<String, Double>> ptdfs = flowDecompositionResults.getPtdfMap();
         assertEquals(-0.5, ptdfs.get(xnec_fr_be).get(load_be));
         assertEquals(-0.5, ptdfs.get(xnec_fr_be).get(gen_be));
         assertEquals(+0.5, ptdfs.get(xnec_fr_be).get(gen_fr));
 
-        Map<String, Map<String, Double>> nodalInjection = intermediateResults.getNodalInjectionsMap();
+        Map<String, Map<String, Double>> nodalInjection = flowDecompositionResults.getNodalInjectionsMap();
         assertEquals(-100, nodalInjection.get(gen_be).get(allocated));
         assertEquals(+100, nodalInjection.get(gen_fr).get(allocated));
     }
@@ -72,12 +73,6 @@ class AllocatedFlowTests {
         Network network = importNetwork(networkFileName);
         FlowDecompositionComputer allocatedFlowComputer = new FlowDecompositionComputer();
         FlowDecompositionResults flowDecompositionResults = allocatedFlowComputer.run(network, true);
-
-        Map<String, DecomposedFlow> decomposedFlowMap = flowDecompositionResults.getDecomposedFlowsMap();
-        IntermediateFlowDecompositionResults intermediateResults = flowDecompositionResults.getIntermediateResults();
-        Map<Country, Map<String, Double>> glsks = intermediateResults.getGlsks();
-        Map<String, Map<String, Double>> ptdfs = intermediateResults.getPtdfMap();
-        Map<String, Map<String, Double>> nodalInjection = intermediateResults.getNodalInjectionsMap();
         assertNotNull(flowDecompositionResults);
     }
 
@@ -91,10 +86,6 @@ class AllocatedFlowTests {
         FlowDecompositionResults flowDecompositionResults = allocatedFlowComputer.run(network, true);
 
         Map<String, DecomposedFlow> decomposedFlowMap = flowDecompositionResults.getDecomposedFlowsMap();
-        IntermediateFlowDecompositionResults intermediateResults = flowDecompositionResults.getIntermediateResults();
-        Map<Country, Map<String, Double>> glsks = intermediateResults.getGlsks();
-        Map<String, Map<String, Double>> ptdfs = intermediateResults.getPtdfMap();
-        Map<String, Map<String, Double>> nodalInjection = intermediateResults.getNodalInjectionsMap();
         assertNotNull(flowDecompositionResults);
     }
 
@@ -127,6 +118,11 @@ class AllocatedFlowTests {
         String W2C2 = "W2    11 C2    11 1";
 
         Network network = importNetwork(networkFileName);
+        LoadFlowParameters parameters = LoadFlowParameters.load();
+        parameters.setDc(false);
+        parameters.setDistributedSlack(true);
+        parameters.setBalanceType(LoadFlowParameters.BalanceType.PROPORTIONAL_TO_GENERATION_P);
+        LoadFlow.run(network, parameters);
         Exporters.export("XIIDM", network, new Properties(), new FileDataSource(Path.of("/tmp"), "000-init"));
         LossesCompensationEngine engine = new LossesCompensationEngine();
         engine.compensateLosses(network);
@@ -137,8 +133,7 @@ class AllocatedFlowTests {
         FlowDecompositionResults flowDecompositionResults = allocatedFlowComputer.run(network, true);
         Exporters.export("XIIDM", network, new Properties(), new FileDataSource(Path.of("/tmp"), "002-afterAnalysis"));
 
-        IntermediateFlowDecompositionResults intermediateResults = flowDecompositionResults.getIntermediateResults();
-        Map<Country, Map<String, Double>> glsks = intermediateResults.getGlsks();
+        Map<Country, Map<String, Double>> glsks = flowDecompositionResults.getGlsks();
         assertEquals(1.0, glsks.get(Country.AL).get(A1));
         assertEquals(0.6, glsks.get(Country.BE).get(B1));
         assertEquals(0.4, glsks.get(Country.BE).get(B3));
@@ -148,9 +143,9 @@ class AllocatedFlowTests {
         assertEquals(1.0, glsks.get(Country.BG).get(V1));
         assertEquals(1.0, glsks.get(Country.BA).get(W2));
 
-        Map<String, Map<String, Double>> ptdfs = intermediateResults.getPtdfMap();
+        Map<String, Map<String, Double>> ptdfs = flowDecompositionResults.getPtdfMap();
 
-        Map<String, Map<String, Double>> nodalInjection = intermediateResults.getNodalInjectionsMap();
+        Map<String, Map<String, Double>> nodalInjection = flowDecompositionResults.getNodalInjectionsMap();
         assertRelatifEquals(598.6  , nodalInjection.get(A1).get(allocated), EPSILON_RELATIF);
         assertRelatifEquals(542.2  , nodalInjection.get(B1).get(allocated), EPSILON_RELATIF);
         assertRelatifEquals(361.5  , nodalInjection.get(B3).get(allocated), EPSILON_RELATIF);
