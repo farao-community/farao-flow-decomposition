@@ -10,15 +10,13 @@ import com.powsybl.iidm.network.Country;
 
 import java.util.Map;
 import java.util.Optional;
-import java.util.TreeMap;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
  * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
  */
-class FlowDecompositionResults {
+public class FlowDecompositionResults {
     private final boolean saveIntermediates;
     private SparseMatrixWithIndexesCSC decomposedFlowsMatrix;
     private static final String ALLOCATED_COLUMN_NAME = "Allocated";
@@ -31,15 +29,15 @@ class FlowDecompositionResults {
     }
 
     public Map<String, DecomposedFlow> getDecomposedFlowsMap() {
-        Map<String, Map<String, Double>> decomposedFlowsMapMap = decomposedFlowsMatrix.toMap();
-        return decomposedFlowsMapMap.keySet()
+        return decomposedFlowsMatrix.toMap().entrySet()
             .stream()
             .collect(Collectors.toMap(
-                Function.identity(),
-                xnec -> new DecomposedFlow(decomposedFlowsMapMap.get(xnec).get(ALLOCATED_COLUMN_NAME)),
-                (decomposedFlow, decomposedFlow2) -> decomposedFlow,
-                TreeMap::new
-            ));
+                Map.Entry::getKey,
+                entry -> flowPartsMapToDecomposedFlow(entry.getValue())));
+    }
+
+    private DecomposedFlow flowPartsMapToDecomposedFlow(Map<String, Double> flowPartsMap) {
+        return new DecomposedFlow(flowPartsMap.get(ALLOCATED_COLUMN_NAME));
     }
 
     void saveDecomposedFlowsMatrix(SparseMatrixWithIndexesCSC decomposedFlowsMatrix) {

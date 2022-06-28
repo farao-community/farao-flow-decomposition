@@ -37,25 +37,19 @@ class SparseMatrixWithIndexesCSC extends AbstractSparseMatrixWithIndexes {
             .collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
     }
 
-    public Map<String, Map<String, Double>> toMap() {
-        Map<String, Map<String, Double>> result = rowIndex
-            .entrySet().stream()
-            .collect(Collectors.toMap(
-                Map.Entry::getKey,
-                stringIntegerEntry -> new TreeMap<>(),
-                (stringDoubleMap, stringDoubleMap2) -> stringDoubleMap,
-                TreeMap::new
-            ));
+    Map<String, Map<String, Double>> toMap() {
+        Map<String, Map<String, Double>> result = new TreeMap<>();
         Map<Integer, String> colIndexInversed = inverseIndex(colIndex);
         Map<Integer, String> rowIndexInversed = inverseIndex(rowIndex);
         for (Iterator<DMatrixSparse.CoordinateRealValue> iterator = cscMatrix.createCoordinateIterator(); iterator.hasNext(); ) {
             DMatrixSparse.CoordinateRealValue cell = iterator.next();
-            result.get(rowIndexInversed.get(cell.row)).put(colIndexInversed.get(cell.col), cell.value);
+            result.computeIfAbsent(rowIndexInversed.get(cell.row), v -> new TreeMap<>())
+                    .put(colIndexInversed.get(cell.col), cell.value);
         }
         return result;
     }
 
-    public static SparseMatrixWithIndexesCSC mult(SparseMatrixWithIndexesCSC matrix1, SparseMatrixWithIndexesCSC matrix2) {
+    static SparseMatrixWithIndexesCSC mult(SparseMatrixWithIndexesCSC matrix1, SparseMatrixWithIndexesCSC matrix2) {
         SparseMatrixWithIndexesCSC multiplicationResult = new SparseMatrixWithIndexesCSC(matrix1.rowIndex, matrix2.colIndex);
         CommonOps_DSCC.mult(matrix1.cscMatrix, matrix2.cscMatrix, multiplicationResult.cscMatrix);
         return multiplicationResult;
