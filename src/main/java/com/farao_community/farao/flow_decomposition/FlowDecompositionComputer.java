@@ -40,14 +40,14 @@ public class FlowDecompositionComputer {
     private static SensitivityAnalysisParameters initSensitivityAnalysisParameters(LoadFlowParameters loadFlowParameters) {
         SensitivityAnalysisParameters parameters = SensitivityAnalysisParameters.load();
         parameters.setLoadFlowParameters(loadFlowParameters);
-        LOGGER.debug("Using following sensitivity analysis parameters: " + parameters);
+        LOGGER.debug("Using following sensitivity analysis parameters: {}", parameters);
         return parameters;
     }
 
     private static LoadFlowParameters initLoadFlowParameters() {
         LoadFlowParameters parameters = LoadFlowParameters.load();
         parameters.setDc(true);
-        LOGGER.debug("Using following load flow parameters: " + parameters);
+        LOGGER.debug("Using following load flow parameters: {}", parameters);
         return parameters;
     }
 
