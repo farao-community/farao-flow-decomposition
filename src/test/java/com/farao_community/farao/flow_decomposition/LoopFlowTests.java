@@ -40,13 +40,17 @@ public class LoopFlowTests {
         String x5 = "FLOAD 11 ELOAD 11 1";
 
         String allocated = "Allocated";
+        String cgm = "CGM";
 
         Network network = importNetwork(networkFileName);
         FlowDecompositionComputer flowComputer = new FlowDecompositionComputer();
         FlowDecompositionResults flowDecompositionResults = flowComputer.run(network, true);
 
-
         Map<String, DecomposedFlow> decomposedFlowMap = flowDecompositionResults.getDecomposedFlowsMap();
+        assertEquals(  0, decomposedFlowMap.get(x1).getAllocatedFlow(), EPSILON);
+        assertEquals(  0, decomposedFlowMap.get(x2).getAllocatedFlow(), EPSILON);
+        assertEquals(  0, decomposedFlowMap.get(x4).getAllocatedFlow(), EPSILON);
+        assertEquals(  0, decomposedFlowMap.get(x5).getAllocatedFlow(), EPSILON);
         assertEquals(  0, decomposedFlowMap.get(x1).getLoopFlow(Country.BE), EPSILON);
         assertEquals(100, decomposedFlowMap.get(x1).getLoopFlow(Country.ES), EPSILON);
         assertEquals(  0, decomposedFlowMap.get(x1).getLoopFlow(Country.FR), EPSILON);
@@ -70,6 +74,16 @@ public class LoopFlowTests {
         var optionalPtdfs = flowDecompositionResults.getPtdfMap();
         assertTrue(optionalPtdfs.isPresent());
 
+        var optionalCGMNodalInjections = flowDecompositionResults.getCGMNodalInjectionsMap();
+        assertTrue(optionalCGMNodalInjections.isPresent());
+        var cgmNodalInjections = optionalCGMNodalInjections.get();
+        assertEquals( 100, cgmNodalInjections.get(gBe).get(cgm));
+        assertEquals( 100, cgmNodalInjections.get(gEs).get(cgm));
+        assertEquals( 100, cgmNodalInjections.get(gFr).get(cgm));
+        assertEquals(-100, cgmNodalInjections.get(lBe).get(cgm));
+        assertEquals(-100, cgmNodalInjections.get(lEs).get(cgm));
+        assertEquals(-100, cgmNodalInjections.get(lFr).get(cgm));
+
         var optionalNodalInjections = flowDecompositionResults.getNodalInjectionsMap();
         assertTrue(optionalNodalInjections.isPresent());
         var nodalInjections = optionalNodalInjections.get();
@@ -79,6 +93,11 @@ public class LoopFlowTests {
         assertEquals(0, nodalInjections.get(lBe).get(allocated));
         assertEquals(0, nodalInjections.get(lEs).get(allocated));
         assertEquals(0, nodalInjections.get(lFr).get(allocated));
-        System.out.println("plop");
+        assertEquals(0, nodalInjections.get(gBe).get(Country.BE.toString()));
+        assertEquals(0, nodalInjections.get(gEs).get(Country.ES.toString()));
+        assertEquals(0, nodalInjections.get(gFr).get(Country.FR.toString()));
+        assertEquals(0, nodalInjections.get(lBe).get(Country.BE.toString()));
+        assertEquals(0, nodalInjections.get(lEs).get(Country.ES.toString()));
+        assertEquals(0, nodalInjections.get(lFr).get(Country.FR.toString()));
     }
 }

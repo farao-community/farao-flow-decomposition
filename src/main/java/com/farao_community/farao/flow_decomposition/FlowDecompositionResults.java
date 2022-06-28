@@ -8,6 +8,7 @@ package com.farao_community.farao.flow_decomposition;
 
 import com.powsybl.iidm.network.Country;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -72,5 +73,9 @@ public class FlowDecompositionResults {
 
     Optional<Map<String, Map<String, Double>>> getPtdfMap() {
         return Optional.ofNullable(ptdfMatrix).map(SparseMatrixWithIndexesTriplet::toMap);
+    }
+
+    Optional<Map<String, Map<String, Double>>> getCGMNodalInjectionsMap() {
+        return Optional.empty();//Optional.ofNullable(blablabla).map(SparseMatrixWithIndexesTriplet::toMap);
     }
 }
