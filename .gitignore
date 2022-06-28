@@ -28,3 +28,7 @@ target/
 # Intellij IDEA
 *.iml
 .idea
+
+# Local tests
+/src/test/resources/com/farao_community/farao/flow_decomposition/locally/
+/src/test/java/com/farao_community/farao/flow_decomposition/LocalTests.java
