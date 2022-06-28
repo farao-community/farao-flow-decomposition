@@ -6,6 +6,8 @@
  */
 package com.farao_community.farao.flow_decomposition;
 
+import com.powsybl.iidm.network.Country;
+
 /**
  * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
@@ -19,5 +21,9 @@ public class DecomposedFlow {
 
     public Double getAllocatedFlow() {
         return allocatedFlow;
+    }
+
+    public double getLoopFlow(Country country) {
+        return 0;
     }
 }
