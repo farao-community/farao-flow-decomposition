@@ -10,7 +10,6 @@ import com.powsybl.contingency.ContingencyContext;
 import com.powsybl.iidm.network.*;
 import com.powsybl.loadflow.LoadFlow;
 import com.powsybl.loadflow.LoadFlowParameters;
-import com.powsybl.openloadflow.sensi.OpenSensitivityAnalysisProvider;
 import com.powsybl.sensitivity.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -164,9 +163,7 @@ public class FlowDecompositionComputer {
     }
 
     private SensitivityAnalysisResult getSensitivityAnalysisResult(Network network, List<SensitivityFactor> factors) {
-        OpenSensitivityAnalysisProvider sensiProvider = new OpenSensitivityAnalysisProvider();
-        SensitivityAnalysis.Runner sensiRunner = new SensitivityAnalysis.Runner(sensiProvider);
-        return sensiRunner.run(network, factors, sensitivityAnalysisParameters);
+        return SensitivityAnalysis.run(network, factors, sensitivityAnalysisParameters);
     }
 
     private SparseMatrixWithIndexesTriplet getPtdfMatrixTriplet(
