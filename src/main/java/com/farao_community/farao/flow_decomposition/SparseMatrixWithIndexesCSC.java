@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
  * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
  */
-class SparseMatrixWithIndexesCSC extends SparseMatrixWithIndexes {
+class SparseMatrixWithIndexesCSC extends AbstractSparseMatrixWithIndexes {
     private final DMatrixSparseCSC cscMatrix;
 
     SparseMatrixWithIndexesCSC(Map<String, Integer> rowIndex, Map<String, Integer> colIndex, DMatrixSparseCSC cscMatrix) {

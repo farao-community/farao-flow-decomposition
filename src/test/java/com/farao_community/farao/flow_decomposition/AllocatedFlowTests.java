@@ -6,18 +6,12 @@
  */
 package com.farao_community.farao.flow_decomposition;
 
-import com.powsybl.commons.datasource.FileDataSource;
-import com.powsybl.iidm.export.Exporters;
 import com.powsybl.iidm.import_.Importers;
 import com.powsybl.iidm.network.*;
-import com.powsybl.loadflow.LoadFlow;
-import com.powsybl.loadflow.LoadFlowParameters;
 import org.junit.jupiter.api.Test;
 
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
-import java.util.Properties;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -37,10 +31,10 @@ class AllocatedFlowTests {
     @Test
     void checkThatAllocatedFlowAreExtractedForEachXnecGivenABasicNetwork() {
         String networkFileName = "NETWORK_SINGLE_LOAD_TWO_GENERATORS_WITH_COUNTRIES.uct";
-        String gen_be = "BGEN2 11_generator";
-        String load_be = "BLOAD 11_load";
-        String gen_fr = "FGEN1 11_generator";
-        String xnec_fr_be = "FGEN1 11 BLOAD 11 1";
+        String genBe = "BGEN2 11_generator";
+        String loadBe = "BLOAD 11_load";
+        String genFr = "FGEN1 11_generator";
+        String xnecFrBee = "FGEN1 11 BLOAD 11 1";
         String allocated = "Allocated";
 
         Network network = importNetwork(networkFileName);
@@ -48,20 +42,37 @@ class AllocatedFlowTests {
         FlowDecompositionResults flowDecompositionResults = allocatedFlowComputer.run(network, true);
 
         Map<String, DecomposedFlow> decomposedFlowMap = flowDecompositionResults.getDecomposedFlowsMap();
-        assertEquals(100, decomposedFlowMap.get(xnec_fr_be).getAllocatedFlow(), EPSILON);
+        assertEquals(100, decomposedFlowMap.get(xnecFrBee).getAllocatedFlow(), EPSILON);
 
-        Map<Country, Map<String, Double>> glsks = flowDecompositionResults.getGlsks();
-        assertEquals(1.0, glsks.get(Country.FR).get(gen_fr), EPSILON);
-        assertEquals(1.0, glsks.get(Country.BE).get(gen_be), EPSILON);
+        var optionalGlsks = flowDecompositionResults.getGlsks();
+        assertTrue(optionalGlsks.isPresent());
+        var glsks = optionalGlsks.get();
+        assertEquals(1.0, glsks.get(Country.FR).get(genFr), EPSILON);
+        assertEquals(1.0, glsks.get(Country.BE).get(genBe), EPSILON);
 
-        Map<String, Map<String, Double>> ptdfs = flowDecompositionResults.getPtdfMap();
-        assertEquals(-0.5, ptdfs.get(xnec_fr_be).get(load_be));
-        assertEquals(-0.5, ptdfs.get(xnec_fr_be).get(gen_be));
-        assertEquals(+0.5, ptdfs.get(xnec_fr_be).get(gen_fr));
+        var optionalPtdfs = flowDecompositionResults.getPtdfMap();
+        assertTrue(optionalPtdfs.isPresent());
+        var ptdfs = optionalPtdfs.get();
+        assertEquals(-0.5, ptdfs.get(xnecFrBee).get(loadBe));
+        assertEquals(-0.5, ptdfs.get(xnecFrBee).get(genBe));
+        assertEquals(+0.5, ptdfs.get(xnecFrBee).get(genFr));
 
-        Map<String, Map<String, Double>> nodalInjection = flowDecompositionResults.getNodalInjectionsMap();
-        assertEquals(-100, nodalInjection.get(gen_be).get(allocated));
-        assertEquals(+100, nodalInjection.get(gen_fr).get(allocated));
+        var optionalNodalInjections = flowDecompositionResults.getNodalInjectionsMap();
+        assertTrue(optionalNodalInjections.isPresent());
+        var nodalInjections = optionalNodalInjections.get();
+        assertEquals(-100, nodalInjections.get(genBe).get(allocated));
+        assertEquals(+100, nodalInjections.get(genFr).get(allocated));
+    }
+
+    @Test
+    void checkThatFlowDecompositionDoesNotExtractIntermediateResultsByDefault() {
+        String networkFileName = "NETWORK_SINGLE_LOAD_TWO_GENERATORS_WITH_COUNTRIES.uct";
+        Network network = importNetwork(networkFileName);
+        FlowDecompositionComputer allocatedFlowComputer = new FlowDecompositionComputer();
+        FlowDecompositionResults flowDecompositionResults = allocatedFlowComputer.run(network);
+        assertTrue(flowDecompositionResults.getGlsks().isEmpty());
+        assertTrue(flowDecompositionResults.getPtdfMap().isEmpty());
+        assertTrue(flowDecompositionResults.getNodalInjectionsMap().isEmpty());
     }
 
 }

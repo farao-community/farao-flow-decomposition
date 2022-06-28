@@ -39,6 +39,7 @@ final class NetworkUtil {
     static Country getInjectionCountry(Injection<?> injection) {
         return getTerminalCountry(injection.getTerminal());
     }
+
     static Map<Country, Double> computeNetPositions(Network network) {
         Map<Country, Double> netPositions = new EnumMap<>(Country.class);
 

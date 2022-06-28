@@ -9,6 +9,7 @@ package com.farao_community.farao.flow_decomposition;
 import com.powsybl.iidm.network.Country;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -27,10 +28,6 @@ class FlowDecompositionResults {
 
     FlowDecompositionResults(boolean saveIntermediates) {
         this.saveIntermediates = saveIntermediates;
-    }
-
-    public FlowDecompositionResults() {
-        this(false);
     }
 
     public Map<String, DecomposedFlow> getDecomposedFlowsMap() {
@@ -67,15 +64,15 @@ class FlowDecompositionResults {
         }
     }
 
-    Map<Country, Map<String, Double>> getGlsks() {
-        return glsks;
+    Optional<Map<Country, Map<String, Double>>> getGlsks() {
+        return Optional.ofNullable(glsks);
     }
 
-    Map<String, Map<String, Double>> getNodalInjectionsMap() {
-        return nodalInjectionsMatrix.toMap();
+    Optional<Map<String, Map<String, Double>>> getNodalInjectionsMap() {
+        return Optional.ofNullable(nodalInjectionsMatrix).map(SparseMatrixWithIndexesTriplet::toMap);
     }
 
-    Map<String, Map<String, Double>> getPtdfMap() {
-        return ptdfMatrix.toMap();
+    Optional<Map<String, Map<String, Double>>> getPtdfMap() {
+        return Optional.ofNullable(ptdfMatrix).map(SparseMatrixWithIndexesTriplet::toMap);
     }
 }

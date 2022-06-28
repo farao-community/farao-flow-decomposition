@@ -16,7 +16,7 @@ import java.util.Map;
  * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
  */
-class SparseMatrixWithIndexesTriplet extends SparseMatrixWithIndexes {
+class SparseMatrixWithIndexesTriplet extends AbstractSparseMatrixWithIndexes {
     private final DMatrixSparseTriplet tripletMatrix;
 
     public SparseMatrixWithIndexesTriplet(Map<String, Integer> rowIndex, Map<String, Integer> colIndex, Integer initLength) {

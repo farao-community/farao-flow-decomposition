@@ -53,14 +53,13 @@ public class FlowDecompositionComputer {
 
     private Map<Country, Map<String, Double>> buildAutoGlsks(Network network) {
         Map<Country, Map<String, Double>> glsks = network.getCountries().stream().collect(Collectors.toMap(
-                Function.identity(),
-                country -> new HashMap<>()));
+            Function.identity(),
+            country -> new HashMap<>()));
         network.getGeneratorStream()
                 .forEach(generator -> {
-                        Country generatorCountry = NetworkUtil.getInjectionCountry(generator);
-                        glsks.get(generatorCountry).put(generator.getId(), generator.getTargetP());
-                    }
-                );
+                    Country generatorCountry = NetworkUtil.getInjectionCountry(generator);
+                    glsks.get(generatorCountry).put(generator.getId(), generator.getTargetP());
+                });
         glsks.forEach((country, glsk) -> {
             double glskSum = glsk.values().stream().mapToDouble(factor -> factor).sum();
             glsk.forEach((key, value) -> glsk.put(key, value / glskSum));
@@ -93,9 +92,9 @@ public class FlowDecompositionComputer {
         return getAllNetworkInjections(network)
                 .stream()
                 .collect(Collectors.toMap(
-                        Injection::getId,
-                        injection -> getIndividualNodalInjectionForAllocatedFlows(injection, glsks, netPositions)
-                        )
+                    Injection::getId,
+                    injection -> getIndividualNodalInjectionForAllocatedFlows(injection, glsks, netPositions)
+                    )
                 );
     }
 
@@ -109,7 +108,7 @@ public class FlowDecompositionComputer {
         SparseMatrixWithIndexesTriplet nodalInjectionMatrix = new SparseMatrixWithIndexesTriplet(
                 nodeIndex, ALLOCATED_COLUMN_NAME, nonZeroInjections.size());
         nonZeroInjections.forEach(
-                (injectionId, injectionValue) -> nodalInjectionMatrix.addItem(injectionId, ALLOCATED_COLUMN_NAME, injectionValue)
+            (injectionId, injectionValue) -> nodalInjectionMatrix.addItem(injectionId, ALLOCATED_COLUMN_NAME, injectionValue)
         );
         return nodalInjectionMatrix;
     }
@@ -175,7 +174,7 @@ public class FlowDecompositionComputer {
             Map<String, Integer> nodeIndex,
             List<SensitivityFactor> factors,
             SensitivityAnalysisResult sensiResult) {
-        SparseMatrixWithIndexesTriplet ptdfMatrixTriplet = new SparseMatrixWithIndexesTriplet(xnecIndex, nodeIndex, factors.size()+1);
+        SparseMatrixWithIndexesTriplet ptdfMatrixTriplet = new SparseMatrixWithIndexesTriplet(xnecIndex, nodeIndex, factors.size() + 1);
         for (SensitivityValue sensitivityValue : sensiResult.getValues()) {
             SensitivityFactor factor = factors.get(sensitivityValue.getFactorIndex());
             ptdfMatrixTriplet.addItem(factor.getFunctionId(), factor.getVariableId(), sensitivityValue.getValue());
