@@ -30,8 +30,14 @@ public class FlowDecompositionComputer {
     private static final Logger LOGGER = LoggerFactory.getLogger(FlowDecompositionComputer.class);
     private final LoadFlowParameters loadFlowParameters;
     private final SensitivityAnalysisParameters sensitivityAnalysisParameters;
+    private final FlowDecompositionParameters parameters;
 
     public FlowDecompositionComputer() {
+        this(new FlowDecompositionParameters());
+    }
+
+    public FlowDecompositionComputer(FlowDecompositionParameters parameters) {
+        this.parameters = parameters;
         this.loadFlowParameters = initLoadFlowParameters();
         this.sensitivityAnalysisParameters = initSensitivityAnalysisParameters(loadFlowParameters);
     }
@@ -208,6 +214,10 @@ public class FlowDecompositionComputer {
     }
 
     public FlowDecompositionResults run(Network network, boolean saveIntermediate) {
+        if (parameters.lossesCompensationEnabled()) {
+            compensateLosses(network);
+        }
+
         FlowDecompositionResults flowDecompositionResults = new FlowDecompositionResults(saveIntermediate);
         List<Branch> xnecList = selectXnecs(network);
         List<String> nodeList = getNodeList(network);
@@ -227,6 +237,11 @@ public class FlowDecompositionComputer {
         flowDecompositionResults.saveDecomposedFlowsMatrix(allocatedFlowsMatrix);
 
         return flowDecompositionResults;
+    }
+
+    private void compensateLosses(Network network) {
+        LossesCompensator lossesCompensator = new LossesCompensator(loadFlowParameters);
+        lossesCompensator.compensateLosses(network);
     }
 
     public FlowDecompositionResults run(Network network) {

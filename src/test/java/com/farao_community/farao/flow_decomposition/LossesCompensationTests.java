@@ -1,0 +1,105 @@
+/*
+ * Copyright (c) 2022, RTE (http://www.rte-france.com)
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+package com.farao_community.farao.flow_decomposition;
+
+import com.powsybl.iidm.import_.Importers;
+import com.powsybl.iidm.network.Load;
+import com.powsybl.iidm.network.Network;
+import com.powsybl.loadflow.LoadFlowParameters;
+import org.junit.jupiter.api.Test;
+
+import java.nio.file.Paths;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+ * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
+ */
+class LossesCompensationTests {
+    private static final double EPSILON = 1e-3;
+
+    static Network importNetwork(String networkResourcePath) {
+        String networkName = Paths.get(networkResourcePath).getFileName().toString();
+        return Importers.loadNetwork(networkName, AllocatedFlowTests.class.getResourceAsStream(networkResourcePath));
+    }
+
+    @Test
+    void checkThatLossesCompensationIsDoneCorrectly() {
+        String networkFileName = "NETWORK_SINGLE_LOAD_TWO_GENERATORS_WITH_COUNTRIES.uct";
+
+        LoadFlowParameters loadFlowParameters = new LoadFlowParameters();
+        loadFlowParameters.setDc(false);
+
+        Network network = importNetwork(networkFileName);
+        LossesCompensator lossesCompensator = new LossesCompensator(loadFlowParameters);
+        lossesCompensator.compensateLosses(network);
+
+        assessSingleLoadTwoGeneratorsNetworkLossesCompensation(network);
+    }
+
+    @Test
+    void checkThatLossesCompensationDoesEnforceAcLoadflow() {
+        String networkFileName = "NETWORK_SINGLE_LOAD_TWO_GENERATORS_WITH_COUNTRIES.uct";
+
+        LoadFlowParameters loadFlowParameters = new LoadFlowParameters();
+        loadFlowParameters.setDc(true);
+
+        Network network = importNetwork(networkFileName);
+        LossesCompensator lossesCompensator = new LossesCompensator(loadFlowParameters);
+        lossesCompensator.compensateLosses(network);
+
+        assessSingleLoadTwoGeneratorsNetworkLossesCompensation(network);
+    }
+
+    private void assessSingleLoadTwoGeneratorsNetworkLossesCompensation(Network network) {
+        Load lossesFgenBload = network.getLoad("LOSSES FGEN1 11 BLOAD 11 1");
+        assertNotNull(lossesFgenBload);
+        assertEquals("FGEN1 1", lossesFgenBload.getTerminal().getVoltageLevel().getId());
+        assertEquals(0.0625, lossesFgenBload.getP0(), EPSILON);
+        Load lossesBloadBgen = network.getLoad("LOSSES BLOAD 11 BGEN2 11 1");
+        assertNotNull(lossesBloadBgen);
+        assertEquals("BGEN2 1", lossesBloadBgen.getTerminal().getVoltageLevel().getId());
+        assertEquals(0.0625, lossesBloadBgen.getP0(), EPSILON);
+    }
+
+    @Test
+    void checkThatDefaultFlowDecompositionDoesNotCompensateLosses() {
+        String networkFileName = "NETWORK_SINGLE_LOAD_TWO_GENERATORS_WITH_COUNTRIES_EXTRA_SUBSTATION.uct";
+        Network network = importNetwork(networkFileName);
+
+        FlowDecompositionComputer flowDecompositionComputer = new FlowDecompositionComputer();
+        FlowDecompositionResults flowDecompositionResults = flowDecompositionComputer.run(network);
+
+        assertEquals(100., flowDecompositionResults.getDecomposedFlowsMap().get("FLOAD 11 BLOAD 11 1").getAllocatedFlow(), EPSILON);
+    }
+
+    @Test
+    void checkThatEnablingLossesCompensationDoesImpactFlowDecompositionCorrectly() {
+        String networkFileName = "NETWORK_SINGLE_LOAD_TWO_GENERATORS_WITH_COUNTRIES_EXTRA_SUBSTATION.uct";
+        Network network = importNetwork(networkFileName);
+
+        FlowDecompositionParameters flowDecompositionParameters = new FlowDecompositionParameters();
+        flowDecompositionParameters.enableLossesCompensation(true);
+        FlowDecompositionComputer flowDecompositionComputer = new FlowDecompositionComputer(flowDecompositionParameters);
+        FlowDecompositionResults flowDecompositionResults = flowDecompositionComputer.run(network);
+
+        assertEquals(98.5958, flowDecompositionResults.getDecomposedFlowsMap().get("FLOAD 11 BLOAD 11 1").getAllocatedFlow(), EPSILON);
+    }
+
+    @Test
+    void checkThatDisablingLossesCompensationDoesImpactFlowDecompositionCorrectly() {
+        String networkFileName = "NETWORK_SINGLE_LOAD_TWO_GENERATORS_WITH_COUNTRIES_EXTRA_SUBSTATION.uct";
+        Network network = importNetwork(networkFileName);
+
+        FlowDecompositionParameters flowDecompositionParameters = new FlowDecompositionParameters();
+        flowDecompositionParameters.enableLossesCompensation(false);
+        FlowDecompositionComputer flowDecompositionComputer = new FlowDecompositionComputer(flowDecompositionParameters);
+        FlowDecompositionResults flowDecompositionResults = flowDecompositionComputer.run(network);
+
+        assertEquals(100., flowDecompositionResults.getDecomposedFlowsMap().get("FLOAD 11 BLOAD 11 1").getAllocatedFlow(), EPSILON);
+    }
+}
