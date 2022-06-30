@@ -22,7 +22,7 @@ public class FlowDecompositionResults {
     private Map<Country, Map<String, Double>> glsks;
     private SparseMatrixWithIndexesTriplet nodalInjectionsMatrix;
     private SparseMatrixWithIndexesTriplet ptdfMatrix;
-    private Map<String, Map<String, Double>> referenceNodalInjections;
+    private Map<String, Double> referenceNodalInjections;
 
     FlowDecompositionResults(boolean saveIntermediates) {
         this.saveIntermediates = saveIntermediates;
@@ -74,11 +74,11 @@ public class FlowDecompositionResults {
         return Optional.ofNullable(ptdfMatrix).map(SparseMatrixWithIndexesTriplet::toMap);
     }
 
-    Optional<Map<String, Map<String, Double>>> getReferenceNodalInjectionsMap() {
+    Optional<Map<String, Double>> getReferenceNodalInjectionsMap() {
         return Optional.ofNullable(referenceNodalInjections);
     }
 
-    public void saveReferenceNodalInjections(Map<String, Map<String, Double>> referenceNodalInjections) {
+    public void saveReferenceNodalInjections(Map<String, Double> referenceNodalInjections) {
         this.referenceNodalInjections = referenceNodalInjections;
     }
 }

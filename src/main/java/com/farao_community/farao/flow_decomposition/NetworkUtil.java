@@ -41,7 +41,11 @@ final class NetworkUtil {
     }
 
     static Country getIdentifiableCountry(Network network, String identifiableId){
-        return NetworkUtil.getInjectionCountry((Injection) network.getIdentifiable(identifiableId));
+        Identifiable<?> identifiable = network.getIdentifiable(identifiableId);
+        if (identifiable instanceof Injection) {
+            return NetworkUtil.getInjectionCountry((Injection) identifiable);
+        }
+        throw new PowsyblException("Identifiable %s must be an Injection");
     }
 
     static Map<Country, Double> computeNetPositions(Network network) {

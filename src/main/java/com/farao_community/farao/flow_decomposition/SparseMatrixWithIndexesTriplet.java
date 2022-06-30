@@ -17,6 +17,7 @@ import java.util.Map;
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
  */
 class SparseMatrixWithIndexesTriplet extends AbstractSparseMatrixWithIndexes {
+    private static final double EPSILON = 1e-5;
     private final DMatrixSparseTriplet tripletMatrix;
 
     public SparseMatrixWithIndexesTriplet(Map<String, Integer> rowIndex, Map<String, Integer> colIndex, Integer initLength) {
@@ -28,8 +29,12 @@ class SparseMatrixWithIndexesTriplet extends AbstractSparseMatrixWithIndexes {
         this(rowIndex, Map.of(colName, 0), initLength);
     }
 
+    private boolean isNotZero(Double value) {
+        return Math.abs(value) > EPSILON;
+    }
+
     public void addItem(String row, String col, double value) {
-        if (!Double.isNaN(value) && value != 0) {
+        if (!Double.isNaN(value) && isNotZero(value)) {
             tripletMatrix.addItem(rowIndex.get(row), colIndex.get(col), value);
         }
     }

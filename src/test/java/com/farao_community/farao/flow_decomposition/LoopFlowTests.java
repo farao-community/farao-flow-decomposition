@@ -56,15 +56,15 @@ public class LoopFlowTests {
         var optionalPtdfs = flowDecompositionResults.getPtdfMap();
         assertTrue(optionalPtdfs.isPresent());
 
-        var optionalCGMNodalInjections = flowDecompositionResults.getReferenceNodalInjectionsMap();
-        assertTrue(optionalCGMNodalInjections.isPresent());
-        var cgmNodalInjections = optionalCGMNodalInjections.get();
-        assertEquals( 100, cgmNodalInjections.get(gBe).get(cgm));
-        assertEquals( 100, cgmNodalInjections.get(gEs).get(cgm));
-        assertEquals( 100, cgmNodalInjections.get(gFr).get(cgm));
-        assertEquals(-100, cgmNodalInjections.get(lBe).get(cgm));
-        assertEquals(-100, cgmNodalInjections.get(lEs).get(cgm));
-        assertEquals(-100, cgmNodalInjections.get(lFr).get(cgm));
+        var optionalReferenceNodalInjections = flowDecompositionResults.getReferenceNodalInjectionsMap();
+        assertTrue(optionalReferenceNodalInjections.isPresent());
+        var referenceNodalInjections = optionalReferenceNodalInjections.get();
+        assertEquals( 100, referenceNodalInjections.get(gBe));
+        assertEquals( 100, referenceNodalInjections.get(gEs));
+        assertEquals( 100, referenceNodalInjections.get(gFr));
+        assertEquals(-100, referenceNodalInjections.get(lBe));
+        assertEquals(-100, referenceNodalInjections.get(lEs));
+        assertEquals(-100, referenceNodalInjections.get(lFr));
 
         var optionalNodalInjections = flowDecompositionResults.getNodalInjectionsMap();
         assertTrue(optionalNodalInjections.isPresent());
