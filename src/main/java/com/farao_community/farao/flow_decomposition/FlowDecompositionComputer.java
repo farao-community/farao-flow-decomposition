@@ -174,7 +174,9 @@ public class FlowDecompositionComputer {
         SparseMatrixWithIndexesTriplet ptdfMatrixTriplet = new SparseMatrixWithIndexesTriplet(xnecIndex, nodeIndex, factors.size() + 1);
         for (SensitivityValue sensitivityValue : sensiResult.getValues()) {
             SensitivityFactor factor = factors.get(sensitivityValue.getFactorIndex());
-            ptdfMatrixTriplet.addItem(factor.getFunctionId(), factor.getVariableId(), sensitivityValue.getValue());
+            double sensitivity = sensitivityValue.getValue();
+            double referenceOrientedSensitivity = sensitivityValue.getFunctionReference() < 0 ? -sensitivity : sensitivity;
+            ptdfMatrixTriplet.addItem(factor.getFunctionId(), factor.getVariableId(), referenceOrientedSensitivity);
         }
         return ptdfMatrixTriplet;
     }
