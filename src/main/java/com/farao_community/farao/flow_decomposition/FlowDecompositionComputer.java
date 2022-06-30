@@ -6,6 +6,7 @@
  */
 package com.farao_community.farao.flow_decomposition;
 
+import com.powsybl.commons.PowsyblException;
 import com.powsybl.contingency.ContingencyContext;
 import com.powsybl.iidm.network.*;
 import com.powsybl.loadflow.LoadFlow;
@@ -27,6 +28,7 @@ public class FlowDecompositionComputer {
     private static final double EPSILON = 1e-5;
     private static final double DEFAULT_GLSK_FACTOR = 0.0;
     private static final String ALLOCATED_COLUMN_NAME = "Allocated";
+    private static final String CGM_COLUMN_NAME = "CGM";
     private static final Logger LOGGER = LoggerFactory.getLogger(FlowDecompositionComputer.class);
     private final LoadFlowParameters loadFlowParameters;
     private final SensitivityAnalysisParameters sensitivityAnalysisParameters;
@@ -205,6 +207,26 @@ public class FlowDecompositionComputer {
         return SparseMatrixWithIndexesCSC.mult(ptdfMatrix.toCSCMatrix(), nodalInjectionsSparseMatrix.toCSCMatrix());
     }
 
+    private double getReferenceInjection(Network network, String nodeId) {
+        Identifiable<?> node = network.getIdentifiable(nodeId);
+        double p = 0.0;
+        if (node instanceof Generator) {
+            p = - ((Generator) node).getTerminal().getP();
+        } else if (node instanceof Load) {
+            p = - ((Load) node).getTerminal().getP();
+        }
+        if (Double.isNaN(p)) {
+            throw new PowsyblException(String.format("Reference nodal injection cannot be a Nan for node %s", nodeId));
+        }
+        return p;
+    }
+
+    private Map<String, Map<String, Double>> getReferenceNodalInjections(Network network, List<String> nodeList) {
+        LoadFlow.run(network, loadFlowParameters);
+        return nodeList.stream().collect(Collectors.toMap(Function.identity(), nodeId -> Map.of(CGM_COLUMN_NAME, getReferenceInjection(network, nodeId))));
+    }
+
+
     public FlowDecompositionResults run(Network network, boolean saveIntermediate) {
         FlowDecompositionResults flowDecompositionResults = new FlowDecompositionResults(saveIntermediate);
         List<Branch> xnecList = selectXnecs(network);
@@ -214,6 +236,9 @@ public class FlowDecompositionComputer {
 
         Map<Country, Map<String, Double>> glsks = buildAutoGlsks(network);
         flowDecompositionResults.saveGlsks(glsks);
+
+        Map<String, Map<String, Double>> referenceNodalInjection = getReferenceNodalInjections(network, nodeList);
+        flowDecompositionResults.saveReferenceNodalInjections(referenceNodalInjection);
 
         SparseMatrixWithIndexesTriplet nodalInjectionsMatrix = getNodalInjectionsForAllocatedFlowsMatrix(network, glsks, nodeIndex);
         flowDecompositionResults.saveNodalInjectionsMatrix(nodalInjectionsMatrix);

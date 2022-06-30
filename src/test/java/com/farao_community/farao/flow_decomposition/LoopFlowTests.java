@@ -56,7 +56,7 @@ public class LoopFlowTests {
         var optionalPtdfs = flowDecompositionResults.getPtdfMap();
         assertTrue(optionalPtdfs.isPresent());
 
-        var optionalCGMNodalInjections = flowDecompositionResults.getCGMNodalInjectionsMap();
+        var optionalCGMNodalInjections = flowDecompositionResults.getReferenceNodalInjectionsMap();
         assertTrue(optionalCGMNodalInjections.isPresent());
         var cgmNodalInjections = optionalCGMNodalInjections.get();
         assertEquals( 100, cgmNodalInjections.get(gBe).get(cgm));
