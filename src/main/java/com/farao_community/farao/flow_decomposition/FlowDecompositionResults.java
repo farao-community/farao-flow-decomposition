@@ -19,7 +19,6 @@ import java.util.stream.Collectors;
 public class FlowDecompositionResults {
     private final boolean saveIntermediates;
     private SparseMatrixWithIndexesCSC decomposedFlowsMatrix;
-    private static final String ALLOCATED_COLUMN_NAME = "Allocated";
     private Map<Country, Map<String, Double>> glsks;
     private SparseMatrixWithIndexesTriplet nodalInjectionsMatrix;
     private SparseMatrixWithIndexesTriplet ptdfMatrix;
@@ -38,7 +37,7 @@ public class FlowDecompositionResults {
     }
 
     private DecomposedFlow flowPartsMapToDecomposedFlow(Map<String, Double> flowPartsMap) {
-        return new DecomposedFlow(flowPartsMap.get(ALLOCATED_COLUMN_NAME));
+        return new DecomposedFlow(flowPartsMap);
     }
 
     void saveDecomposedFlowsMatrix(SparseMatrixWithIndexesCSC decomposedFlowsMatrix) {

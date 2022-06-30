@@ -29,7 +29,7 @@ class SparseMatrixWithIndexesTriplet extends AbstractSparseMatrixWithIndexes {
     }
 
     public void addItem(String row, String col, double value) {
-        if (!Double.isNaN(value)) {
+        if (!Double.isNaN(value) && value != 0) {
             tripletMatrix.addItem(rowIndex.get(row), colIndex.get(col), value);
         }
     }

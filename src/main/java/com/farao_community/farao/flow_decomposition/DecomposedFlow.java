@@ -6,24 +6,31 @@
  */
 package com.farao_community.farao.flow_decomposition;
 
+import com.powsybl.commons.PowsyblException;
 import com.powsybl.iidm.network.Country;
+
+import java.util.Map;
 
 /**
  * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
  */
 public class DecomposedFlow {
-    Double allocatedFlow;
+    Map<String, Double> decomposedFlowMap;
+    private static final String ALLOCATED_COLUMN_NAME = "Allocated";
 
-    DecomposedFlow(double allocatedFlow) {
-        this.allocatedFlow = allocatedFlow;
+    DecomposedFlow(Map<String, Double> allocatedFlow) {
+        this.decomposedFlowMap = allocatedFlow;
     }
 
     public Double getAllocatedFlow() {
-        return allocatedFlow;
+        return decomposedFlowMap.get(ALLOCATED_COLUMN_NAME);
     }
 
     public double getLoopFlow(Country country) {
-        return 0;
+        if (!decomposedFlowMap.containsKey(country.toString())) {
+            throw new PowsyblException("Country has to be present in the network");
+        }
+        return decomposedFlowMap.get(country.toString());
     }
 }

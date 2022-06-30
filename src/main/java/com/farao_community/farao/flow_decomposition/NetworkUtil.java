@@ -40,6 +40,10 @@ final class NetworkUtil {
         return getTerminalCountry(injection.getTerminal());
     }
 
+    static Country getIdentifiableCountry(Network network, String identifiableId){
+        return NetworkUtil.getInjectionCountry((Injection) network.getIdentifiable(identifiableId));
+    }
+
     static Map<Country, Double> computeNetPositions(Network network) {
         Map<Country, Double> netPositions = new EnumMap<>(Country.class);
 
