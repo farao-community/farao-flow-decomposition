@@ -36,7 +36,7 @@ class LossesCompensationTests {
 
         Network network = importNetwork(networkFileName);
         LossesCompensator lossesCompensator = new LossesCompensator(loadFlowParameters);
-        lossesCompensator.compensateLosses(network);
+        lossesCompensator.run(network);
 
         assessSingleLoadTwoGeneratorsNetworkLossesCompensation(network);
     }
@@ -50,7 +50,7 @@ class LossesCompensationTests {
 
         Network network = importNetwork(networkFileName);
         LossesCompensator lossesCompensator = new LossesCompensator(loadFlowParameters);
-        lossesCompensator.compensateLosses(network);
+        lossesCompensator.run(network);
 
         assessSingleLoadTwoGeneratorsNetworkLossesCompensation(network);
     }
@@ -67,12 +67,36 @@ class LossesCompensationTests {
     }
 
     @Test
+    void checkThatLossesCompensationOnTieLineDoesDispatchLossesProportionallyToEachSideResistance() {
+        String networkFileName = "NETWORK_SINGLE_LOAD_TWO_GENERATORS_WITH_XNODE.uct";
+
+        LoadFlowParameters loadFlowParameters = new LoadFlowParameters();
+        loadFlowParameters.setDc(false);
+
+        Network network = importNetwork(networkFileName);
+        LossesCompensator lossesCompensator = new LossesCompensator(loadFlowParameters);
+        lossesCompensator.run(network);
+
+        Load lossesFgenBload = network.getLoad("LOSSES FGEN1 11 X     11 1 + X     11 BLOAD 11 1");
+        assertNull(lossesFgenBload);
+
+        Load lossesFgenX = network.getLoad("LOSSES FGEN1 11 X     11 1");
+        assertNotNull(lossesFgenX);
+        assertEquals("FGEN1 1", lossesFgenX.getTerminal().getVoltageLevel().getId());
+        assertEquals(0.015625, lossesFgenX.getP0(), EPSILON);
+        Load lossesBloadX = network.getLoad("LOSSES X     11 BLOAD 11 1");
+        assertNotNull(lossesBloadX);
+        assertEquals("BLOAD 1", lossesBloadX.getTerminal().getVoltageLevel().getId());
+        assertEquals(0.046875, lossesBloadX.getP0(), EPSILON);
+    }
+
+    @Test
     void checkThatDefaultFlowDecompositionDoesNotCompensateLosses() {
         String networkFileName = "NETWORK_SINGLE_LOAD_TWO_GENERATORS_WITH_COUNTRIES_EXTRA_SUBSTATION.uct";
         Network network = importNetwork(networkFileName);
 
         FlowDecompositionComputer flowDecompositionComputer = new FlowDecompositionComputer();
-        FlowDecompositionResults flowDecompositionResults = flowDecompositionComputer.run(network);
+        FlowDecompositionResults flowDecompositionResults = flowDecompositionComputer.run(network, true);
 
         assertEquals(100., flowDecompositionResults.getDecomposedFlowsMap().get("FLOAD 11 BLOAD 11 1").getAllocatedFlow(), EPSILON);
     }
@@ -85,7 +109,7 @@ class LossesCompensationTests {
         FlowDecompositionParameters flowDecompositionParameters = new FlowDecompositionParameters();
         flowDecompositionParameters.enableLossesCompensation(true);
         FlowDecompositionComputer flowDecompositionComputer = new FlowDecompositionComputer(flowDecompositionParameters);
-        FlowDecompositionResults flowDecompositionResults = flowDecompositionComputer.run(network);
+        FlowDecompositionResults flowDecompositionResults = flowDecompositionComputer.run(network, true);
 
         assertEquals(98.5958, flowDecompositionResults.getDecomposedFlowsMap().get("FLOAD 11 BLOAD 11 1").getAllocatedFlow(), EPSILON);
     }

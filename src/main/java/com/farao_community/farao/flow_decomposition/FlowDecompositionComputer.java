@@ -88,12 +88,11 @@ public class FlowDecompositionComputer {
     }
 
     private Map<Country, Double> getZonesNetPosition(Network network) {
-        LoadFlow.run(network, loadFlowParameters);
-        return NetworkUtil.computeNetPositions(network);
+        NetPositionComputer netPositionComputer = new NetPositionComputer(loadFlowParameters);
+        return netPositionComputer.run(network);
     }
 
-    private Map<String, Double> getNodalInjectionsForAllocatedFlows(Network network, Map<Country, Map<String, Double>> glsks) {
-        Map<Country, Double> netPositions = getZonesNetPosition(network);
+    private Map<String, Double> getNodalInjectionsForAllocatedFlows(Network network, Map<Country, Map<String, Double>> glsks, Map<Country, Double> netPositions) {
         return getAllNetworkInjections(network)
                 .stream()
                 .collect(Collectors.toMap(
@@ -121,8 +120,8 @@ public class FlowDecompositionComputer {
     private SparseMatrixWithIndexesTriplet getNodalInjectionsForAllocatedFlowsMatrix(
             Network network,
             Map<Country, Map<String, Double>> glsks,
-            Map<String, Integer> nodeIndex) {
-        Map<String, Double> nodalInjectionsForAllocatedFlow = getNodalInjectionsForAllocatedFlows(network, glsks);
+            Map<Country, Double> netPositions, Map<String, Integer> nodeIndex) {
+        Map<String, Double> nodalInjectionsForAllocatedFlow = getNodalInjectionsForAllocatedFlows(network, glsks, netPositions);
         return convertToNodalInjectionMatrix(nodalInjectionsForAllocatedFlow, nodeIndex);
     }
 
@@ -196,6 +195,8 @@ public class FlowDecompositionComputer {
     private List<String> getNodeList(Network network) {
         return getAllNetworkInjections(network)
             .stream()
+                .filter(injection -> injection.getTerminal().isConnected())
+                .filter(injection -> injection.getTerminal().getBusView().getBus().isInMainSynchronousComponent())
             .map(Injection::getId)
             .collect(Collectors.toList());
     }
@@ -214,20 +215,23 @@ public class FlowDecompositionComputer {
     }
 
     public FlowDecompositionResults run(Network network, boolean saveIntermediate) {
-        if (parameters.lossesCompensationEnabled()) {
-            compensateLosses(network);
-        }
-
         FlowDecompositionResults flowDecompositionResults = new FlowDecompositionResults(saveIntermediate);
         List<Branch> xnecList = selectXnecs(network);
         List<String> nodeList = getNodeList(network);
         Map<String, Integer> xnecIndex = getXnecIndex(xnecList);
         Map<String, Integer> nodeIndex = getNodeIndex(nodeList);
 
+        Map<Country, Double> netPositions = getZonesNetPosition(network);
+
+        if (parameters.lossesCompensationEnabled()) {
+            compensateLosses(network);
+        }
+
+
         Map<Country, Map<String, Double>> glsks = buildAutoGlsks(network);
         flowDecompositionResults.saveGlsks(glsks);
 
-        SparseMatrixWithIndexesTriplet nodalInjectionsMatrix = getNodalInjectionsForAllocatedFlowsMatrix(network, glsks, nodeIndex);
+        SparseMatrixWithIndexesTriplet nodalInjectionsMatrix = getNodalInjectionsForAllocatedFlowsMatrix(network, glsks, netPositions, nodeIndex);
         flowDecompositionResults.saveNodalInjectionsMatrix(nodalInjectionsMatrix);
 
         SparseMatrixWithIndexesTriplet ptdfMatrix = getPtdfMatrix(network, xnecList, xnecIndex, nodeList, nodeIndex);
@@ -241,7 +245,7 @@ public class FlowDecompositionComputer {
 
     private void compensateLosses(Network network) {
         LossesCompensator lossesCompensator = new LossesCompensator(loadFlowParameters);
-        lossesCompensator.compensateLosses(network);
+        lossesCompensator.run(network);
     }
 
     public FlowDecompositionResults run(Network network) {
