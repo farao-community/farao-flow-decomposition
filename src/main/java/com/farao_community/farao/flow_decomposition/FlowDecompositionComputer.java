@@ -198,7 +198,9 @@ public class FlowDecompositionComputer {
         LOGGER.debug("Filtering PTDF values with epsilon = {}", DEFAULT_PTDF_EPSILON);
         for (SensitivityValue sensitivityValue : sensiResult.getValues()) {
             SensitivityFactor factor = factors.get(sensitivityValue.getFactorIndex());
-            ptdfMatrixTriplet.addItem(factor.getFunctionId(), factor.getVariableId(), sensitivityValue.getValue());
+            double sensitivity = sensitivityValue.getValue();
+            double referenceOrientedSensitivity = sensitivityValue.getFunctionReference() < 0 ? -sensitivity : sensitivity;
+            ptdfMatrixTriplet.addItem(factor.getFunctionId(), factor.getVariableId(), referenceOrientedSensitivity);
         }
         return ptdfMatrixTriplet;
     }
