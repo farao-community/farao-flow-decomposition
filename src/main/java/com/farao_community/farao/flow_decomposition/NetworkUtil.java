@@ -40,12 +40,12 @@ final class NetworkUtil {
         return getTerminalCountry(injection.getTerminal());
     }
 
-    static Country getIdentifiableCountry(Network network, String identifiableId){
+    static Country getIdentifiableCountry(Network network, String identifiableId) {
         Identifiable<?> identifiable = network.getIdentifiable(identifiableId);
         if (identifiable instanceof Injection) {
-            return NetworkUtil.getInjectionCountry((Injection) identifiable);
+            return getInjectionCountry((Injection) identifiable);
         }
-        throw new PowsyblException("Identifiable %s must be an Injection");
+        throw new PowsyblException(String.format("Identifiable %s must be an Injection", identifiableId));
     }
 
     static Map<Country, Double> computeNetPositions(Network network) {

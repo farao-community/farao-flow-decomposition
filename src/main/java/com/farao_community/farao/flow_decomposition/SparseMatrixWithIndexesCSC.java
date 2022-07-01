@@ -37,8 +37,7 @@ class SparseMatrixWithIndexesCSC extends AbstractSparseMatrixWithIndexes {
             .collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
     }
 
-    private Map<String, Map<String, Double>> getZeroMapMap() {
-        Map<String, Map<String, Double>> result = new TreeMap<>();
+    private Map<String, Map<String, Double>> getZeroMatrixAsMap(Map<String, Map<String, Double>> result) {
         for (String col: colIndex.keySet()) {
             for (String row: rowIndex.keySet()) {
                 result.computeIfAbsent(row, v -> new TreeMap<>())
@@ -48,16 +47,23 @@ class SparseMatrixWithIndexesCSC extends AbstractSparseMatrixWithIndexes {
         return result;
     }
 
-    Map<String, Map<String, Double>> toMap() {
+    Map<String, Map<String, Double>> toMap(boolean fillZeros) {
         Map<Integer, String> colIndexInversed = inverseIndex(colIndex);
         Map<Integer, String> rowIndexInversed = inverseIndex(rowIndex);
-        Map<String, Map<String, Double>> result = getZeroMapMap();
+        Map<String, Map<String, Double>> result = new TreeMap<>();
+        if (fillZeros) {
+            getZeroMatrixAsMap(result);
+        }
         for (Iterator<DMatrixSparse.CoordinateRealValue> iterator = cscMatrix.createCoordinateIterator(); iterator.hasNext(); ) {
             DMatrixSparse.CoordinateRealValue cell = iterator.next();
-            result.get(rowIndexInversed.get(cell.row))
+            result.computeIfAbsent(rowIndexInversed.get(cell.row), v -> new TreeMap<>())
                     .put(colIndexInversed.get(cell.col), cell.value);
         }
         return result;
+    }
+
+    Map<String, Map<String, Double>> toMap() {
+        return toMap(false);
     }
 
     static SparseMatrixWithIndexesCSC mult(SparseMatrixWithIndexesCSC matrix1, SparseMatrixWithIndexesCSC matrix2) {

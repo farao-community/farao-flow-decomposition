@@ -22,4 +22,6 @@ abstract class AbstractSparseMatrixWithIndexes {
     }
 
     abstract Map<String, Map<String, Double>> toMap();
+
+    abstract Map<String, Map<String, Double>> toMap(boolean fillZeros);
 }

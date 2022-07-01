@@ -17,20 +17,21 @@ import java.util.Map;
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
  */
 class SparseMatrixWithIndexesTriplet extends AbstractSparseMatrixWithIndexes {
-    private static final double EPSILON = 1e-5;
     private final DMatrixSparseTriplet tripletMatrix;
+    private final double epsilon;
 
-    public SparseMatrixWithIndexesTriplet(Map<String, Integer> rowIndex, Map<String, Integer> colIndex, Integer initLength) {
+    public SparseMatrixWithIndexesTriplet(Map<String, Integer> rowIndex, Map<String, Integer> colIndex, Integer initLength, double epsilon) {
         super(rowIndex, colIndex);
         this.tripletMatrix = new DMatrixSparseTriplet(rowIndex.size(), colIndex.size(), initLength);
+        this.epsilon = epsilon;
     }
 
-    public SparseMatrixWithIndexesTriplet(Map<String, Integer> rowIndex, String colName, Integer initLength) {
-        this(rowIndex, Map.of(colName, 0), initLength);
+    public SparseMatrixWithIndexesTriplet(Map<String, Integer> rowIndex, Map<String, Integer> colIndex, Integer initLength) {
+        this(rowIndex, colIndex, initLength, -1);
     }
 
     private boolean isNotZero(Double value) {
-        return Math.abs(value) > EPSILON;
+        return Math.abs(value) > epsilon;
     }
 
     public void addItem(String row, String col, double value) {
@@ -46,5 +47,9 @@ class SparseMatrixWithIndexesTriplet extends AbstractSparseMatrixWithIndexes {
 
     public Map<String, Map<String, Double>> toMap() {
         return toCSCMatrix().toMap();
+    }
+
+    public Map<String, Map<String, Double>> toMap(boolean fillZeros) {
+        return toCSCMatrix().toMap(fillZeros);
     }
 }
