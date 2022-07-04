@@ -20,6 +20,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
@@ -76,10 +77,14 @@ public class FlowDecompositionComputer {
         return injection -> injection.getTerminal().getBusBreakerView().getBus().isInMainSynchronousComponent();
     }
 
-    private List<Injection<?>> getAllNetworkInjections(Network network) {
+    private Stream<Injection<?>> getAllNetworkInjections(Network network) {
         return network.getConnectableStream()
             .filter(Injection.class::isInstance)
-            .map(connectable -> (Injection<?>) connectable)
+            .map(connectable -> (Injection<?>) connectable);
+    }
+
+    private List<Injection<?>> getAllValidNetworkInjections(Network network) {
+        return getAllNetworkInjections(network)
             .filter(isInjectionConnected())
             .filter(isInjectionInMainSynchronousComponent())
             .collect(Collectors.toList());
@@ -101,7 +106,7 @@ public class FlowDecompositionComputer {
 
     private Map<String, Double> getNodalInjectionsForAllocatedFlows(Network network, Map<Country, Map<String, Double>> glsks) {
         Map<Country, Double> netPositions = getZonesNetPosition(network);
-        return getAllNetworkInjections(network)
+        return getAllValidNetworkInjections(network)
                 .stream()
                 .collect(Collectors.toMap(
                     Injection::getId,
@@ -223,8 +228,8 @@ public class FlowDecompositionComputer {
         return getPtdfMatrixTriplet(xnecIndex, nodeIndex, factors, sensiResult);
     }
 
-    private List<String> getNodeList(Network network) {
-        return getAllNetworkInjections(network)
+    private List<String> getNodeIdList(Network network) {
+        return getAllValidNetworkInjections(network)
             .stream()
             .map(Injection::getId)
             .collect(Collectors.toList());
@@ -263,7 +268,7 @@ public class FlowDecompositionComputer {
     public FlowDecompositionResults run(Network network, boolean saveIntermediate) {
         FlowDecompositionResults flowDecompositionResults = new FlowDecompositionResults(saveIntermediate);
         List<Branch> xnecList = selectXnecs(network);
-        List<String> nodeList = getNodeList(network);
+        List<String> nodeList = getNodeIdList(network);
         Map<String, Integer> xnecIndex = getXnecIndex(xnecList);
         Map<String, Integer> nodeIndex = getNodeIndex(nodeList);
 
