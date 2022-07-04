@@ -21,5 +21,9 @@ abstract class AbstractSparseMatrixWithIndexes {
         this.colIndex = colIndex;
     }
 
-    abstract Map<String, Map<String, Double>> toMap();
+    abstract Map<String, Map<String, Double>> toMap(boolean fillZeros);
+
+    Map<String, Map<String, Double>> toMap() {
+        return toMap(false);
+    }
 }

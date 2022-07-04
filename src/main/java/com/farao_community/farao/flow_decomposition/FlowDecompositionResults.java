@@ -19,25 +19,29 @@ import java.util.stream.Collectors;
 public class FlowDecompositionResults {
     private final boolean saveIntermediates;
     private SparseMatrixWithIndexesCSC decomposedFlowsMatrix;
-    private static final String ALLOCATED_COLUMN_NAME = "Allocated";
     private Map<Country, Map<String, Double>> glsks;
     private SparseMatrixWithIndexesTriplet nodalInjectionsMatrix;
     private SparseMatrixWithIndexesTriplet ptdfMatrix;
+    private Map<String, Double> dcNodalInjections;
 
     FlowDecompositionResults(boolean saveIntermediates) {
         this.saveIntermediates = saveIntermediates;
     }
 
-    public Map<String, DecomposedFlow> getDecomposedFlowsMap() {
-        return decomposedFlowsMatrix.toMap().entrySet()
+    public Map<String, DecomposedFlow> getDecomposedFlowsMap(boolean fillZeros) {
+        return decomposedFlowsMatrix.toMap(fillZeros).entrySet()
             .stream()
             .collect(Collectors.toMap(
                 Map.Entry::getKey,
                 entry -> flowPartsMapToDecomposedFlow(entry.getValue())));
     }
 
+    public Map<String, DecomposedFlow> getDecomposedFlowsMap() {
+        return getDecomposedFlowsMap(false);
+    }
+
     private DecomposedFlow flowPartsMapToDecomposedFlow(Map<String, Double> flowPartsMap) {
-        return new DecomposedFlow(flowPartsMap.get(ALLOCATED_COLUMN_NAME));
+        return new DecomposedFlow(flowPartsMap);
     }
 
     void saveDecomposedFlowsMatrix(SparseMatrixWithIndexesCSC decomposedFlowsMatrix) {
@@ -66,11 +70,23 @@ public class FlowDecompositionResults {
         return Optional.ofNullable(glsks);
     }
 
+    Optional<Map<String, Map<String, Double>>> getNodalInjectionsMap(boolean fillZeros) {
+        return Optional.ofNullable(nodalInjectionsMatrix).map(matrix -> matrix.toMap(fillZeros));
+    }
+
     Optional<Map<String, Map<String, Double>>> getNodalInjectionsMap() {
-        return Optional.ofNullable(nodalInjectionsMatrix).map(SparseMatrixWithIndexesTriplet::toMap);
+        return getNodalInjectionsMap(false);
     }
 
     Optional<Map<String, Map<String, Double>>> getPtdfMap() {
         return Optional.ofNullable(ptdfMatrix).map(SparseMatrixWithIndexesTriplet::toMap);
+    }
+
+    Optional<Map<String, Double>> getDcNodalInjectionsMap() {
+        return Optional.ofNullable(dcNodalInjections);
+    }
+
+    public void saveDcNodalInjections(Map<String, Double> dcNodalInjections) {
+        this.dcNodalInjections = dcNodalInjections;
     }
 }
