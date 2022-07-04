@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -69,12 +68,12 @@ public class FlowDecompositionComputer {
         return glsks;
     }
 
-    private Predicate<Injection<?>> isInjectionConnected() {
-        return injection -> injection.getTerminal().isConnected();
+    private boolean isInjectionConnected(Injection<?> injection) {
+        return injection.getTerminal().isConnected();
     }
 
-    private Predicate<Injection<?>> isInjectionInMainSynchronousComponent() {
-        return injection -> injection.getTerminal().getBusBreakerView().getBus().isInMainSynchronousComponent();
+    private boolean isInjectionInMainSynchronousComponent(Injection<?> injection) {
+        return injection.getTerminal().getBusBreakerView().getBus().isInMainSynchronousComponent();
     }
 
     private Stream<Injection<?>> getAllNetworkInjections(Network network) {
@@ -85,8 +84,8 @@ public class FlowDecompositionComputer {
 
     private List<Injection<?>> getAllValidNetworkInjections(Network network) {
         return getAllNetworkInjections(network)
-            .filter(isInjectionConnected())
-            .filter(isInjectionInMainSynchronousComponent())
+            .filter(this::isInjectionConnected)
+            .filter(this::isInjectionInMainSynchronousComponent)
             .collect(Collectors.toList());
     }
 
@@ -178,7 +177,7 @@ public class FlowDecompositionComputer {
         return !country1.equals(country2);
     }
 
-    private SensitivityFactor getSensitivityFactor(String node, Branch xnec) {
+    private SensitivityFactor getSensitivityFactor(String node, Branch<?> xnec) {
         return new SensitivityFactor(
                 SensitivityFunctionType.BRANCH_ACTIVE_POWER_1, xnec.getId(),
                 SensitivityVariableType.INJECTION_ACTIVE_POWER, node,
