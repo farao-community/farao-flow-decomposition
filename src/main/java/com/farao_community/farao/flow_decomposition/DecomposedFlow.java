@@ -19,8 +19,8 @@ public class DecomposedFlow {
     Map<String, Double> decomposedFlowMap;
     private static final String ALLOCATED_COLUMN_NAME = "Allocated";
 
-    DecomposedFlow(Map<String, Double> allocatedFlow) {
-        this.decomposedFlowMap = allocatedFlow;
+    DecomposedFlow(Map<String, Double> decomposedFlowMap) {
+        this.decomposedFlowMap = decomposedFlowMap;
     }
 
     public Double getAllocatedFlow() {

@@ -45,10 +45,6 @@ class SparseMatrixWithIndexesTriplet extends AbstractSparseMatrixWithIndexes {
         return new SparseMatrixWithIndexesCSC(this.rowIndex, this.colIndex, cscMatrix);
     }
 
-    public Map<String, Map<String, Double>> toMap() {
-        return toCSCMatrix().toMap();
-    }
-
     public Map<String, Map<String, Double>> toMap(boolean fillZeros) {
         return toCSCMatrix().toMap(fillZeros);
     }

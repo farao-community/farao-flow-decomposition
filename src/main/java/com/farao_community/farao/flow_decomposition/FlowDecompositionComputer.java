@@ -68,6 +68,14 @@ public class FlowDecompositionComputer {
         return glsks;
     }
 
+    private Predicate<Injection<?>> isInjectionConnected() {
+        return injection -> injection.getTerminal().isConnected();
+    }
+
+    private Predicate<Injection<?>> isInjectionInMainSynchronousComponent() {
+        return injection -> injection.getTerminal().getBusBreakerView().getBus().isInMainSynchronousComponent();
+    }
+
     private List<Injection<?>> getAllNetworkInjections(Network network) {
         return network.getConnectableStream()
             .filter(Injection.class::isInstance)
@@ -215,19 +223,9 @@ public class FlowDecompositionComputer {
         return getPtdfMatrixTriplet(xnecIndex, nodeIndex, factors, sensiResult);
     }
 
-    private Predicate<Injection<?>> isInjectionConnected() {
-        return injection -> injection.getTerminal().isConnected();
-    }
-
-    private Predicate<Injection<?>> isInjectionInMainSynchronousComponent() {
-        return injection -> injection.getTerminal().getBusBreakerView().getBus().isInMainSynchronousComponent();
-    }
-
     private List<String> getNodeList(Network network) {
         return getAllNetworkInjections(network)
             .stream()
-            .filter(isInjectionConnected())
-            .filter(isInjectionInMainSynchronousComponent())
             .map(Injection::getId)
             .collect(Collectors.toList());
     }

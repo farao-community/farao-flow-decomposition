@@ -62,9 +62,6 @@ class SparseMatrixWithIndexesCSC extends AbstractSparseMatrixWithIndexes {
         return result;
     }
 
-    Map<String, Map<String, Double>> toMap() {
-        return toMap(false);
-    }
 
     static SparseMatrixWithIndexesCSC mult(SparseMatrixWithIndexesCSC matrix1, SparseMatrixWithIndexesCSC matrix2) {
         SparseMatrixWithIndexesCSC multiplicationResult = new SparseMatrixWithIndexesCSC(matrix1.rowIndex, matrix2.colIndex);
