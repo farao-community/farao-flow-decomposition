@@ -9,6 +9,7 @@ package com.farao_community.farao.flow_decomposition;
 import com.powsybl.iidm.network.Country;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -31,6 +32,17 @@ public class FlowDecompositionResults {
     private SparseMatrixWithIndexesTriplet ptdfMatrix;
     private SparseMatrixWithIndexesTriplet nodalInjectionsMatrix;
     private Map<String, Double> dcNodalInjections;
+    private DecomposedFlowMapCache decomposedFlowMapCache;
+
+    static class DecomposedFlowMapCache {
+        private final Map<String, DecomposedFlow> cacheValue;
+        private final boolean filledWithZeros;
+
+        public DecomposedFlowMapCache(Map<String, DecomposedFlow> decomposedFlowMap, boolean fillZeros) {
+            this.cacheValue = decomposedFlowMap;
+            this.filledWithZeros = fillZeros;
+        }
+    }
 
     FlowDecompositionResults(boolean saveIntermediates) {
         this.saveIntermediates = saveIntermediates;
@@ -42,11 +54,17 @@ public class FlowDecompositionResults {
      * @return A flow decomposition map. The keys are the XNEC ids and the values are {@code DecomposedFlow} objects.
      */
     public Map<String, DecomposedFlow> getDecomposedFlowsMap(boolean fillZeros) {
-        return decomposedFlowsMatrix.toMap(fillZeros).entrySet()
+        if (isDecomposedFlowMapCacheValid(fillZeros)) {
+            return decomposedFlowMapCache.cacheValue;
+        }
+        invalidateDecomposedFlowMapCache();
+        Map<String, DecomposedFlow> decomposedFlowMap = decomposedFlowsMatrix.toMap(fillZeros).entrySet()
             .stream()
             .collect(Collectors.toMap(
                 Map.Entry::getKey,
                 entry -> flowPartsMapToDecomposedFlow(entry.getValue())));
+        resetDecomposedFlowMapCache(decomposedFlowMap, fillZeros);
+        return decomposedFlowMap;
     }
 
     public Map<String, DecomposedFlow> getDecomposedFlowsMap() {
@@ -105,12 +123,25 @@ public class FlowDecompositionResults {
         return Optional.ofNullable(dcNodalInjections);
     }
 
+    private boolean isDecomposedFlowMapCacheValid(boolean fillZeros) {
+        return Objects.nonNull(decomposedFlowMapCache) && fillZeros == decomposedFlowMapCache.filledWithZeros;
+    }
+
+    private void invalidateDecomposedFlowMapCache() {
+        this.decomposedFlowMapCache = null;
+    }
+
+    private void resetDecomposedFlowMapCache(Map<String, DecomposedFlow> decomposedFlowMap, boolean fillZeros) {
+        decomposedFlowMapCache = new DecomposedFlowMapCache(decomposedFlowMap, fillZeros);
+    }
+
     private DecomposedFlow flowPartsMapToDecomposedFlow(Map<String, Double> flowPartsMap) {
         return new DecomposedFlow(flowPartsMap);
     }
 
     void saveDecomposedFlowsMatrix(SparseMatrixWithIndexesCSC decomposedFlowsMatrix) {
         this.decomposedFlowsMatrix = decomposedFlowsMatrix;
+        invalidateDecomposedFlowMapCache();
     }
 
     void saveGlsks(Map<Country, Map<String, Double>> glsks) {
