@@ -19,10 +19,12 @@ import java.util.stream.Collectors;
  */
 public class FlowDecompositionResults {
     private final boolean saveIntermediates;
-    private SparseMatrixWithIndexesCSC decomposedFlowsMatrix;
+    private SparseMatrixWithIndexesCSC allocatedAndLoopFlowsMatrix;
+    private SparseMatrixWithIndexesCSC pstFlowMatrix;
     private Map<Country, Map<String, Double>> glsks;
     private SparseMatrixWithIndexesTriplet nodalInjectionsMatrix;
     private SparseMatrixWithIndexesTriplet ptdfMatrix;
+    private SparseMatrixWithIndexesTriplet psdfMatrix;
     private Map<String, Double> dcNodalInjections;
     private DecomposedFlowMapCache decomposedFlowMapCache;
 
@@ -45,7 +47,7 @@ public class FlowDecompositionResults {
             return decomposedFlowMapCache.cacheValue;
         }
         invalidateDecomposedFlowMapCache();
-        Map<String, DecomposedFlow> decomposedFlowMap = decomposedFlowsMatrix.toMap(fillZeros).entrySet()
+        Map<String, DecomposedFlow> decomposedFlowMap = allocatedAndLoopFlowsMatrix.toMap(fillZeros).entrySet()
             .stream()
             .collect(Collectors.toMap(
                 Map.Entry::getKey,
@@ -74,8 +76,8 @@ public class FlowDecompositionResults {
         return new DecomposedFlow(flowPartsMap);
     }
 
-    void saveDecomposedFlowsMatrix(SparseMatrixWithIndexesCSC decomposedFlowsMatrix) {
-        this.decomposedFlowsMatrix = decomposedFlowsMatrix;
+    void saveAllocatedAndLoopFlowsMatrix(SparseMatrixWithIndexesCSC allocatedAndLoopFlowsMatrix) {
+        this.allocatedAndLoopFlowsMatrix = allocatedAndLoopFlowsMatrix;
         invalidateDecomposedFlowMapCache();
     }
 
@@ -119,5 +121,24 @@ public class FlowDecompositionResults {
 
     public void saveDcNodalInjections(Map<String, Double> dcNodalInjections) {
         this.dcNodalInjections = dcNodalInjections;
+    }
+
+    public Optional<Map<String, Map<String, Double>>> getPsdfMap() {
+        return Optional.ofNullable(psdfMatrix).map(SparseMatrixWithIndexesTriplet::toMap);
+    }
+
+    void savePsdfMatrix(SparseMatrixWithIndexesTriplet psdfMatrix) {
+        if (saveIntermediates) {
+            this.psdfMatrix = psdfMatrix;
+        }
+    }
+
+    void savePstFlowMatrix(SparseMatrixWithIndexesCSC pstFlowMatrix) {
+        this.pstFlowMatrix = pstFlowMatrix;
+        invalidateDecomposedFlowMapCache();
+    }
+
+    public Map<String, Map<String, Double>> getPstFlowsMap(boolean fillZeros) {
+        return pstFlowMatrix.toMap(fillZeros);
     }
 }

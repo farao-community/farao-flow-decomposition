@@ -33,4 +33,8 @@ public class DecomposedFlow {
         }
         return decomposedFlowMap.get(country.toString());
     }
+
+    public double getPstFlow(String pst) {
+        return 0;
+    }
 }
