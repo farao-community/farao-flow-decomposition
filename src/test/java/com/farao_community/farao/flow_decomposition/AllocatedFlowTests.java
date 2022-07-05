@@ -41,7 +41,7 @@ class AllocatedFlowTests {
         FlowDecompositionResults flowDecompositionResults = allocatedFlowComputer.run(network, true);
 
         Map<String, DecomposedFlow> decomposedFlowMap = flowDecompositionResults.getDecomposedFlowsMap();
-        assertEquals(100.03125, decomposedFlowMap.get(xnecFrBee).getAllocatedFlow(), EPSILON);
+        assertEquals(100.0935, decomposedFlowMap.get(xnecFrBee).getAllocatedFlow(), EPSILON);
 
         var optionalGlsks = flowDecompositionResults.getGlsks();
         assertTrue(optionalGlsks.isPresent());
@@ -59,8 +59,8 @@ class AllocatedFlowTests {
         var optionalNodalInjections = flowDecompositionResults.getNodalInjectionsMap();
         assertTrue(optionalNodalInjections.isPresent());
         var nodalInjections = optionalNodalInjections.get();
-        assertEquals(-100.03125, nodalInjections.get(genBe).get(allocated), EPSILON);
-        assertEquals(+100.03125, nodalInjections.get(genFr).get(allocated), EPSILON);
+        assertEquals(-100.0935, nodalInjections.get(genBe).get(allocated), EPSILON);
+        assertEquals(+100.0935, nodalInjections.get(genFr).get(allocated), EPSILON);
     }
 
     @Test
@@ -77,7 +77,7 @@ class AllocatedFlowTests {
         FlowDecompositionResults flowDecompositionResults = allocatedFlowComputer.run(network, true);
 
         Map<String, DecomposedFlow> decomposedFlowMap = flowDecompositionResults.getDecomposedFlowsMap();
-        assertEquals(100.03125, decomposedFlowMap.get(xnecFrBee).getAllocatedFlow(), EPSILON);
+        assertEquals(100.0935, decomposedFlowMap.get(xnecFrBee).getAllocatedFlow(), EPSILON);
 
         var optionalGlsks = flowDecompositionResults.getGlsks();
         assertTrue(optionalGlsks.isPresent());
@@ -95,8 +95,8 @@ class AllocatedFlowTests {
         var optionalNodalInjections = flowDecompositionResults.getNodalInjectionsMap();
         assertTrue(optionalNodalInjections.isPresent());
         var nodalInjections = optionalNodalInjections.get();
-        assertEquals(-100.03125, nodalInjections.get(genBe).get(allocated), EPSILON);
-        assertEquals(+100.03125, nodalInjections.get(genFr).get(allocated), EPSILON);
+        assertEquals(-100.0935, nodalInjections.get(genBe).get(allocated), EPSILON);
+        assertEquals(+100.0935, nodalInjections.get(genFr).get(allocated), EPSILON);
     }
 
     @Test

@@ -7,6 +7,7 @@
 package com.farao_community.farao.flow_decomposition;
 
 import com.powsybl.iidm.import_.Importers;
+import com.powsybl.iidm.network.Country;
 import com.powsybl.iidm.network.Load;
 import com.powsybl.iidm.network.Network;
 import com.powsybl.loadflow.LoadFlowParameters;
@@ -98,7 +99,9 @@ class LossesCompensationTests {
         FlowDecompositionComputer flowDecompositionComputer = new FlowDecompositionComputer();
         FlowDecompositionResults flowDecompositionResults = flowDecompositionComputer.run(network, true);
 
-        assertEquals(100., flowDecompositionResults.getDecomposedFlowsMap().get("FLOAD 11 BLOAD 11 1").getAllocatedFlow(), EPSILON);
+        assertEquals(99.813, flowDecompositionResults.getDecomposedFlowsMap().get("FLOAD 11 BLOAD 11 1").getAllocatedFlow(), EPSILON);
+        assertEquals(0.0936, flowDecompositionResults.getDecomposedFlowsMap().get("FLOAD 11 BLOAD 11 1").getLoopFlow(Country.FR), EPSILON);
+        assertEquals(0.0936, flowDecompositionResults.getDecomposedFlowsMap().get("FLOAD 11 BLOAD 11 1").getLoopFlow(Country.BE), EPSILON);
     }
 
     @Test
@@ -111,7 +114,9 @@ class LossesCompensationTests {
         FlowDecompositionComputer flowDecompositionComputer = new FlowDecompositionComputer(flowDecompositionParameters);
         FlowDecompositionResults flowDecompositionResults = flowDecompositionComputer.run(network, true);
 
-        assertEquals(98.5958, flowDecompositionResults.getDecomposedFlowsMap().get("FLOAD 11 BLOAD 11 1").getAllocatedFlow(), EPSILON);
+        assertEquals(99.813, flowDecompositionResults.getDecomposedFlowsMap().get("FLOAD 11 BLOAD 11 1").getAllocatedFlow(), EPSILON);
+        assertEquals(-0.609, flowDecompositionResults.getDecomposedFlowsMap().get("FLOAD 11 BLOAD 11 1").getLoopFlow(Country.FR), EPSILON);
+        assertEquals(-0.609, flowDecompositionResults.getDecomposedFlowsMap().get("FLOAD 11 BLOAD 11 1").getLoopFlow(Country.BE), EPSILON);
     }
 
     @Test
@@ -124,6 +129,8 @@ class LossesCompensationTests {
         FlowDecompositionComputer flowDecompositionComputer = new FlowDecompositionComputer(flowDecompositionParameters);
         FlowDecompositionResults flowDecompositionResults = flowDecompositionComputer.run(network);
 
-        assertEquals(100., flowDecompositionResults.getDecomposedFlowsMap().get("FLOAD 11 BLOAD 11 1").getAllocatedFlow(), EPSILON);
+        assertEquals(99.813, flowDecompositionResults.getDecomposedFlowsMap().get("FLOAD 11 BLOAD 11 1").getAllocatedFlow(), EPSILON);
+        assertEquals(0.0936, flowDecompositionResults.getDecomposedFlowsMap().get("FLOAD 11 BLOAD 11 1").getLoopFlow(Country.FR), EPSILON);
+        assertEquals(0.0936, flowDecompositionResults.getDecomposedFlowsMap().get("FLOAD 11 BLOAD 11 1").getLoopFlow(Country.BE), EPSILON);
     }
 }

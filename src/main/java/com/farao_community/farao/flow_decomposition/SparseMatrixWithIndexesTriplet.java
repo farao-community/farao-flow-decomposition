@@ -18,18 +18,24 @@ import java.util.Map;
  */
 class SparseMatrixWithIndexesTriplet extends AbstractSparseMatrixWithIndexes {
     private final DMatrixSparseTriplet tripletMatrix;
+    private final double epsilon;
 
-    public SparseMatrixWithIndexesTriplet(Map<String, Integer> rowIndex, Map<String, Integer> colIndex, Integer initLength) {
+    public SparseMatrixWithIndexesTriplet(Map<String, Integer> rowIndex, Map<String, Integer> colIndex, Integer initLength, double epsilon) {
         super(rowIndex, colIndex);
         this.tripletMatrix = new DMatrixSparseTriplet(rowIndex.size(), colIndex.size(), initLength);
+        this.epsilon = epsilon;
     }
 
-    public SparseMatrixWithIndexesTriplet(Map<String, Integer> rowIndex, String colName, Integer initLength) {
-        this(rowIndex, Map.of(colName, 0), initLength);
+    public SparseMatrixWithIndexesTriplet(Map<String, Integer> rowIndex, Map<String, Integer> colIndex, Integer initLength) {
+        this(rowIndex, colIndex, initLength, -1);
+    }
+
+    private boolean isNotZero(Double value) {
+        return Math.abs(value) > epsilon;
     }
 
     public void addItem(String row, String col, double value) {
-        if (!Double.isNaN(value)) {
+        if (!Double.isNaN(value) && isNotZero(value)) {
             tripletMatrix.addItem(rowIndex.get(row), colIndex.get(col), value);
         }
     }
@@ -39,7 +45,7 @@ class SparseMatrixWithIndexesTriplet extends AbstractSparseMatrixWithIndexes {
         return new SparseMatrixWithIndexesCSC(this.rowIndex, this.colIndex, cscMatrix);
     }
 
-    public Map<String, Map<String, Double>> toMap() {
-        return toCSCMatrix().toMap();
+    public Map<String, Map<String, Double>> toMap(boolean fillZeros) {
+        return toCSCMatrix().toMap(fillZeros);
     }
 }
