@@ -6,6 +6,7 @@
  */
 package com.farao_community.farao.flow_decomposition;
 
+import com.powsybl.commons.PowsyblException;
 import org.ejml.data.DMatrixSparseCSC;
 import org.ejml.data.DMatrixSparseTriplet;
 import org.ejml.ops.DConvertMatrixStruct;
@@ -28,6 +29,10 @@ class SparseMatrixWithIndexesTriplet extends AbstractSparseMatrixWithIndexes {
 
     public SparseMatrixWithIndexesTriplet(Map<String, Integer> rowIndex, Map<String, Integer> colIndex, Integer initLength) {
         this(rowIndex, colIndex, initLength, -1);
+    }
+
+    public SparseMatrixWithIndexesTriplet(Map<String, Integer> pstIndex, String pstColumnName, int size) {
+        this(pstIndex, Map.of(pstColumnName, 0), size);
     }
 
     private boolean isNotZero(Double value) {

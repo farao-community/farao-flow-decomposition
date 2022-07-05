@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 public class PstFlowTests {
     private static final double EPSILON = 1e-3;
+    private static final String PST_COLUMN_NAME = "PST";
 
     @Test
     void checkThatPSTFlowsAreExtractedForEachXnecAndForEachPSTGivenABasicNetworkWithNeutralTap() {
@@ -75,10 +76,10 @@ public class PstFlowTests {
         assertTrue(optionalPsdfs.isPresent());
         var psdf = optionalPsdfs.get();
         assertEquals(-420.042573, psdf.get(x1).get(pst), EPSILON);
-        assertEquals(420.042573, psdf.get(x2).get(pst), EPSILON);
+        assertEquals(-420.042573, psdf.get(x2).get(pst), EPSILON);
 
         Map<String, Map<String, Double>> pstFlowMap = flowDecompositionResults.getPstFlowsMap(true);
-        assertEquals(163.652702605, pstFlowMap.get(x1).get(pst), EPSILON);
-        assertEquals(-163.652702605, pstFlowMap.get(x2).get(pst), EPSILON);
+        assertEquals(163.652702605, pstFlowMap.get(x1).get(PST_COLUMN_NAME), EPSILON);
+        assertEquals(163.652702605, pstFlowMap.get(x2).get(PST_COLUMN_NAME), EPSILON);
     }
 }
