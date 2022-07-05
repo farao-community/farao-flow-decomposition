@@ -17,12 +17,12 @@ import com.powsybl.loadflow.LoadFlowParameters;
  * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
  */
-public class LossesCompensator extends AbstractAcLoadFlowRunner<Void> {
-    public LossesCompensator(LoadFlowParameters initialLoadFlowParameters) {
+class LossesCompensator extends AbstractAcLoadFlowRunner<Void> {
+    LossesCompensator(LoadFlowParameters initialLoadFlowParameters) {
         super(initialLoadFlowParameters);
     }
 
-    public Void run(Network network) {
+    Void run(Network network) {
         LoadFlow.run(network, loadFlowParameters);
         network.getBranchStream().forEach(this::compensateLossesOnBranch);
         return null;
