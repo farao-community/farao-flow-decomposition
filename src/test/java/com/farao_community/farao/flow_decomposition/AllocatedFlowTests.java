@@ -41,7 +41,7 @@ class AllocatedFlowTests {
         FlowDecompositionResults flowDecompositionResults = allocatedFlowComputer.run(network, true);
 
         Map<String, DecomposedFlow> decomposedFlowMap = flowDecompositionResults.getDecomposedFlowsMap();
-        assertEquals(100, decomposedFlowMap.get(xnecFrBee).getAllocatedFlow(), EPSILON);
+        assertEquals(100.0935, decomposedFlowMap.get(xnecFrBee).getAllocatedFlow(), EPSILON);
 
         var optionalGlsks = flowDecompositionResults.getGlsks();
         assertTrue(optionalGlsks.isPresent());
@@ -52,15 +52,15 @@ class AllocatedFlowTests {
         var optionalPtdfs = flowDecompositionResults.getPtdfMap();
         assertTrue(optionalPtdfs.isPresent());
         var ptdfs = optionalPtdfs.get();
-        assertEquals(-0.5, ptdfs.get(xnecFrBee).get(loadBe));
-        assertEquals(-0.5, ptdfs.get(xnecFrBee).get(genBe));
-        assertEquals(+0.5, ptdfs.get(xnecFrBee).get(genFr));
+        assertEquals(-0.5, ptdfs.get(xnecFrBee).get(loadBe), EPSILON);
+        assertEquals(-0.5, ptdfs.get(xnecFrBee).get(genBe), EPSILON);
+        assertEquals(+0.5, ptdfs.get(xnecFrBee).get(genFr), EPSILON);
 
         var optionalNodalInjections = flowDecompositionResults.getNodalInjectionsMap();
         assertTrue(optionalNodalInjections.isPresent());
         var nodalInjections = optionalNodalInjections.get();
-        assertEquals(-100, nodalInjections.get(genBe).get(allocated));
-        assertEquals(+100, nodalInjections.get(genFr).get(allocated));
+        assertEquals(-100.0935, nodalInjections.get(genBe).get(allocated), EPSILON);
+        assertEquals(+100.0935, nodalInjections.get(genFr).get(allocated), EPSILON);
     }
 
     @Test
@@ -77,7 +77,7 @@ class AllocatedFlowTests {
         FlowDecompositionResults flowDecompositionResults = allocatedFlowComputer.run(network, true);
 
         Map<String, DecomposedFlow> decomposedFlowMap = flowDecompositionResults.getDecomposedFlowsMap();
-        assertEquals(100, decomposedFlowMap.get(xnecFrBee).getAllocatedFlow(), EPSILON);
+        assertEquals(100.0935, decomposedFlowMap.get(xnecFrBee).getAllocatedFlow(), EPSILON);
 
         var optionalGlsks = flowDecompositionResults.getGlsks();
         assertTrue(optionalGlsks.isPresent());
@@ -88,15 +88,15 @@ class AllocatedFlowTests {
         var optionalPtdfs = flowDecompositionResults.getPtdfMap();
         assertTrue(optionalPtdfs.isPresent());
         var ptdfs = optionalPtdfs.get();
-        assertEquals(-0.5, ptdfs.get(xnecFrBee).get(loadBe));
-        assertEquals(-0.5, ptdfs.get(xnecFrBee).get(genBe));
-        assertEquals(+0.5, ptdfs.get(xnecFrBee).get(genFr));
+        assertEquals(-0.5, ptdfs.get(xnecFrBee).get(loadBe), EPSILON);
+        assertEquals(-0.5, ptdfs.get(xnecFrBee).get(genBe), EPSILON);
+        assertEquals(+0.5, ptdfs.get(xnecFrBee).get(genFr), EPSILON);
 
         var optionalNodalInjections = flowDecompositionResults.getNodalInjectionsMap();
         assertTrue(optionalNodalInjections.isPresent());
         var nodalInjections = optionalNodalInjections.get();
-        assertEquals(-100, nodalInjections.get(genBe).get(allocated));
-        assertEquals(+100, nodalInjections.get(genFr).get(allocated));
+        assertEquals(-100.0935, nodalInjections.get(genBe).get(allocated), EPSILON);
+        assertEquals(+100.0935, nodalInjections.get(genFr).get(allocated), EPSILON);
     }
 
     @Test
