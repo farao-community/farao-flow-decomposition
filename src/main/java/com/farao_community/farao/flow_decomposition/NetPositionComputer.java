@@ -16,7 +16,7 @@ import java.util.Map;
 /**
  * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
  */
-public class NetPositionComputer extends AbstractAcLoadFlowRunner<Map<Country, Double>> {
+class NetPositionComputer extends AbstractAcLoadFlowRunner<Map<Country, Double>> {
 
     public NetPositionComputer(LoadFlowParameters initialLoadFlowParameters) {
         super(initialLoadFlowParameters);

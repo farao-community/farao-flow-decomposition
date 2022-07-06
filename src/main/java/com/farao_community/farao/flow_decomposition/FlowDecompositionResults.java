@@ -29,6 +29,7 @@ public class FlowDecompositionResults {
     private final boolean saveIntermediates;
     private SparseMatrixWithIndexesCSC allocatedAndLoopFlowsMatrix;
     private Map<String, Map<String, Double>> pstFlowMap;
+    private Map<Country, Double> acNetPosition;
     private Map<Country, Map<String, Double>> glsks;
     private SparseMatrixWithIndexesTriplet ptdfMatrix;
     private SparseMatrixWithIndexesTriplet psdfMatrix;
@@ -61,6 +62,18 @@ public class FlowDecompositionResults {
 
     public Map<String, DecomposedFlow> getDecomposedFlowsMap() {
         return getDecomposedFlowsMap(false);
+    }
+
+    /**
+     * GLSKs are an intermediate results.
+     * They are represented as a sparse map of map.
+     * The first key is a zone, the second key is a node id and the value is the GLSK of the node in the country.
+     * They will be saved if this runner has its argument {@code saveIntermediate} set to {@code true}.
+     *
+     * @return An optional containing GLSKs.
+     */
+    public Optional<Map<Country, Double>> getAcNetPositions() {
+        return Optional.ofNullable(acNetPosition);
     }
 
     /**
@@ -160,6 +173,12 @@ public class FlowDecompositionResults {
     void savePstFlowMatrix(SparseMatrixWithIndexesCSC pstFlowMatrix) {
         this.pstFlowMap = pstFlowMatrix.toMap(true);
         invalidateDecomposedFlowMapCache();
+    }
+
+    void saveACNetPosition(Map<Country, Double> acNetPosition) {
+        if (saveIntermediates) {
+            this.acNetPosition = acNetPosition;
+        }
     }
 
     void saveGlsks(Map<Country, Map<String, Double>> glsks) {

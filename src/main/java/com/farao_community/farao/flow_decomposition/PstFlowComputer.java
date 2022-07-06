@@ -20,14 +20,14 @@ import java.util.Optional;
 class PstFlowComputer {
     private static final String PST_COLUMN_NAME = "PST Flow";
 
-    SparseMatrixWithIndexesCSC getPstFlowMatrix(Network network, List<String> pstList, Map<String, Integer> pstIndex, SparseMatrixWithIndexesTriplet psdfMatrix) {
-        SparseMatrixWithIndexesTriplet deltaTapMatrix = getDeltaTapMatrix(network, pstList, pstIndex);
+    SparseMatrixWithIndexesCSC getPstFlowMatrix(Network network, NetworkIndexes networkIndexes, SparseMatrixWithIndexesTriplet psdfMatrix) {
+        SparseMatrixWithIndexesTriplet deltaTapMatrix = getDeltaTapMatrix(network, networkIndexes);
         return SparseMatrixWithIndexesCSC.mult(psdfMatrix.toCSCMatrix(), deltaTapMatrix.toCSCMatrix());
     }
 
-    private SparseMatrixWithIndexesTriplet getDeltaTapMatrix(Network network, List<String> pstList, Map<String, Integer> pstIndex) {
-        SparseMatrixWithIndexesTriplet deltaTapMatrix = new SparseMatrixWithIndexesTriplet(pstIndex, PST_COLUMN_NAME, pstIndex.size());
-        for (String pst: pstList) {
+    private SparseMatrixWithIndexesTriplet getDeltaTapMatrix(Network network, NetworkIndexes networkIndexes) {
+        SparseMatrixWithIndexesTriplet deltaTapMatrix = new SparseMatrixWithIndexesTriplet(networkIndexes.getPstIndex(), PST_COLUMN_NAME, networkIndexes.getNumberOfPst());
+        for (String pst: networkIndexes.getPstList()) {
             PhaseTapChanger phaseTapChanger = network.getTwoWindingsTransformer(pst).getPhaseTapChanger();
             Optional<PhaseTapChangerStep> neutralStep = phaseTapChanger.getNeutralStep();
             double deltaTap = 0.0;
@@ -38,5 +38,4 @@ class PstFlowComputer {
         }
         return deltaTapMatrix;
     }
-
 }

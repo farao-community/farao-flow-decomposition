@@ -22,26 +22,25 @@ import java.util.stream.Collectors;
 class NodalInjectionComputer {
     private static final double DEFAULT_GLSK_FACTOR = 0.0;
     private static final String ALLOCATED_COLUMN_NAME = "Allocated Flow";
-    private final List<Injection<?>> nodeList;
+    private final NetworkIndexes networkIndexes;
 
-    public NodalInjectionComputer(List<Injection<?>> nodeList) {
-        this.nodeList = nodeList;
+    public NodalInjectionComputer(NetworkIndexes networkIndexes) {
+        this.networkIndexes = networkIndexes;
     }
 
     SparseMatrixWithIndexesTriplet getNodalInjectionsMatrix(
         Network network,
         Map<Country, Map<String, Double>> glsks,
         Map<Country, Double> netPositions,
-        Map<String, Double> dcNodalInjection,
-        Map<String, Integer> nodeIndex) {
+        Map<String, Double> dcNodalInjection) {
         Map<String, Double> nodalInjectionsForAllocatedFlow = getNodalInjectionsForAllocatedFlows(glsks, netPositions);
-        return convertToNodalInjectionMatrix(network, glsks, nodalInjectionsForAllocatedFlow, dcNodalInjection, nodeIndex);
+        return convertToNodalInjectionMatrix(network, glsks, nodalInjectionsForAllocatedFlow, dcNodalInjection);
     }
 
     private Map<String, Double> getNodalInjectionsForAllocatedFlows(
         Map<Country, Map<String, Double>> glsks,
         Map<Country, Double> netPositions) {
-        return nodeList.stream()
+        return networkIndexes.getNodeList().stream()
             .collect(Collectors.toMap(
                     Injection::getId,
                     injection -> getIndividualNodalInjectionForAllocatedFlows(injection, glsks, netPositions)
@@ -62,14 +61,13 @@ class NodalInjectionComputer {
         Network network,
         Map<Country, Map<String, Double>> glsks,
         Map<String, Double> nodalInjectionsForAllocatedFlow,
-        Map<String, Double> dcNodalInjection,
-        Map<String, Integer> nodeIndex) {
+        Map<String, Double> dcNodalInjection) {
         List<String> columns = glsks.keySet().stream()
             .map(NetworkUtil::getLoopFlowIdFromCountry)
             .collect(Collectors.toList());
         columns.add(ALLOCATED_COLUMN_NAME);
         SparseMatrixWithIndexesTriplet nodalInjectionMatrix = new SparseMatrixWithIndexesTriplet(
-            nodeIndex, NetworkUtil.getIndex(columns), nodalInjectionsForAllocatedFlow.size());
+            networkIndexes.getNodeIndex(), NetworkUtil.getIndex(columns), nodalInjectionsForAllocatedFlow.size());
         nodalInjectionsForAllocatedFlow.forEach(
             (injectionId, injectionValue) -> nodalInjectionMatrix.addItem(injectionId, ALLOCATED_COLUMN_NAME, injectionValue)
         );
@@ -83,7 +81,7 @@ class NodalInjectionComputer {
     }
 
     Map<String, Double> getDCNodalInjections() {
-        return nodeList.stream()
+        return networkIndexes.getNodeList().stream()
             .collect(Collectors.toMap(
                 Identifiable::getId,
                 this::getReferenceInjection
@@ -91,11 +89,10 @@ class NodalInjectionComputer {
     }
 
     private double getReferenceInjection(Injection<?> node) {
-        double p = -((Injection<?>) node).getTerminal().getP();
+        double p = -node.getTerminal().getP();
         if (Double.isNaN(p)) {
             throw new PowsyblException(String.format("Reference nodal injection cannot be a Nan for node %s", node.getId()));
         }
         return p;
     }
-
 }
