@@ -30,7 +30,10 @@ class SensitivityAnalyser {
     private final List<Branch> functionList;
     private final Map<String, Integer> functionIndex;
 
-    SensitivityAnalyser(LoadFlowParameters loadFlowParameters, Network network, List<Branch> functionList, Map<String, Integer> functionIndex) {
+    SensitivityAnalyser(LoadFlowParameters loadFlowParameters,
+                        Network network,
+                        List<Branch> functionList,
+                        Map<String, Integer> functionIndex) {
         this.sensitivityAnalysisParameters = initSensitivityAnalysisParameters(loadFlowParameters);
         this.network = network;
         this.functionList = functionList;
@@ -63,13 +66,16 @@ class SensitivityAnalyser {
             DEFAULT_SENSIBILITY_EPSILON);
     }
 
-    private void partialFillSensitityMatrix(SensitivityVariableType sensitivityVariableType, SparseMatrixWithIndexesTriplet sensiMatrixTriplet, List<String> localNodeList) {
+    private void partialFillSensitityMatrix(SensitivityVariableType sensitivityVariableType,
+                                            SparseMatrixWithIndexesTriplet sensiMatrixTriplet,
+                                            List<String> localNodeList) {
         List<SensitivityFactor> factors = getFactors(localNodeList, sensitivityVariableType);
         SensitivityAnalysisResult sensiResult = getSensitivityAnalysisResult(factors);
         fillSensibilityMatrixTriplet(sensiMatrixTriplet, factors, sensiResult);
     }
 
-    private List<SensitivityFactor> getFactors(List<String> variableList, SensitivityVariableType sensitivityVariableType) {
+    private List<SensitivityFactor> getFactors(List<String> variableList,
+                                               SensitivityVariableType sensitivityVariableType) {
         List<SensitivityFactor> factors = new ArrayList<>();
         variableList.forEach(
             variable -> functionList.forEach(
@@ -77,7 +83,9 @@ class SensitivityAnalyser {
         return factors;
     }
 
-    private SensitivityFactor getSensitivityFactor(String variable, Branch<?> function, SensitivityVariableType sensitivityVariableType) {
+    private SensitivityFactor getSensitivityFactor(String variable,
+                                                   Branch<?> function,
+                                                   SensitivityVariableType sensitivityVariableType) {
         return new SensitivityFactor(
             SensitivityFunctionType.BRANCH_ACTIVE_POWER_1, function.getId(),
             sensitivityVariableType, variable,
@@ -97,7 +105,8 @@ class SensitivityAnalyser {
         for (SensitivityValue sensitivityValue : sensiResult.getValues()) {
             SensitivityFactor factor = factors.get(sensitivityValue.getFactorIndex());
             double sensitivity = sensitivityValue.getValue();
-            double referenceOrientedSensitivity = sensitivityValue.getFunctionReference() < 0 ? -sensitivity : sensitivity;
+            double referenceOrientedSensitivity = sensitivityValue.getFunctionReference() < 0 ?
+                -sensitivity : sensitivity;
             ptdfMatrixTriplet.addItem(factor.getFunctionId(), factor.getVariableId(), referenceOrientedSensitivity);
         }
     }

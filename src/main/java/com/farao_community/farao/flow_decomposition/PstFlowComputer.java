@@ -18,13 +18,16 @@ import java.util.Optional;
 class PstFlowComputer {
     private static final String PST_COLUMN_NAME = "PST Flow";
 
-    SparseMatrixWithIndexesCSC getPstFlowMatrix(Network network, NetworkIndexes networkIndexes, SparseMatrixWithIndexesTriplet psdfMatrix) {
+    SparseMatrixWithIndexesCSC getPstFlowMatrix(Network network,
+                                                NetworkIndexes networkIndexes,
+                                                SparseMatrixWithIndexesTriplet psdfMatrix) {
         SparseMatrixWithIndexesTriplet deltaTapMatrix = getDeltaTapMatrix(network, networkIndexes);
         return SparseMatrixWithIndexesCSC.mult(psdfMatrix.toCSCMatrix(), deltaTapMatrix.toCSCMatrix());
     }
 
     private SparseMatrixWithIndexesTriplet getDeltaTapMatrix(Network network, NetworkIndexes networkIndexes) {
-        SparseMatrixWithIndexesTriplet deltaTapMatrix = new SparseMatrixWithIndexesTriplet(networkIndexes.getPstIndex(), PST_COLUMN_NAME, networkIndexes.getNumberOfPst());
+        SparseMatrixWithIndexesTriplet deltaTapMatrix =
+            new SparseMatrixWithIndexesTriplet(networkIndexes.getPstIndex(), PST_COLUMN_NAME, networkIndexes.getNumberOfPst());
         for (String pst: networkIndexes.getPstList()) {
             PhaseTapChanger phaseTapChanger = network.getTwoWindingsTransformer(pst).getPhaseTapChanger();
             Optional<PhaseTapChangerStep> neutralStep = phaseTapChanger.getNeutralStep();
