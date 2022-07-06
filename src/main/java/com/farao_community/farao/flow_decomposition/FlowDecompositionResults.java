@@ -7,10 +7,19 @@
 package com.farao_community.farao.flow_decomposition;
 
 import com.powsybl.iidm.network.Country;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 /**
  * This class provides flow decomposition results from a network.
@@ -137,6 +146,38 @@ public class FlowDecompositionResults {
      */
     public Optional<Map<String, Double>> getDcNodalInjectionsMap() {
         return Optional.ofNullable(dcNodalInjections);
+    }
+
+    /**
+     * Export to CSV
+     * @param dirPath path to local directory
+     * @param basename basename
+     */
+    public void exportCsv(Path dirPath, String basename) {
+        CSVFormat format = CSVFormat.RFC4180;
+        Path path = Paths.get(dirPath.toString(), basename + ".csv" );
+        try (
+            BufferedWriter writer = Files.newBufferedWriter( path , StandardCharsets.UTF_8 );
+            CSVPrinter printer = new CSVPrinter( writer , format );
+        )
+        {
+            printer.print("");
+            for (Map.Entry<String, DecomposedFlow> entry : getDecomposedFlowsMap(true).entrySet()) {
+                printer.print( entry.getKey());
+            }
+            printer.println();
+            Set<String> rows = getDecomposedFlowsMap().entrySet().iterator().next().getValue().decomposedFlowMap.keySet();
+            for (String row : rows) {
+                printer.print(row);
+                for (DecomposedFlow decomposedFlow : getDecomposedFlowsMap(true).values()) {
+                    printer.print(decomposedFlow.decomposedFlowMap.get(row));
+                }
+                printer.println();
+            }
+        } catch ( IOException e )
+        {
+            e.printStackTrace();
+        }
     }
 
     static class DecomposedFlowMapCache {
