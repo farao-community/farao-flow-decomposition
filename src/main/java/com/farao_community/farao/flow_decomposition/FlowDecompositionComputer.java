@@ -25,7 +25,6 @@ import java.util.stream.Stream;
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
  */
 public class FlowDecompositionComputer {
-    private static final String PST_COLUMN_NAME = "PST Flow";
     private static final Logger LOGGER = LoggerFactory.getLogger(FlowDecompositionComputer.class);
     private final LoadFlowParameters loadFlowParameters;
     private final FlowDecompositionParameters parameters;
@@ -140,24 +139,6 @@ public class FlowDecompositionComputer {
         lossesCompensator.run(network);
     }
 
-    private SparseMatrixWithIndexesTriplet getDeltaTapMatrix(Network network, List<String> pstList, Map<String, Integer> pstIndex) {
-        SparseMatrixWithIndexesTriplet deltaTapMatrix = new SparseMatrixWithIndexesTriplet(pstIndex, PST_COLUMN_NAME, pstIndex.size());
-        for (String pst: pstList) {
-            PhaseTapChanger phaseTapChanger = network.getTwoWindingsTransformer(pst).getPhaseTapChanger();
-            Optional<PhaseTapChangerStep> neutralStep = phaseTapChanger.getNeutralStep();
-            double deltaTap = 0.0;
-            if (neutralStep.isPresent()) {
-                deltaTap = phaseTapChanger.getCurrentStep().getAlpha() - neutralStep.get().getAlpha();
-            }
-            deltaTapMatrix.addItem(pst, PST_COLUMN_NAME, deltaTap);
-        }
-        return deltaTapMatrix;
-    }
-
-    private SparseMatrixWithIndexesCSC getPstFlowMatrix(Network network, List<String> pstList, Map<String, Integer> pstIndex, SparseMatrixWithIndexesTriplet psdfMatrix) {
-        SparseMatrixWithIndexesTriplet deltaTapMatrix = getDeltaTapMatrix(network, pstList, pstIndex);
-        return SparseMatrixWithIndexesCSC.mult(psdfMatrix.toCSCMatrix(), deltaTapMatrix.toCSCMatrix());
-    }
 
     public FlowDecompositionResults run(Network network, boolean saveIntermediate) {
         FlowDecompositionResults flowDecompositionResults = new FlowDecompositionResults(saveIntermediate);
@@ -197,7 +178,8 @@ public class FlowDecompositionComputer {
         SparseMatrixWithIndexesTriplet psdfMatrix = sensitivityAnalyser.getSensibilityMatrix(pstList, pstIndex, SensitivityVariableType.TRANSFORMER_PHASE);
         flowDecompositionResults.savePsdfMatrix(psdfMatrix);
 
-        SparseMatrixWithIndexesCSC pstFlowMatrix = getPstFlowMatrix(network, pstList, pstIndex, psdfMatrix);
+        PstFlowComputer pstFlowComputer = new PstFlowComputer();
+        SparseMatrixWithIndexesCSC pstFlowMatrix = pstFlowComputer.getPstFlowMatrix(network, pstList, pstIndex, psdfMatrix);
         flowDecompositionResults.savePstFlowMatrix(pstFlowMatrix);
 
         return flowDecompositionResults;
