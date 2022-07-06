@@ -83,6 +83,10 @@ public class FlowDecompositionComputer {
         return injection.getTerminal().getBusBreakerView().getBus().isInMainSynchronousComponent();
     }
 
+    private boolean isNotALoss(Injection<?> injection) {
+        return !injection.getId().contains("LOSSES ");
+    }
+
     private Stream<Injection<?>> getAllNetworkInjections(Network network) {
         return network.getConnectableStream()
             .filter(Injection.class::isInstance)
@@ -93,6 +97,7 @@ public class FlowDecompositionComputer {
         return getAllNetworkInjections(network)
             .filter(this::isInjectionConnected)
             .filter(this::isInjectionInMainSynchronousComponent)
+            .filter(this::isNotALoss)
             .collect(Collectors.toList());
     }
 
@@ -115,12 +120,12 @@ public class FlowDecompositionComputer {
             Map<Country, Map<String, Double>> glsks,
             Map<Country, Double> netPositions) {
         return getAllValidNetworkInjections(network)
-                .stream()
-                .collect(Collectors.toMap(
-                    Injection::getId,
-                    injection -> getIndividualNodalInjectionForAllocatedFlows(injection, glsks, netPositions)
-                    )
-                );
+            .stream()
+            .collect(Collectors.toMap(
+                Injection::getId,
+                injection -> getIndividualNodalInjectionForAllocatedFlows(injection, glsks, netPositions)
+                )
+            );
     }
 
     private SparseMatrixWithIndexesTriplet convertToNodalInjectionMatrix(
@@ -163,8 +168,16 @@ public class FlowDecompositionComputer {
                 .collect(Collectors.toList());
     }
 
+    private boolean hasNeutralStep(TwoWindingsTransformer pst) {
+        PhaseTapChanger phaseTapChanger = pst.getPhaseTapChanger();
+        if (phaseTapChanger == null)
+            return false;
+        return phaseTapChanger.getNeutralStep().isPresent();
+    }
+
     private List<String> getPstIdList(Network network) {
         return network.getTwoWindingsTransformerStream()
+            .filter(this::hasNeutralStep)
             .map(Identifiable::getId)
             .collect(Collectors.toList());
     }
@@ -260,7 +273,7 @@ public class FlowDecompositionComputer {
         Identifiable<?> node = network.getIdentifiable(nodeId);
         double p = 0.0;
         if (node instanceof Injection) {
-            p = -((Injection) node).getTerminal().getP();
+            p = -((Injection<?>) node).getTerminal().getP();
         }
         if (Double.isNaN(p)) {
             throw new PowsyblException(String.format("Reference nodal injection cannot be a Nan for node %s", nodeId));
@@ -281,10 +294,12 @@ public class FlowDecompositionComputer {
         SparseMatrixWithIndexesTriplet deltaTapMatrix = new SparseMatrixWithIndexesTriplet(pstIndex, PST_COLUMN_NAME, pstIndex.size());
         for (String pst: pstList) {
             PhaseTapChanger phaseTapChanger = network.getTwoWindingsTransformer(pst).getPhaseTapChanger();
-            if (phaseTapChanger.getNeutralPosition().isEmpty()) {
-                throw new PowsyblException(String.format("Two Windings Transformer %s has no neutral position", pst));
+            Optional<PhaseTapChangerStep> neutralStep = phaseTapChanger.getNeutralStep();
+            double deltaTap = 0.0;
+            if (neutralStep.isPresent()) {
+                deltaTap = phaseTapChanger.getCurrentStep().getAlpha() - neutralStep.get().getAlpha();
             }
-            deltaTapMatrix.addItem(pst, PST_COLUMN_NAME, phaseTapChanger.getCurrentStep().getAlpha() - phaseTapChanger.getNeutralStep().get().getAlpha());
+            deltaTapMatrix.addItem(pst, PST_COLUMN_NAME, deltaTap);
         }
         return deltaTapMatrix;
     }
@@ -331,8 +346,6 @@ public class FlowDecompositionComputer {
 
         SparseMatrixWithIndexesCSC pstFlowMatrix = getPstFlowMatrix(network, pstList, pstIndex, psdfMatrix);
         flowDecompositionResults.savePstFlowMatrix(pstFlowMatrix);
-
-
 
         return flowDecompositionResults;
     }
