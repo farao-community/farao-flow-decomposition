@@ -14,11 +14,16 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
+ * @author Hugo Schindler{@literal <hugo.schindler@rte-france.com>}
  * @author Sebastien Murgey{@literal <sebastien.murgey at rte-france.com>}
  */
 final class NetworkUtil {
     private NetworkUtil() {
         throw new AssertionError("Utility class should not be instantiated");
+    }
+
+    static String getLoopFlowIdFromCountry(Country country) {
+        return String.format("Loop Flow from %s", country.toString());
     }
 
     static Country getTerminalCountry(Terminal terminal) {

@@ -39,7 +39,7 @@ class LoopFlowTests {
         String x4 = "BLOAD 11 FLOAD 11 1";
         String x5 = "FLOAD 11 ELOAD 11 1";
 
-        String allocated = "Allocated";
+        String allocated = "Allocated Flow";
 
         Network network = importNetwork(networkFileName);
         FlowDecompositionComputer flowComputer = new FlowDecompositionComputer();
@@ -74,12 +74,12 @@ class LoopFlowTests {
         assertEquals(0, nodalInjections.get(lBe).get(allocated), EPSILON);
         assertEquals(0, nodalInjections.get(lEs).get(allocated), EPSILON);
         assertEquals(0, nodalInjections.get(lFr).get(allocated), EPSILON);
-        assertEquals(100, nodalInjections.get(gBe).get(Country.BE.toString()), EPSILON);
-        assertEquals(100, nodalInjections.get(gEs).get(Country.ES.toString()), EPSILON);
-        assertEquals(100, nodalInjections.get(gFr).get(Country.FR.toString()), EPSILON);
-        assertEquals(-100, nodalInjections.get(lBe).get(Country.BE.toString()), EPSILON);
-        assertEquals(-100, nodalInjections.get(lEs).get(Country.ES.toString()), EPSILON);
-        assertEquals(-100, nodalInjections.get(lFr).get(Country.FR.toString()), EPSILON);
+        assertEquals(100., nodalInjections.get(gBe).get(NetworkUtil.getLoopFlowIdFromCountry(Country.BE)), EPSILON);
+        assertEquals(100., nodalInjections.get(gEs).get(NetworkUtil.getLoopFlowIdFromCountry(Country.ES)), EPSILON);
+        assertEquals(100., nodalInjections.get(gFr).get(NetworkUtil.getLoopFlowIdFromCountry(Country.FR)), EPSILON);
+        assertEquals(-100, nodalInjections.get(lBe).get(NetworkUtil.getLoopFlowIdFromCountry(Country.BE)), EPSILON);
+        assertEquals(-100, nodalInjections.get(lEs).get(NetworkUtil.getLoopFlowIdFromCountry(Country.ES)), EPSILON);
+        assertEquals(-100, nodalInjections.get(lFr).get(NetworkUtil.getLoopFlowIdFromCountry(Country.FR)), EPSILON);
 
         Map<String, DecomposedFlow> decomposedFlowMap = flowDecompositionResults.getDecomposedFlowsMap(true);
         assertEquals(0, decomposedFlowMap.get(x1).getAllocatedFlow(), EPSILON);

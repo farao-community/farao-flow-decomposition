@@ -29,8 +29,8 @@ public class FlowDecompositionComputer {
     public static final int NODE_BATCH_SIZE = 15000;
     private static final double DEFAULT_GLSK_FACTOR = 0.0;
     private static final double DEFAULT_SENSIBILITY_EPSILON = 1e-5;
-    private static final String ALLOCATED_COLUMN_NAME = "Allocated";
-    private static final String PST_COLUMN_NAME = "PST";
+    private static final String ALLOCATED_COLUMN_NAME = "Allocated Flow";
+    private static final String PST_COLUMN_NAME = "PST Flow";
     private static final Logger LOGGER = LoggerFactory.getLogger(FlowDecompositionComputer.class);
     private final LoadFlowParameters loadFlowParameters;
     private final SensitivityAnalysisParameters sensitivityAnalysisParameters;
@@ -131,7 +131,7 @@ public class FlowDecompositionComputer {
         Map<String, Double> dcNodalInjection,
         Map<String, Integer> nodeIndex) {
         List<String> columns = glsks.keySet().stream()
-            .map(Enum::toString)
+            .map(NetworkUtil::getLoopFlowIdFromCountry)
             .collect(Collectors.toList());
         columns.add(ALLOCATED_COLUMN_NAME);
         SparseMatrixWithIndexesTriplet nodalInjectionMatrix = new SparseMatrixWithIndexesTriplet(
@@ -142,7 +142,7 @@ public class FlowDecompositionComputer {
         dcNodalInjection.forEach(
             (dcInjectionId, dcInjectionValue) -> nodalInjectionMatrix.addItem(
                 dcInjectionId,
-                NetworkUtil.getIdentifiableCountry(network, dcInjectionId).toString(),
+                NetworkUtil.getLoopFlowIdFromCountry(NetworkUtil.getIdentifiableCountry(network, dcInjectionId)),
                 dcInjectionValue - nodalInjectionsForAllocatedFlow.get(dcInjectionId)
             ));
         return nodalInjectionMatrix;

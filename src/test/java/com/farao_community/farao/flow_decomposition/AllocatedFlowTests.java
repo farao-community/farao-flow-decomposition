@@ -34,7 +34,7 @@ class AllocatedFlowTests {
         String loadBe = "BLOAD 11_load";
         String genFr = "FGEN1 11_generator";
         String xnecFrBee = "FGEN1 11 BLOAD 11 1";
-        String allocated = "Allocated";
+        String allocated = "Allocated Flow";
 
         Network network = importNetwork(networkFileName);
         FlowDecompositionComputer allocatedFlowComputer = new FlowDecompositionComputer();
@@ -70,7 +70,7 @@ class AllocatedFlowTests {
         String loadBe = "BLOAD 11_load";
         String genFr = "FGEN1 11_generator";
         String xnecFrBee = "BLOAD 11 FGEN1 11 1";
-        String allocated = "Allocated";
+        String allocated = "Allocated Flow";
 
         Network network = importNetwork(networkFileName);
         FlowDecompositionComputer allocatedFlowComputer = new FlowDecompositionComputer();
