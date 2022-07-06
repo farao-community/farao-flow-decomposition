@@ -17,8 +17,12 @@ import java.util.stream.Collectors;
 /**
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
  */
-class GlskComputer {
-    Map<Country, Map<String, Double>> buildAutoGlsks(Network network) {
+final class GlskComputer {
+    private GlskComputer() {
+        throw new AssertionError("Static class should not be instantiated");
+    }
+
+    static Map<Country, Map<String, Double>> buildAutoGlsks(Network network) {
         Map<Country, Map<String, Double>> glsks = network.getCountries().stream().collect(Collectors.toMap(
             Function.identity(),
             country -> new HashMap<>()));

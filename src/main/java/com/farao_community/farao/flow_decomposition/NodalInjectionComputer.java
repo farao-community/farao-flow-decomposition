@@ -74,7 +74,7 @@ class NodalInjectionComputer {
         dcNodalInjection.forEach(
             (dcInjectionId, dcInjectionValue) -> nodalInjectionMatrix.addItem(
                 dcInjectionId,
-                NetworkUtil.getLoopFlowIdFromCountry(NetworkUtil.getIdentifiableCountry(network, dcInjectionId)),
+                NetworkUtil.getLoopFlowIdFromCountry(network, dcInjectionId),
                 dcInjectionValue - nodalInjectionsForAllocatedFlow.get(dcInjectionId)
             ));
         return nodalInjectionMatrix;

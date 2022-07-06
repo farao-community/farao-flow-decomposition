@@ -15,17 +15,21 @@ import java.util.Optional;
 /**
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
  */
-class PstFlowComputer {
+final class PstFlowComputer {
     private static final String PST_COLUMN_NAME = "PST Flow";
 
-    SparseMatrixWithIndexesCSC getPstFlowMatrix(Network network,
-                                                NetworkIndexes networkIndexes,
-                                                SparseMatrixWithIndexesTriplet psdfMatrix) {
+    private PstFlowComputer() {
+        throw new AssertionError("Static class should not be instantiated");
+    }
+
+    static SparseMatrixWithIndexesCSC getPstFlowMatrix(Network network,
+                                                       NetworkIndexes networkIndexes,
+                                                       SparseMatrixWithIndexesTriplet psdfMatrix) {
         SparseMatrixWithIndexesTriplet deltaTapMatrix = getDeltaTapMatrix(network, networkIndexes);
         return SparseMatrixWithIndexesCSC.mult(psdfMatrix.toCSCMatrix(), deltaTapMatrix.toCSCMatrix());
     }
 
-    private SparseMatrixWithIndexesTriplet getDeltaTapMatrix(Network network, NetworkIndexes networkIndexes) {
+    private static SparseMatrixWithIndexesTriplet getDeltaTapMatrix(Network network, NetworkIndexes networkIndexes) {
         SparseMatrixWithIndexesTriplet deltaTapMatrix =
             new SparseMatrixWithIndexesTriplet(networkIndexes.getPstIndex(), PST_COLUMN_NAME, networkIndexes.getNumberOfPst());
         for (String pst: networkIndexes.getPstList()) {
