@@ -10,8 +10,12 @@ import com.powsybl.commons.PowsyblException;
 import com.powsybl.iidm.network.*;
 
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * @author Hugo Schindler{@literal <hugo.schindler@rte-france.com>}
@@ -125,5 +129,14 @@ final class NetworkUtil {
         double flowSide2 = hvdcLine.getConverterStation2().getTerminal().isConnected() && !Double.isNaN(hvdcLine.getConverterStation2().getTerminal().getP()) ? hvdcLine.getConverterStation2().getTerminal().getP() : 0;
         double directFlow = (flowSide1 - flowSide2) / 2;
         return country.equals(NetworkUtil.getTerminalCountry(hvdcLine.getConverterStation1().getTerminal())) ? directFlow : -directFlow;
+    }
+
+    static Map<String, Integer> getIndex(List<String> idList) {
+        return IntStream.range(0, idList.size())
+            .boxed()
+            .collect(Collectors.toMap(
+                idList::get,
+                Function.identity()
+            ));
     }
 }

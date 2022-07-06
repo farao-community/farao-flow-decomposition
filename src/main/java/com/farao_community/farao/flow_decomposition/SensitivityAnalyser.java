@@ -30,7 +30,7 @@ class SensitivityAnalyser {
     private final List<Branch> functionList;
     private final Map<String, Integer> functionIndex;
 
-    public SensitivityAnalyser(LoadFlowParameters loadFlowParameters, Network network, List<Branch> functionList, Map<String, Integer> functionIndex) {
+    SensitivityAnalyser(LoadFlowParameters loadFlowParameters, Network network, List<Branch> functionList, Map<String, Integer> functionIndex) {
         this.sensitivityAnalysisParameters = initSensitivityAnalysisParameters(loadFlowParameters);
         this.network = network;
         this.functionList = functionList;

@@ -25,8 +25,6 @@ import java.util.stream.Stream;
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
  */
 public class FlowDecompositionComputer {
-    private static final double DEFAULT_GLSK_FACTOR = 0.0;
-    private static final String ALLOCATED_COLUMN_NAME = "Allocated Flow";
     private static final String PST_COLUMN_NAME = "PST Flow";
     private static final Logger LOGGER = LoggerFactory.getLogger(FlowDecompositionComputer.class);
     private final LoadFlowParameters loadFlowParameters;
@@ -78,72 +76,16 @@ public class FlowDecompositionComputer {
             .map(connectable -> (Injection<?>) connectable);
     }
 
-    private List<Injection<?>> getAllValidNetworkInjections(Network network) {
+    private List<Injection<?>> getNodeList(Network network) {
         return getAllNetworkInjections(network)
             .filter(this::isInjectionConnected)
             .filter(this::isInjectionInMainSynchronousComponent)
             .collect(Collectors.toList());
     }
 
-    private double getIndividualNodalInjectionForAllocatedFlows(
-            Injection<?> injection,
-            Map<Country, Map<String, Double>> glsks,
-            Map<Country, Double> netPositions) {
-        Country injectionCountry = NetworkUtil.getInjectionCountry(injection);
-        return glsks.get(injectionCountry).getOrDefault(injection.getId(), DEFAULT_GLSK_FACTOR)
-            * netPositions.get(injectionCountry);
-    }
-
     private Map<Country, Double> getZonesNetPosition(Network network) {
         NetPositionComputer netPositionComputer = new NetPositionComputer(loadFlowParameters);
         return netPositionComputer.run(network);
-    }
-
-    private Map<String, Double> getNodalInjectionsForAllocatedFlows(
-            Network network,
-            Map<Country, Map<String, Double>> glsks,
-            Map<Country, Double> netPositions) {
-        return getAllValidNetworkInjections(network)
-            .stream()
-            .collect(Collectors.toMap(
-                Injection::getId,
-                injection -> getIndividualNodalInjectionForAllocatedFlows(injection, glsks, netPositions)
-                )
-            );
-    }
-
-    private SparseMatrixWithIndexesTriplet convertToNodalInjectionMatrix(
-        Network network,
-        Map<Country, Map<String, Double>> glsks,
-        Map<String, Double> nodalInjectionsForAllocatedFlow,
-        Map<String, Double> dcNodalInjection,
-        Map<String, Integer> nodeIndex) {
-        List<String> columns = glsks.keySet().stream()
-            .map(NetworkUtil::getLoopFlowIdFromCountry)
-            .collect(Collectors.toList());
-        columns.add(ALLOCATED_COLUMN_NAME);
-        SparseMatrixWithIndexesTriplet nodalInjectionMatrix = new SparseMatrixWithIndexesTriplet(
-                nodeIndex, getIndex(columns), nodalInjectionsForAllocatedFlow.size());
-        nodalInjectionsForAllocatedFlow.forEach(
-            (injectionId, injectionValue) -> nodalInjectionMatrix.addItem(injectionId, ALLOCATED_COLUMN_NAME, injectionValue)
-        );
-        dcNodalInjection.forEach(
-            (dcInjectionId, dcInjectionValue) -> nodalInjectionMatrix.addItem(
-                dcInjectionId,
-                NetworkUtil.getLoopFlowIdFromCountry(NetworkUtil.getIdentifiableCountry(network, dcInjectionId)),
-                dcInjectionValue - nodalInjectionsForAllocatedFlow.get(dcInjectionId)
-            ));
-        return nodalInjectionMatrix;
-    }
-
-    private SparseMatrixWithIndexesTriplet getNodalInjectionsMatrix(
-        Network network,
-        Map<Country, Map<String, Double>> glsks,
-        Map<Country, Double> netPositions,
-        Map<String, Double> dcNodalInjection,
-        Map<String, Integer> nodeIndex) {
-        Map<String, Double> nodalInjectionsForAllocatedFlow = getNodalInjectionsForAllocatedFlows(network, glsks, netPositions);
-        return convertToNodalInjectionMatrix(network, glsks, nodalInjectionsForAllocatedFlow, dcNodalInjection, nodeIndex);
     }
 
     private List<Branch> selectXnecs(Network network) {
@@ -176,24 +118,14 @@ public class FlowDecompositionComputer {
             ));
     }
 
-    private Map<String, Integer> getIndex(List<String> idList) {
-        return IntStream.range(0, idList.size())
-            .boxed()
-            .collect(Collectors.toMap(
-                idList::get,
-                Function.identity()
-            ));
-    }
-
     private boolean isAnInterconnection(Branch<?> branch) {
         Country country1 = NetworkUtil.getTerminalCountry(branch.getTerminal1());
         Country country2 = NetworkUtil.getTerminalCountry(branch.getTerminal2());
         return !country1.equals(country2);
     }
 
-    private List<String> getNodeIdList(Network network) {
-        return getAllValidNetworkInjections(network)
-            .stream()
+    private List<String> getNodeIdList(List<Injection<?>> nodeList) {
+        return nodeList.stream()
             .map(Injection::getId)
             .collect(Collectors.toList());
     }
@@ -201,22 +133,6 @@ public class FlowDecompositionComputer {
     private SparseMatrixWithIndexesCSC getAllocatedLoopFlowsMatrix(SparseMatrixWithIndexesTriplet ptdfMatrix,
                                                                    SparseMatrixWithIndexesTriplet nodalInjectionsSparseMatrix) {
         return SparseMatrixWithIndexesCSC.mult(ptdfMatrix.toCSCMatrix(), nodalInjectionsSparseMatrix.toCSCMatrix());
-    }
-
-    private double getReferenceInjection(Network network, String nodeId) {
-        Identifiable<?> node = network.getIdentifiable(nodeId);
-        double p = 0.0;
-        if (node instanceof Injection) {
-            p = -((Injection<?>) node).getTerminal().getP();
-        }
-        if (Double.isNaN(p)) {
-            throw new PowsyblException(String.format("Reference nodal injection cannot be a Nan for node %s", nodeId));
-        }
-        return p;
-    }
-
-    private Map<String, Double> getDCNodalInjections(Network network, List<String> nodeList) {
-        return nodeList.stream().collect(Collectors.toMap(Function.identity(), nodeId -> getReferenceInjection(network, nodeId)));
     }
 
     private void compensateLosses(Network network) {
@@ -254,23 +170,25 @@ public class FlowDecompositionComputer {
         LoadFlow.run(network, loadFlowParameters);
 
         List<Branch> xnecList = selectXnecs(network);
-        List<String> nodeList = getNodeIdList(network);
+        List<Injection<?>> nodeList = getNodeList(network);
+        List<String> nodeIdList = getNodeIdList(nodeList);
         List<String> pstList = getPstIdList(network);
         Map<String, Integer> xnecIndex = getXnecIndex(xnecList);
-        Map<String, Integer> nodeIndex = getIndex(nodeList);
-        Map<String, Integer> pstIndex = getIndex(pstList);
+        Map<String, Integer> nodeIndex = NetworkUtil.getIndex(nodeIdList);
+        Map<String, Integer> pstIndex = NetworkUtil.getIndex(pstList);
 
         Map<Country, Map<String, Double>> glsks = buildAutoGlsks(network);
         flowDecompositionResults.saveGlsks(glsks);
 
-        Map<String, Double> dcNodalInjection = getDCNodalInjections(network, nodeList);
+        NodalInjectionComputer nodalInjectionComputer = new NodalInjectionComputer(nodeList);
+        Map<String, Double> dcNodalInjection = nodalInjectionComputer.getDCNodalInjections();
         flowDecompositionResults.saveDcNodalInjections(dcNodalInjection);
 
-        SparseMatrixWithIndexesTriplet nodalInjectionsMatrix = getNodalInjectionsMatrix(network, glsks, netPositions, dcNodalInjection, nodeIndex);
+        SparseMatrixWithIndexesTriplet nodalInjectionsMatrix = nodalInjectionComputer.getNodalInjectionsMatrix(network, glsks, netPositions, dcNodalInjection, nodeIndex);
         flowDecompositionResults.saveNodalInjectionsMatrix(nodalInjectionsMatrix);
 
         SensitivityAnalyser sensitivityAnalyser = new SensitivityAnalyser(loadFlowParameters, network, xnecList, xnecIndex);
-        SparseMatrixWithIndexesTriplet ptdfMatrix = sensitivityAnalyser.getSensibilityMatrix(nodeList, nodeIndex, SensitivityVariableType.INJECTION_ACTIVE_POWER);
+        SparseMatrixWithIndexesTriplet ptdfMatrix = sensitivityAnalyser.getSensibilityMatrix(nodeIdList, nodeIndex, SensitivityVariableType.INJECTION_ACTIVE_POWER);
         flowDecompositionResults.savePtdfMatrix(ptdfMatrix);
 
         SparseMatrixWithIndexesCSC allocatedLoopFlowsMatrix = getAllocatedLoopFlowsMatrix(ptdfMatrix, nodalInjectionsMatrix);
