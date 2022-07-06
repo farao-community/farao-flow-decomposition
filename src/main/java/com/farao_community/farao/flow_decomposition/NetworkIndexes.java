@@ -17,6 +17,7 @@ class NetworkIndexes {
     Map<String, Integer> xnecIndex;
     Map<String, Integer> nodeIndex;
     Map<String, Integer> pstIndex;
+
     NetworkIndexes(Network network) {
         xnecList = selectXnecs(network);
         nodeList = getNodeList(network);

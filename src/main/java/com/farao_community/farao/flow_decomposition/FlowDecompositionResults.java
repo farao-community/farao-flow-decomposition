@@ -114,18 +114,18 @@ public class FlowDecompositionResults {
      * They will be saved if this runner has its argument {@code saveIntermediate} set to {@code true}.
      * They are represented as a sparse map of map.
      * The first key is a node id, the second key is a column identifier and the value is the nodal injection.
-     * The one of the column id is the {@code "Allocated"}. It corresponds to the allocated nodal injection.
-     * The other column ids are Zone Ids as Strings. Each column corresponds to the nodal injection in this zone.
+     * The one of the column id is the {@code "Allocated Flow"}. It corresponds to the allocated nodal injection.
+     * The other column ids are Zone Ids as Strings with a prefix {@code "Loop Flow from XX"}. Each column corresponds to the nodal injection in this zone.
      * @param fillZeros Ignore the sparse property of the nodal injections.
      *                  It fills blanks with zeros.
      * @return An optional containing nodal injections
      */
-    public Optional<Map<String, Map<String, Double>>> getNodalInjectionsMap(boolean fillZeros) {
+    public Optional<Map<String, Map<String, Double>>> getAllocatedAndLoopFlowNodalInjectionsMap(boolean fillZeros) {
         return Optional.ofNullable(nodalInjectionsMatrix).map(matrix -> matrix.toMap(fillZeros));
     }
 
-    public Optional<Map<String, Map<String, Double>>> getNodalInjectionsMap() {
-        return getNodalInjectionsMap(false);
+    public Optional<Map<String, Map<String, Double>>> getAllocatedAndLoopFlowNodalInjectionsMap() {
+        return getAllocatedAndLoopFlowNodalInjectionsMap(false);
     }
 
     /**

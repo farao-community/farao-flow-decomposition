@@ -10,8 +10,6 @@ import com.powsybl.iidm.network.Network;
 import com.powsybl.iidm.network.PhaseTapChanger;
 import com.powsybl.iidm.network.PhaseTapChangerStep;
 
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 /**

@@ -65,7 +65,7 @@ class LoopFlowTests {
         assertEquals(-100, referenceNodalInjections.get(lEs));
         assertEquals(-100, referenceNodalInjections.get(lFr));
 
-        var optionalNodalInjections = flowDecompositionResults.getNodalInjectionsMap(true);
+        var optionalNodalInjections = flowDecompositionResults.getAllocatedAndLoopFlowNodalInjectionsMap(true);
         assertTrue(optionalNodalInjections.isPresent());
         var nodalInjections = optionalNodalInjections.get();
         assertEquals(0, nodalInjections.get(gBe).get(allocated), EPSILON);

@@ -28,7 +28,7 @@ class NodalInjectionComputer {
         this.networkIndexes = networkIndexes;
     }
 
-    SparseMatrixWithIndexesTriplet getNodalInjectionsMatrix(
+    SparseMatrixWithIndexesTriplet getAllocatedAndLoopFlowNodalInjectionsMatrix(
         Network network,
         Map<Country, Map<String, Double>> glsks,
         Map<Country, Double> netPositions,
