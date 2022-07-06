@@ -13,8 +13,8 @@ import java.util.Map;
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
  */
 abstract class AbstractSparseMatrixWithIndexes {
-    protected Map<String, Integer> rowIndex;
-    protected Map<String, Integer> colIndex;
+    protected final Map<String, Integer> rowIndex;
+    protected final Map<String, Integer> colIndex;
 
     protected AbstractSparseMatrixWithIndexes(Map<String, Integer> rowIndex, Map<String, Integer> colIndex) {
         this.rowIndex = rowIndex;

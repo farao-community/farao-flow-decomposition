@@ -43,7 +43,7 @@ final class NetworkUtil {
     static Country getIdentifiableCountry(Network network, String identifiableId) {
         Identifiable<?> identifiable = network.getIdentifiable(identifiableId);
         if (identifiable instanceof Injection) {
-            return getInjectionCountry((Injection) identifiable);
+            return getInjectionCountry((Injection<?>) identifiable);
         }
         throw new PowsyblException(String.format("Identifiable %s must be an Injection", identifiableId));
     }

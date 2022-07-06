@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
  */
-public class LoopFlowTests {
+class LoopFlowTests {
     private static final double EPSILON = 1e-3;
 
     @Test
@@ -40,7 +40,6 @@ public class LoopFlowTests {
         String x5 = "FLOAD 11 ELOAD 11 1";
 
         String allocated = "Allocated";
-        String cgm = "CGM";
 
         Network network = importNetwork(networkFileName);
         FlowDecompositionComputer flowComputer = new FlowDecompositionComputer();

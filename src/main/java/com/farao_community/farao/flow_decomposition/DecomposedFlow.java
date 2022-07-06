@@ -16,11 +16,13 @@ import java.util.Map;
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
  */
 public class DecomposedFlow {
-    Map<String, Double> decomposedFlowMap;
+    final Map<String, Double> decomposedFlowMap;
     private static final String ALLOCATED_COLUMN_NAME = "Allocated";
+    private static final String PST_COLUMN_NAME = "PST";
 
-    DecomposedFlow(Map<String, Double> decomposedFlowMap) {
+    DecomposedFlow(Map<String, Double> decomposedFlowMap, Map<String, Double> pst) {
         this.decomposedFlowMap = decomposedFlowMap;
+        decomposedFlowMap.put(PST_COLUMN_NAME, pst.get(PST_COLUMN_NAME));
     }
 
     public Double getAllocatedFlow() {
@@ -34,7 +36,7 @@ public class DecomposedFlow {
         return decomposedFlowMap.get(country.toString());
     }
 
-    public double getPstFlow(String pst) {
-        return 0;
+    public double getPstFlow() {
+        return decomposedFlowMap.get(PST_COLUMN_NAME);
     }
 }

@@ -6,7 +6,6 @@
  */
 package com.farao_community.farao.flow_decomposition;
 
-import com.powsybl.commons.PowsyblException;
 import org.ejml.data.DMatrixSparseCSC;
 import org.ejml.data.DMatrixSparseTriplet;
 import org.ejml.ops.DConvertMatrixStruct;

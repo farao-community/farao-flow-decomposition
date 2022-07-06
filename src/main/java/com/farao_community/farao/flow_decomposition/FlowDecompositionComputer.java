@@ -26,6 +26,7 @@ import java.util.stream.Stream;
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
  */
 public class FlowDecompositionComputer {
+    public static final int NODE_BATCH_SIZE = 15000;
     private static final double DEFAULT_GLSK_FACTOR = 0.0;
     private static final double DEFAULT_SENSIBILITY_EPSILON = 1e-5;
     private static final String ALLOCATED_COLUMN_NAME = "Allocated";
@@ -83,10 +84,6 @@ public class FlowDecompositionComputer {
         return injection.getTerminal().getBusBreakerView().getBus().isInMainSynchronousComponent();
     }
 
-    private boolean isNotALoss(Injection<?> injection) {
-        return !injection.getId().contains("LOSSES ");
-    }
-
     private Stream<Injection<?>> getAllNetworkInjections(Network network) {
         return network.getConnectableStream()
             .filter(Injection.class::isInstance)
@@ -97,7 +94,6 @@ public class FlowDecompositionComputer {
         return getAllNetworkInjections(network)
             .filter(this::isInjectionConnected)
             .filter(this::isInjectionInMainSynchronousComponent)
-            .filter(this::isNotALoss)
             .collect(Collectors.toList());
     }
 
@@ -170,8 +166,9 @@ public class FlowDecompositionComputer {
 
     private boolean hasNeutralStep(TwoWindingsTransformer pst) {
         PhaseTapChanger phaseTapChanger = pst.getPhaseTapChanger();
-        if (phaseTapChanger == null)
+        if (phaseTapChanger == null) {
             return false;
+        }
         return phaseTapChanger.getNeutralStep().isPresent();
     }
 
@@ -227,15 +224,10 @@ public class FlowDecompositionComputer {
         return SensitivityAnalysis.run(network, factors, sensitivityAnalysisParameters);
     }
 
-    private SparseMatrixWithIndexesTriplet getSensibilityMatrixTriplet(
-            Map<String, Integer> xnecIndex,
-            Map<String, Integer> nodeIndex,
+    private void fillSensibilityMatrixTriplet(
+            SparseMatrixWithIndexesTriplet ptdfMatrixTriplet,
             List<SensitivityFactor> factors,
             SensitivityAnalysisResult sensiResult) {
-        SparseMatrixWithIndexesTriplet ptdfMatrixTriplet = new SparseMatrixWithIndexesTriplet(xnecIndex,
-            nodeIndex,
-            factors.size() + 1,
-            DEFAULT_SENSIBILITY_EPSILON);
         LOGGER.debug("Filtering Sensitivity values with epsilon = {}", DEFAULT_SENSIBILITY_EPSILON);
         for (SensitivityValue sensitivityValue : sensiResult.getValues()) {
             SensitivityFactor factor = factors.get(sensitivityValue.getFactorIndex());
@@ -243,7 +235,6 @@ public class FlowDecompositionComputer {
             double referenceOrientedSensitivity = sensitivityValue.getFunctionReference() < 0 ? -sensitivity : sensitivity;
             ptdfMatrixTriplet.addItem(factor.getFunctionId(), factor.getVariableId(), referenceOrientedSensitivity);
         }
-        return ptdfMatrixTriplet;
     }
 
     private SparseMatrixWithIndexesTriplet getSensibilityMatrix(Network network,
@@ -252,9 +243,17 @@ public class FlowDecompositionComputer {
                                                                 List<String> nodeList,
                                                                 Map<String, Integer> nodeIndex,
                                                                 SensitivityVariableType sensitivityVariableType) {
-        List<SensitivityFactor> factors = getFactors(xnecList, nodeList, sensitivityVariableType);
-        SensitivityAnalysisResult sensiResult = getSensitivityAnalysisResult(network, factors);
-        return getSensibilityMatrixTriplet(xnecIndex, nodeIndex, factors, sensiResult);
+        SparseMatrixWithIndexesTriplet ptdfMatrixTriplet = new SparseMatrixWithIndexesTriplet(xnecIndex,
+            nodeIndex,
+            xnecIndex.size() * nodeIndex.size(),
+            DEFAULT_SENSIBILITY_EPSILON);
+        for (int i = 0; i < nodeList.size(); i += NODE_BATCH_SIZE) {
+            List<String> localNodeList = nodeList.subList(i, Math.min(nodeList.size(), i + NODE_BATCH_SIZE));
+            List<SensitivityFactor> factors = getFactors(xnecList, localNodeList, sensitivityVariableType);
+            SensitivityAnalysisResult sensiResult = getSensitivityAnalysisResult(network, factors);
+            fillSensibilityMatrixTriplet(ptdfMatrixTriplet, factors, sensiResult);
+        }
+        return ptdfMatrixTriplet;
     }
 
     private List<String> getNodeIdList(Network network) {
@@ -317,6 +316,7 @@ public class FlowDecompositionComputer {
         if (parameters.lossesCompensationEnabled()) {
             compensateLosses(network);
         }
+        LoadFlow.run(network, loadFlowParameters);
 
         List<Branch> xnecList = selectXnecs(network);
         List<String> nodeList = getNodeIdList(network);
@@ -328,7 +328,6 @@ public class FlowDecompositionComputer {
         Map<Country, Map<String, Double>> glsks = buildAutoGlsks(network);
         flowDecompositionResults.saveGlsks(glsks);
 
-        LoadFlow.run(network, loadFlowParameters);
         Map<String, Double> dcNodalInjection = getDCNodalInjections(network, nodeList);
         flowDecompositionResults.saveDcNodalInjections(dcNodalInjection);
 
