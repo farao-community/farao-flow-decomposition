@@ -6,9 +6,7 @@
  */
 package com.farao_community.farao.flow_decomposition;
 
-import com.powsybl.commons.PowsyblException;
 import com.powsybl.iidm.network.Country;
-import com.powsybl.iidm.network.Identifiable;
 import com.powsybl.iidm.network.Injection;
 import com.powsybl.iidm.network.Network;
 
@@ -18,17 +16,18 @@ import java.util.stream.Collectors;
 
 /**
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
+ * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
  */
 class NodalInjectionComputer {
     private static final double DEFAULT_GLSK_FACTOR = 0.0;
     private static final String ALLOCATED_COLUMN_NAME = "Allocated Flow";
-    private final NetworkIndexes networkIndexes;
+    private final NetworkMatrixIndexes networkMatrixIndexes;
 
-    public NodalInjectionComputer(NetworkIndexes networkIndexes) {
-        this.networkIndexes = networkIndexes;
+    public NodalInjectionComputer(NetworkMatrixIndexes networkMatrixIndexes) {
+        this.networkMatrixIndexes = networkMatrixIndexes;
     }
 
-    SparseMatrixWithIndexesTriplet getAllocatedAndLoopFlowNodalInjectionsMatrix(
+    SparseMatrixWithIndexesTriplet run(
         Network network,
         Map<Country, Map<String, Double>> glsks,
         Map<Country, Double> netPositions,
@@ -40,7 +39,7 @@ class NodalInjectionComputer {
     private Map<String, Double> getNodalInjectionsForAllocatedFlows(
         Map<Country, Map<String, Double>> glsks,
         Map<Country, Double> netPositions) {
-        return networkIndexes.getNodeList().stream()
+        return networkMatrixIndexes.getNodeList().stream()
             .collect(Collectors.toMap(
                     Injection::getId,
                     injection -> getIndividualNodalInjectionForAllocatedFlows(injection, glsks, netPositions)
@@ -57,17 +56,21 @@ class NodalInjectionComputer {
             * netPositions.get(injectionCountry);
     }
 
+    private SparseMatrixWithIndexesTriplet getEmptyNodalInjectionMatrix(Map<Country, Map<String, Double>> glsks, Integer size) {
+        List<String> columns = glsks.keySet().stream()
+            .map(NetworkUtil::getLoopFlowIdFromCountry)
+            .collect(Collectors.toList());
+        columns.add(ALLOCATED_COLUMN_NAME);
+        return new SparseMatrixWithIndexesTriplet(
+            networkMatrixIndexes.getNodeIndex(), NetworkUtil.getIndex(columns), size);
+    }
+
     private SparseMatrixWithIndexesTriplet convertToNodalInjectionMatrix(
         Network network,
         Map<Country, Map<String, Double>> glsks,
         Map<String, Double> nodalInjectionsForAllocatedFlow,
         Map<String, Double> dcNodalInjection) {
-        List<String> columns = glsks.keySet().stream()
-            .map(NetworkUtil::getLoopFlowIdFromCountry)
-            .collect(Collectors.toList());
-        columns.add(ALLOCATED_COLUMN_NAME);
-        SparseMatrixWithIndexesTriplet nodalInjectionMatrix = new SparseMatrixWithIndexesTriplet(
-            networkIndexes.getNodeIndex(), NetworkUtil.getIndex(columns), nodalInjectionsForAllocatedFlow.size());
+        SparseMatrixWithIndexesTriplet nodalInjectionMatrix = getEmptyNodalInjectionMatrix(glsks, nodalInjectionsForAllocatedFlow.size() + dcNodalInjection.size());
         nodalInjectionsForAllocatedFlow.forEach(
             (injectionId, injectionValue) -> nodalInjectionMatrix.addItem(injectionId, ALLOCATED_COLUMN_NAME, injectionValue)
         );
@@ -78,21 +81,5 @@ class NodalInjectionComputer {
                 dcInjectionValue - nodalInjectionsForAllocatedFlow.get(dcInjectionId)
             ));
         return nodalInjectionMatrix;
-    }
-
-    Map<String, Double> getDCNodalInjections() {
-        return networkIndexes.getNodeList().stream()
-            .collect(Collectors.toMap(
-                Identifiable::getId,
-                this::getReferenceInjection
-            ));
-    }
-
-    private double getReferenceInjection(Injection<?> node) {
-        double p = -node.getTerminal().getP();
-        if (Double.isNaN(p)) {
-            throw new PowsyblException(String.format("Reference nodal injection cannot be a Nan for node %s", node.getId()));
-        }
-        return p;
     }
 }

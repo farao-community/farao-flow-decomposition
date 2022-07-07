@@ -36,7 +36,7 @@ class LossesCompensationTests {
         loadFlowParameters.setDc(false);
 
         Network network = importNetwork(networkFileName);
-        LossesCompensator lossesCompensator = new LossesCompensator(loadFlowParameters);
+        LossesCompensator lossesCompensator = new LossesCompensator(loadFlowParameters, 0.0);
         lossesCompensator.run(network);
 
         assessSingleLoadTwoGeneratorsNetworkLossesCompensation(network);
@@ -50,7 +50,7 @@ class LossesCompensationTests {
         loadFlowParameters.setDc(true);
 
         Network network = importNetwork(networkFileName);
-        LossesCompensator lossesCompensator = new LossesCompensator(loadFlowParameters);
+        LossesCompensator lossesCompensator = new LossesCompensator(loadFlowParameters, 0.0);
         lossesCompensator.run(network);
 
         assessSingleLoadTwoGeneratorsNetworkLossesCompensation(network);
@@ -75,7 +75,7 @@ class LossesCompensationTests {
         loadFlowParameters.setDc(false);
 
         Network network = importNetwork(networkFileName);
-        LossesCompensator lossesCompensator = new LossesCompensator(loadFlowParameters);
+        LossesCompensator lossesCompensator = new LossesCompensator(loadFlowParameters, 0.0);
         lossesCompensator.run(network);
 
         Load lossesFgenBload = network.getLoad("LOSSES FGEN1 11 X     11 1 + X     11 BLOAD 11 1");

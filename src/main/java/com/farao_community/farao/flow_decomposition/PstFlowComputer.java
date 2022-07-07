@@ -14,6 +14,7 @@ import java.util.Optional;
 
 /**
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
+ * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
  */
 final class PstFlowComputer {
     private static final String PST_COLUMN_NAME = "PST Flow";
@@ -22,17 +23,17 @@ final class PstFlowComputer {
         throw new AssertionError("Static class should not be instantiated");
     }
 
-    static SparseMatrixWithIndexesCSC getPstFlowMatrix(Network network,
-                                                       NetworkIndexes networkIndexes,
-                                                       SparseMatrixWithIndexesTriplet psdfMatrix) {
-        SparseMatrixWithIndexesTriplet deltaTapMatrix = getDeltaTapMatrix(network, networkIndexes);
+    static SparseMatrixWithIndexesCSC run(Network network,
+                                          NetworkMatrixIndexes networkMatrixIndexes,
+                                          SparseMatrixWithIndexesTriplet psdfMatrix) {
+        SparseMatrixWithIndexesTriplet deltaTapMatrix = getDeltaTapMatrix(network, networkMatrixIndexes);
         return SparseMatrixWithIndexesCSC.mult(psdfMatrix.toCSCMatrix(), deltaTapMatrix.toCSCMatrix());
     }
 
-    private static SparseMatrixWithIndexesTriplet getDeltaTapMatrix(Network network, NetworkIndexes networkIndexes) {
+    private static SparseMatrixWithIndexesTriplet getDeltaTapMatrix(Network network, NetworkMatrixIndexes networkMatrixIndexes) {
         SparseMatrixWithIndexesTriplet deltaTapMatrix =
-            new SparseMatrixWithIndexesTriplet(networkIndexes.getPstIndex(), PST_COLUMN_NAME, networkIndexes.getNumberOfPst());
-        for (String pst: networkIndexes.getPstList()) {
+            new SparseMatrixWithIndexesTriplet(networkMatrixIndexes.getPstIndex(), PST_COLUMN_NAME, networkMatrixIndexes.getPstCount());
+        for (String pst: networkMatrixIndexes.getPstList()) {
             PhaseTapChanger phaseTapChanger = network.getTwoWindingsTransformer(pst).getPhaseTapChanger();
             Optional<PhaseTapChangerStep> neutralStep = phaseTapChanger.getNeutralStep();
             double deltaTap = 0.0;

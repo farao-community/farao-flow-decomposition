@@ -9,22 +9,21 @@ package com.farao_community.farao.flow_decomposition;
 import com.powsybl.commons.PowsyblException;
 import com.powsybl.iidm.network.Country;
 
+import java.util.HashMap;
 import java.util.Map;
-
-import static com.farao_community.farao.flow_decomposition.NetworkUtil.getLoopFlowIdFromCountry;
 
 /**
  * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
  */
 public class DecomposedFlow {
-    final Map<String, Double> decomposedFlowMap;
+    private final Map<String, Double> decomposedFlowMap = new HashMap<>();
     private static final String ALLOCATED_COLUMN_NAME = "Allocated Flow";
     private static final String PST_COLUMN_NAME = "PST Flow";
 
     DecomposedFlow(Map<String, Double> decomposedFlowMap, Map<String, Double> pst) {
-        this.decomposedFlowMap = decomposedFlowMap;
-        decomposedFlowMap.put(PST_COLUMN_NAME, pst.get(PST_COLUMN_NAME));
+        this.decomposedFlowMap.putAll(decomposedFlowMap);
+        this.decomposedFlowMap.put(PST_COLUMN_NAME, pst.get(PST_COLUMN_NAME));
     }
 
     public Double getAllocatedFlow() {
@@ -32,7 +31,7 @@ public class DecomposedFlow {
     }
 
     public double getLoopFlow(Country country) {
-        String columnName = getLoopFlowIdFromCountry(country);
+        String columnName = NetworkUtil.getLoopFlowIdFromCountry(country);
         if (!decomposedFlowMap.containsKey(columnName)) {
             throw new PowsyblException("Country has to be present in the network");
         }
@@ -45,5 +44,9 @@ public class DecomposedFlow {
 
     public String toString() {
         return decomposedFlowMap.toString();
+    }
+
+    Map<String, Double> getDecomposedFlowMap() {
+        return decomposedFlowMap;
     }
 }

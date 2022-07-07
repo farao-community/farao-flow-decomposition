@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2022, RTE (http://www.rte-france.com)
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
 package com.farao_community.farao.flow_decomposition;
 
 import com.powsybl.iidm.network.*;
@@ -9,16 +15,20 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-class NetworkIndexes {
-    List<Branch> xnecList;
-    List<Injection<?>> nodeList;
-    List<String> nodeIdList;
-    List<String> pstList;
-    Map<String, Integer> xnecIndex;
-    Map<String, Integer> nodeIndex;
-    Map<String, Integer> pstIndex;
+/**
+ * @author Hugo Schindler{@literal <hugo.schindler@rte-france.com>}
+ * @author Sebastien Murgey{@literal <sebastien.murgey at rte-france.com>}
+ */
+class NetworkMatrixIndexes {
+    private final List<Branch> xnecList;
+    private final List<Injection<?>> nodeList;
+    private final List<String> nodeIdList;
+    private final List<String> pstList;
+    private final Map<String, Integer> xnecIndex;
+    private final Map<String, Integer> nodeIndex;
+    private final Map<String, Integer> pstIndex;
 
-    NetworkIndexes(Network network) {
+    NetworkMatrixIndexes(Network network) {
         xnecList = selectXnecs(network);
         nodeList = getNodeList(network);
         nodeIdList = getNodeIdList(nodeList);
@@ -54,6 +64,10 @@ class NetworkIndexes {
 
     Map<String, Integer> getPstIndex() {
         return pstIndex;
+    }
+
+    int getPstCount() {
+        return xnecList.size();
     }
 
     private List<Branch> selectXnecs(Network network) {
@@ -117,9 +131,5 @@ class NetworkIndexes {
                 i -> xnecList.get(i).getId(),
                 Function.identity()
             ));
-    }
-
-    int getNumberOfPst() {
-        return xnecList.size();
     }
 }

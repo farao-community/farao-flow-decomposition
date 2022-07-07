@@ -20,11 +20,12 @@ import java.util.Map;
 
 /**
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
+ * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
  */
 class SensitivityAnalyser {
-    private static final int NODE_BATCH_SIZE = 15000;
+    private static final int VARIABLE_BATCH_SIZE = 15000;
     private static final double DEFAULT_SENSIBILITY_EPSILON = 1e-5;
-    private static final Logger LOGGER = LoggerFactory.getLogger(FlowDecompositionComputer.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SensitivityAnalyser.class);
     private final SensitivityAnalysisParameters sensitivityAnalysisParameters;
     private final Network network;
     private final List<Branch> functionList;
@@ -40,6 +41,10 @@ class SensitivityAnalyser {
         this.functionIndex = functionIndex;
     }
 
+    public SensitivityAnalyser(LoadFlowParameters loadFlowParameters, Network network, NetworkMatrixIndexes networkMatrixIndexes) {
+        this(loadFlowParameters, network, networkMatrixIndexes.getXnecList(), networkMatrixIndexes.getXnecIndex());
+    }
+
     private static SensitivityAnalysisParameters initSensitivityAnalysisParameters(LoadFlowParameters loadFlowParameters) {
         SensitivityAnalysisParameters parameters = SensitivityAnalysisParameters.load();
         parameters.setLoadFlowParameters(loadFlowParameters);
@@ -47,12 +52,12 @@ class SensitivityAnalyser {
         return parameters;
     }
 
-    SparseMatrixWithIndexesTriplet getSensibilityMatrix(List<String> variableList,
-                                                        Map<String, Integer> variableIndex,
-                                                        SensitivityVariableType sensitivityVariableType) {
+    SparseMatrixWithIndexesTriplet run(List<String> variableList,
+                                       Map<String, Integer> variableIndex,
+                                       SensitivityVariableType sensitivityVariableType) {
         SparseMatrixWithIndexesTriplet sensiMatrixTriplet = initSensiMatrixTriplet(variableIndex);
-        for (int i = 0; i < variableList.size(); i += NODE_BATCH_SIZE) {
-            List<String> localNodeList = variableList.subList(i, Math.min(variableList.size(), i + NODE_BATCH_SIZE));
+        for (int i = 0; i < variableList.size(); i += VARIABLE_BATCH_SIZE) {
+            List<String> localNodeList = variableList.subList(i, Math.min(variableList.size(), i + VARIABLE_BATCH_SIZE));
             partialFillSensitityMatrix(sensitivityVariableType, sensiMatrixTriplet, localNodeList);
         }
         return sensiMatrixTriplet;

@@ -25,8 +25,8 @@ class LossesCompensator extends AbstractAcLoadFlowRunner<Void> {
         this.epsilon = epsilon;
     }
 
-    LossesCompensator(LoadFlowParameters initialLoadFlowParameters) {
-        this(initialLoadFlowParameters, 1e-5);
+    LossesCompensator(LoadFlowParameters initialLoadFlowParameters, FlowDecompositionParameters parameters) {
+        this(initialLoadFlowParameters, parameters.getLossCompensationEpsilon());
     }
 
     private boolean hasBus(Terminal terminal) {

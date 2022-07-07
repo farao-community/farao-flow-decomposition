@@ -155,27 +155,25 @@ public class FlowDecompositionResults {
      */
     public void exportCsv(Path dirPath, String basename) {
         CSVFormat format = CSVFormat.RFC4180;
-        Path path = Paths.get(dirPath.toString(), basename + ".csv" );
+        Path path = Paths.get(dirPath.toString(), basename + ".csv");
         try (
-            BufferedWriter writer = Files.newBufferedWriter( path , StandardCharsets.UTF_8 );
-            CSVPrinter printer = new CSVPrinter( writer , format );
-        )
-        {
+            BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8);
+            CSVPrinter printer = new CSVPrinter(writer, format);
+        ) {
             printer.print("");
             for (Map.Entry<String, DecomposedFlow> entry : getDecomposedFlowsMap(true).entrySet()) {
-                printer.print( entry.getKey());
+                printer.print(entry.getKey());
             }
             printer.println();
-            Set<String> rows = getDecomposedFlowsMap().entrySet().iterator().next().getValue().decomposedFlowMap.keySet();
+            Set<String> rows = getDecomposedFlowsMap().entrySet().iterator().next().getValue().getDecomposedFlowMap().keySet();
             for (String row : rows) {
                 printer.print(row);
                 for (DecomposedFlow decomposedFlow : getDecomposedFlowsMap(true).values()) {
-                    printer.print(decomposedFlow.decomposedFlowMap.get(row));
+                    printer.print(decomposedFlow.getDecomposedFlowMap().get(row));
                 }
                 printer.println();
             }
-        } catch ( IOException e )
-        {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
