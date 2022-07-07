@@ -46,10 +46,17 @@ public class FlowDecompositionResults {
         this.id = "Flow-Decomposition-Results-of-" + date + "-on-network-" + networkId;
     }
 
+
+    /**
+     * @return Network Id
+     */
     public String getNetworkId() {
         return networkId;
     }
 
+    /**
+     * @return Id composed of a time format and the network id.
+     */
     public String getId() {
         return id;
     }
