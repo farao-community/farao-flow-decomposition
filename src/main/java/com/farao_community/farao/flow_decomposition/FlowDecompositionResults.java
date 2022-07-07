@@ -12,7 +12,6 @@ import com.powsybl.iidm.network.Network;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.*;
-import java.util.stream.Collectors;
 /**
  * This class provides flow decomposition results from a network.
  * Those results are returned by a flowDecompositionComputer when run on a network.
@@ -150,7 +149,6 @@ public class FlowDecompositionResults {
     public Optional<Map<String, Double>> getDcNodalInjectionsMap() {
         return Optional.ofNullable(dcNodalInjections);
     }
-
 
     static class DecomposedFlowMapCache {
         private final Map<String, DecomposedFlow> cacheValue;

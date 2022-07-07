@@ -16,6 +16,7 @@ import java.util.Set;
 
 public class Exporter {
     private static final Logger LOGGER = LoggerFactory.getLogger(Exporter.class);
+
     /**
      * Export to CSV
      * @param dirPath path to local directory
