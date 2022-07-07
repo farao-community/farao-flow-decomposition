@@ -33,7 +33,7 @@ public class FlowDecompositionComputer {
     }
 
     public FlowDecompositionResults run(Network network, boolean saveIntermediate) {
-        FlowDecompositionResults flowDecompositionResults = new FlowDecompositionResults(saveIntermediate);
+        FlowDecompositionResults flowDecompositionResults = new FlowDecompositionResults(network, saveIntermediate);
 
         //AC LF
         Map<Country, Double> netPositions = getZonesNetPosition(network, flowDecompositionResults);
@@ -129,7 +129,7 @@ public class FlowDecompositionComputer {
     }
 
     private SensitivityAnalyser getSensitivityAnalyser(Network network, NetworkMatrixIndexes networkMatrixIndexes) {
-        return new SensitivityAnalyser(loadFlowParameters, network, networkMatrixIndexes);
+        return new SensitivityAnalyser(loadFlowParameters, parameters, network, networkMatrixIndexes);
     }
 
     private SparseMatrixWithIndexesTriplet getPtdfMatrix(FlowDecompositionResults flowDecompositionResults,

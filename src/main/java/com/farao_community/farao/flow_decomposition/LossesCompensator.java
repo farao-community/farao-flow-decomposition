@@ -33,7 +33,7 @@ class LossesCompensator extends AbstractAcLoadFlowRunner<Void> {
         return terminal.getBusBreakerView().getBus() != null;
     }
 
-    private boolean isBuses(Branch<?> branch) {
+    private boolean hasBuses(Branch<?> branch) {
         return hasBus(branch.getTerminal1()) && hasBus(branch.getTerminal2());
     }
 
@@ -48,7 +48,7 @@ class LossesCompensator extends AbstractAcLoadFlowRunner<Void> {
     Void run(Network network) {
         LoadFlow.run(network, loadFlowParameters);
         network.getBranchStream()
-            .filter(this::isBuses)
+            .filter(this::hasBuses)
             .filter(this::hasP0s)
             .forEach(this::compensateLossesOnBranch);
         return null;

@@ -23,26 +23,28 @@ import java.util.Map;
  * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
  */
 class SensitivityAnalyser {
-    private static final int VARIABLE_BATCH_SIZE = 15000;
-    private static final double DEFAULT_SENSIBILITY_EPSILON = 1e-5;
+    private static final int SENSITIVITY_VARIABLE_BATCH_SIZE = 15000;
     private static final Logger LOGGER = LoggerFactory.getLogger(SensitivityAnalyser.class);
     private final SensitivityAnalysisParameters sensitivityAnalysisParameters;
     private final Network network;
     private final List<Branch> functionList;
     private final Map<String, Integer> functionIndex;
+    private final FlowDecompositionParameters parameters;
 
     SensitivityAnalyser(LoadFlowParameters loadFlowParameters,
+                        FlowDecompositionParameters parameters,
                         Network network,
                         List<Branch> functionList,
                         Map<String, Integer> functionIndex) {
         this.sensitivityAnalysisParameters = initSensitivityAnalysisParameters(loadFlowParameters);
+        this.parameters = parameters;
         this.network = network;
         this.functionList = functionList;
         this.functionIndex = functionIndex;
     }
 
-    public SensitivityAnalyser(LoadFlowParameters loadFlowParameters, Network network, NetworkMatrixIndexes networkMatrixIndexes) {
-        this(loadFlowParameters, network, networkMatrixIndexes.getXnecList(), networkMatrixIndexes.getXnecIndex());
+    SensitivityAnalyser(LoadFlowParameters loadFlowParameters, FlowDecompositionParameters parameters, Network network, NetworkMatrixIndexes networkMatrixIndexes) {
+        this(loadFlowParameters, parameters, network, networkMatrixIndexes.getXnecList(), networkMatrixIndexes.getXnecIndex());
     }
 
     private static SensitivityAnalysisParameters initSensitivityAnalysisParameters(LoadFlowParameters loadFlowParameters) {
@@ -55,28 +57,28 @@ class SensitivityAnalyser {
     SparseMatrixWithIndexesTriplet run(List<String> variableList,
                                        Map<String, Integer> variableIndex,
                                        SensitivityVariableType sensitivityVariableType) {
-        SparseMatrixWithIndexesTriplet sensiMatrixTriplet = initSensiMatrixTriplet(variableIndex);
-        for (int i = 0; i < variableList.size(); i += VARIABLE_BATCH_SIZE) {
-            List<String> localNodeList = variableList.subList(i, Math.min(variableList.size(), i + VARIABLE_BATCH_SIZE));
-            partialFillSensitityMatrix(sensitivityVariableType, sensiMatrixTriplet, localNodeList);
+        SparseMatrixWithIndexesTriplet sensiMatrixTriplet = initSensitivityMatrixTriplet(variableIndex);
+        for (int i = 0; i < variableList.size(); i += SENSITIVITY_VARIABLE_BATCH_SIZE) {
+            List<String> localNodeList = variableList.subList(i, Math.min(variableList.size(), i + SENSITIVITY_VARIABLE_BATCH_SIZE));
+            partialFillSensitivityMatrix(sensitivityVariableType, sensiMatrixTriplet, localNodeList);
         }
         return sensiMatrixTriplet;
     }
 
-    private SparseMatrixWithIndexesTriplet initSensiMatrixTriplet(Map<String, Integer> variableIndex) {
-        LOGGER.debug("Filtering Sensitivity values with epsilon = {}", DEFAULT_SENSIBILITY_EPSILON);
+    private SparseMatrixWithIndexesTriplet initSensitivityMatrixTriplet(Map<String, Integer> variableIndex) {
+        LOGGER.debug("Filtering Sensitivity values with epsilon = {}", parameters.getSensitivityEpsilon());
         return new SparseMatrixWithIndexesTriplet(functionIndex,
             variableIndex,
             functionIndex.size() * variableIndex.size(),
-            DEFAULT_SENSIBILITY_EPSILON);
+            parameters.getSensitivityEpsilon());
     }
 
-    private void partialFillSensitityMatrix(SensitivityVariableType sensitivityVariableType,
-                                            SparseMatrixWithIndexesTriplet sensiMatrixTriplet,
-                                            List<String> localNodeList) {
+    private void partialFillSensitivityMatrix(SensitivityVariableType sensitivityVariableType,
+                                              SparseMatrixWithIndexesTriplet sensitivityMatrixTriplet,
+                                              List<String> localNodeList) {
         List<SensitivityFactor> factors = getFactors(localNodeList, sensitivityVariableType);
-        SensitivityAnalysisResult sensiResult = getSensitivityAnalysisResult(factors);
-        fillSensibilityMatrixTriplet(sensiMatrixTriplet, factors, sensiResult);
+        SensitivityAnalysisResult sensitivityResult = getSensitivityAnalysisResult(factors);
+        fillSensibilityMatrixTriplet(sensitivityMatrixTriplet, factors, sensitivityResult);
     }
 
     private List<SensitivityFactor> getFactors(List<String> variableList,
@@ -104,15 +106,19 @@ class SensitivityAnalyser {
     }
 
     private void fillSensibilityMatrixTriplet(
-        SparseMatrixWithIndexesTriplet ptdfMatrixTriplet,
+        SparseMatrixWithIndexesTriplet sensitivityMatrixTriplet,
         List<SensitivityFactor> factors,
         SensitivityAnalysisResult sensiResult) {
         for (SensitivityValue sensitivityValue : sensiResult.getValues()) {
-            SensitivityFactor factor = factors.get(sensitivityValue.getFactorIndex());
-            double sensitivity = sensitivityValue.getValue();
-            double referenceOrientedSensitivity = sensitivityValue.getFunctionReference() < 0 ?
-                -sensitivity : sensitivity;
-            ptdfMatrixTriplet.addItem(factor.getFunctionId(), factor.getVariableId(), referenceOrientedSensitivity);
+            fillSensitivityMatrixCell(sensitivityMatrixTriplet, factors, sensitivityValue);
         }
+    }
+
+    private void fillSensitivityMatrixCell(SparseMatrixWithIndexesTriplet sensitivityMatrixTriplet, List<SensitivityFactor> factors, SensitivityValue sensitivityValue) {
+        SensitivityFactor factor = factors.get(sensitivityValue.getFactorIndex());
+        double sensitivity = sensitivityValue.getValue();
+        double referenceOrientedSensitivity = sensitivityValue.getFunctionReference() < 0 ?
+            -sensitivity : sensitivity;
+        sensitivityMatrixTriplet.addItem(factor.getFunctionId(), factor.getVariableId(), referenceOrientedSensitivity);
     }
 }

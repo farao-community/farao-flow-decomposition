@@ -7,19 +7,11 @@
 package com.farao_community.farao.flow_decomposition;
 
 import com.powsybl.iidm.network.Country;
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVPrinter;
+import com.powsybl.iidm.network.Network;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.util.*;
 import java.util.stream.Collectors;
 /**
  * This class provides flow decomposition results from a network.
@@ -36,6 +28,8 @@ import java.util.stream.Collectors;
 
 public class FlowDecompositionResults {
     private final boolean saveIntermediates;
+    private final String id;
+    private final String networkId;
     private SparseMatrixWithIndexesCSC allocatedAndLoopFlowsMatrix;
     private Map<String, Map<String, Double>> pstFlowMap;
     private Map<Country, Double> acNetPosition;
@@ -46,8 +40,19 @@ public class FlowDecompositionResults {
     private Map<String, Double> dcNodalInjections;
     private DecomposedFlowMapCache decomposedFlowMapCache;
 
-    FlowDecompositionResults(boolean saveIntermediates) {
+    FlowDecompositionResults(Network network, boolean saveIntermediates) {
         this.saveIntermediates = saveIntermediates;
+        this.networkId = network.getNameOrId();
+        String date = new SimpleDateFormat("yyyyMMdd-HHmmss").format(Date.from(Instant.now()));
+        this.id = "Flow-Decomposition-Results-of-" + date + "-on-network-" + networkId;
+    }
+
+    public String getNetworkId() {
+        return networkId;
+    }
+
+    public String getId() {
+        return id;
     }
 
     /**
@@ -60,13 +65,11 @@ public class FlowDecompositionResults {
             return decomposedFlowMapCache.cacheValue;
         }
         invalidateDecomposedFlowMapCache();
-        Map<String, DecomposedFlow> decomposedFlowMap = allocatedAndLoopFlowsMatrix.toMap(fillZeros).entrySet()
-            .stream()
-            .collect(Collectors.toMap(
-                Map.Entry::getKey,
-                this::flowPartsMapToDecomposedFlow));
-        resetDecomposedFlowMapCache(decomposedFlowMap, fillZeros);
-        return decomposedFlowMap;
+        Map<String, DecomposedFlow> decomposedFlowsMap = new TreeMap<>();
+        allocatedAndLoopFlowsMatrix.toMap(fillZeros)
+            .forEach((xnecId, decomposedFlow) -> decomposedFlowsMap.put(xnecId, flowPartsMapToDecomposedFlow(xnecId, decomposedFlow)));
+        resetDecomposedFlowMapCache(decomposedFlowsMap, fillZeros);
+        return decomposedFlowsMap;
     }
 
     public Map<String, DecomposedFlow> getDecomposedFlowsMap() {
@@ -148,35 +151,6 @@ public class FlowDecompositionResults {
         return Optional.ofNullable(dcNodalInjections);
     }
 
-    /**
-     * Export to CSV
-     * @param dirPath path to local directory
-     * @param basename basename
-     */
-    public void exportCsv(Path dirPath, String basename) {
-        CSVFormat format = CSVFormat.RFC4180;
-        Path path = Paths.get(dirPath.toString(), basename + ".csv");
-        try (
-            BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8);
-            CSVPrinter printer = new CSVPrinter(writer, format);
-        ) {
-            printer.print("");
-            for (Map.Entry<String, DecomposedFlow> entry : getDecomposedFlowsMap(true).entrySet()) {
-                printer.print(entry.getKey());
-            }
-            printer.println();
-            Set<String> rows = getDecomposedFlowsMap().entrySet().iterator().next().getValue().getDecomposedFlowMap().keySet();
-            for (String row : rows) {
-                printer.print(row);
-                for (DecomposedFlow decomposedFlow : getDecomposedFlowsMap(true).values()) {
-                    printer.print(decomposedFlow.getDecomposedFlowMap().get(row));
-                }
-                printer.println();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 
     static class DecomposedFlowMapCache {
         private final Map<String, DecomposedFlow> cacheValue;
@@ -200,8 +174,8 @@ public class FlowDecompositionResults {
         decomposedFlowMapCache = new DecomposedFlowMapCache(decomposedFlowMap, fillZeros);
     }
 
-    private DecomposedFlow flowPartsMapToDecomposedFlow(Map.Entry<String, Map<String, Double>> entry) {
-        return new DecomposedFlow(entry.getValue(), pstFlowMap.get(entry.getKey()));
+    private DecomposedFlow flowPartsMapToDecomposedFlow(String xnecId, Map<String, Double> decomposedFlow) {
+        return new DecomposedFlow(decomposedFlow, pstFlowMap.get(xnecId));
     }
 
     void saveAllocatedAndLoopFlowsMatrix(SparseMatrixWithIndexesCSC allocatedAndLoopFlowsMatrix) {

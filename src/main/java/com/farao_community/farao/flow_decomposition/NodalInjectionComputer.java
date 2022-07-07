@@ -70,16 +70,33 @@ class NodalInjectionComputer {
         Map<Country, Map<String, Double>> glsks,
         Map<String, Double> nodalInjectionsForAllocatedFlow,
         Map<String, Double> dcNodalInjection) {
-        SparseMatrixWithIndexesTriplet nodalInjectionMatrix = getEmptyNodalInjectionMatrix(glsks, nodalInjectionsForAllocatedFlow.size() + dcNodalInjection.size());
+        SparseMatrixWithIndexesTriplet nodalInjectionMatrix = getEmptyNodalInjectionMatrix(glsks,
+            nodalInjectionsForAllocatedFlow.size() + dcNodalInjection.size());
+        fillNodalInjectionsWithAllocatedFlow(nodalInjectionsForAllocatedFlow, nodalInjectionMatrix);
+        fillNodalInjectionsWithLoopFlow(network, nodalInjectionsForAllocatedFlow, dcNodalInjection, nodalInjectionMatrix);
+        return nodalInjectionMatrix;
+    }
+
+    private void fillNodalInjectionsWithAllocatedFlow(Map<String, Double> nodalInjectionsForAllocatedFlow,
+                                                      SparseMatrixWithIndexesTriplet nodalInjectionMatrix) {
         nodalInjectionsForAllocatedFlow.forEach(
             (injectionId, injectionValue) -> nodalInjectionMatrix.addItem(injectionId, ALLOCATED_COLUMN_NAME, injectionValue)
         );
+    }
+
+    private void fillNodalInjectionsWithLoopFlow(Network network,
+                                                 Map<String, Double> nodalInjectionsForAllocatedFlow,
+                                                 Map<String, Double> dcNodalInjection,
+                                                 SparseMatrixWithIndexesTriplet nodalInjectionMatrix) {
         dcNodalInjection.forEach(
             (dcInjectionId, dcInjectionValue) -> nodalInjectionMatrix.addItem(
                 dcInjectionId,
                 NetworkUtil.getLoopFlowIdFromCountry(network, dcInjectionId),
-                dcInjectionValue - nodalInjectionsForAllocatedFlow.get(dcInjectionId)
+                computeLoopFLow(nodalInjectionsForAllocatedFlow.get(dcInjectionId), dcInjectionValue)
             ));
-        return nodalInjectionMatrix;
+    }
+
+    private double computeLoopFLow(Double nodalInjectionForAllocatedFlow, Double dcInjectionValue) {
+        return dcInjectionValue - nodalInjectionForAllocatedFlow;
     }
 }
