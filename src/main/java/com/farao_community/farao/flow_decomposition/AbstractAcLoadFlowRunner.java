@@ -13,7 +13,7 @@ import com.powsybl.loadflow.LoadFlowParameters;
  * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
  */
 abstract class AbstractAcLoadFlowRunner<T> {
-    protected LoadFlowParameters loadFlowParameters;
+    protected final LoadFlowParameters loadFlowParameters;
 
     protected AbstractAcLoadFlowRunner(LoadFlowParameters initialLoadFlowParameters) {
         this.loadFlowParameters = enforceAcLoadFlowCalculation(initialLoadFlowParameters);

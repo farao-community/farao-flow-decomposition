@@ -18,14 +18,44 @@ import com.powsybl.loadflow.LoadFlowParameters;
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
  */
 class LossesCompensator extends AbstractAcLoadFlowRunner<Void> {
-    LossesCompensator(LoadFlowParameters initialLoadFlowParameters) {
+    private final double epsilon;
+
+    LossesCompensator(LoadFlowParameters initialLoadFlowParameters, double epsilon) {
         super(initialLoadFlowParameters);
+        this.epsilon = epsilon;
+    }
+
+    LossesCompensator(LoadFlowParameters initialLoadFlowParameters, FlowDecompositionParameters parameters) {
+        this(initialLoadFlowParameters, parameters.getLossesCompensationEpsilon());
+    }
+
+    private boolean hasBus(Terminal terminal) {
+        return terminal.getBusBreakerView().getBus() != null;
+    }
+
+    private boolean hasBuses(Branch<?> branch) {
+        return hasBus(branch.getTerminal1()) && hasBus(branch.getTerminal2());
+    }
+
+    private boolean hasP0(Terminal terminal) {
+        return !Double.isNaN(terminal.getP());
+    }
+
+    private boolean hasP0s(Branch<?> branch) {
+        return hasP0(branch.getTerminal1()) && hasP0(branch.getTerminal2());
     }
 
     Void run(Network network) {
         LoadFlow.run(network, loadFlowParameters);
-        network.getBranchStream().forEach(this::compensateLossesOnBranch);
+        network.getBranchStream()
+            .filter(this::hasBuses)
+            .filter(this::hasP0s)
+            .forEach(this::compensateLossesOnBranch);
         return null;
+    }
+
+    private String getLossesId(String id) {
+        return String.format("LOSSES %s", id);
     }
 
     private void compensateLossesOnBranch(Branch<?> branch) {
@@ -33,7 +63,7 @@ class LossesCompensator extends AbstractAcLoadFlowRunner<Void> {
             compensateLossesOnTieLine((TieLine) branch);
         } else {
             Terminal sendingTerminal = getSendingTerminal(branch);
-            String lossesId = "LOSSES " + branch.getId();
+            String lossesId = getLossesId(branch.getId());
             double losses = branch.getTerminal1().getP() + branch.getTerminal2().getP();
             createLoadForLossesOnTerminal(sendingTerminal, lossesId, losses);
         }
@@ -48,20 +78,22 @@ class LossesCompensator extends AbstractAcLoadFlowRunner<Void> {
         double losses = terminal1.getP() + terminal2.getP();
         double lossesSide1 = losses * r1 / r;
         double lossesSide2 = losses * r2 / r;
-        String lossesIdSide1 = "LOSSES " + tieLine.getHalf1().getId();
-        String lossesIdSide2 = "LOSSES " + tieLine.getHalf2().getId();
+        String lossesIdSide1 = getLossesId(tieLine.getHalf1().getId());
+        String lossesIdSide2 = getLossesId(tieLine.getHalf2().getId());
 
         createLoadForLossesOnTerminal(terminal1, lossesIdSide1, lossesSide1);
         createLoadForLossesOnTerminal(terminal2, lossesIdSide2, lossesSide2);
     }
 
     private void createLoadForLossesOnTerminal(Terminal terminal, String lossesId, double losses) {
-        terminal.getVoltageLevel().newLoad()
+        if (Math.abs(losses) > epsilon) {
+            terminal.getVoltageLevel().newLoad()
                 .setId(lossesId)
                 .setBus(terminal.getBusBreakerView().getBus().getId())
                 .setP0(losses)
                 .setQ0(0)
                 .add();
+        }
     }
 
     private Terminal getSendingTerminal(Branch<?> branch) {

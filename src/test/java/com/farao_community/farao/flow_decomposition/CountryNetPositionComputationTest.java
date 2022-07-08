@@ -25,7 +25,7 @@ class CountryNetPositionComputationTest {
     @Test
     void testLines() {
         Network network = Importers.loadNetwork("testCase.xiidm", getClass().getResourceAsStream("testCase.xiidm"));
-        Map<Country, Double> netPositions = NetworkUtil.computeNetPositions(network);
+        Map<Country, Double> netPositions = NetPositionComputer.computeNetPositions(network);
         assertEquals(1000.0, netPositions.get(Country.FR), DOUBLE_TOLERANCE);
         assertEquals(1500.0, netPositions.get(Country.BE), DOUBLE_TOLERANCE);
         assertEquals(0.0, netPositions.get(Country.NL), DOUBLE_TOLERANCE);
@@ -35,7 +35,7 @@ class CountryNetPositionComputationTest {
     @Test
     void testDanglingLines() {
         Network network = Importers.loadNetwork("TestCaseDangling.xiidm", getClass().getResourceAsStream("TestCaseDangling.xiidm"));
-        Map<Country, Double> netPositions = NetworkUtil.computeNetPositions(network);
+        Map<Country, Double> netPositions = NetPositionComputer.computeNetPositions(network);
         assertEquals(0.0, netPositions.get(Country.FR), DOUBLE_TOLERANCE);
         assertEquals(300.0, netPositions.get(Country.BE), DOUBLE_TOLERANCE);
     }
@@ -43,7 +43,7 @@ class CountryNetPositionComputationTest {
     @Test
     void testHvdcLines() {
         Network network = Importers.loadNetwork("TestCaseHvdc.xiidm", getClass().getResourceAsStream("TestCaseHvdc.xiidm"));
-        Map<Country, Double> netPositions = NetworkUtil.computeNetPositions(network);
+        Map<Country, Double> netPositions = NetPositionComputer.computeNetPositions(network);
         assertEquals(272.0, netPositions.get(Country.FR), DOUBLE_TOLERANCE);
         assertEquals(-272.0, netPositions.get(Country.DE), DOUBLE_TOLERANCE);
     }

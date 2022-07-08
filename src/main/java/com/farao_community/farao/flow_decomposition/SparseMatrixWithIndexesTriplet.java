@@ -17,17 +17,27 @@ import java.util.Map;
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
  */
 class SparseMatrixWithIndexesTriplet extends AbstractSparseMatrixWithIndexes {
+    private static final double NO_FILTERING_EPSILON = -1;
     private final DMatrixSparseTriplet tripletMatrix;
     private final double epsilon;
 
-    public SparseMatrixWithIndexesTriplet(Map<String, Integer> rowIndex, Map<String, Integer> colIndex, Integer initLength, double epsilon) {
+    public SparseMatrixWithIndexesTriplet(Map<String, Integer> rowIndex,
+                                          Map<String, Integer> colIndex,
+                                          Integer initLength,
+                                          double epsilon) {
         super(rowIndex, colIndex);
         this.tripletMatrix = new DMatrixSparseTriplet(rowIndex.size(), colIndex.size(), initLength);
         this.epsilon = epsilon;
     }
 
-    public SparseMatrixWithIndexesTriplet(Map<String, Integer> rowIndex, Map<String, Integer> colIndex, Integer initLength) {
-        this(rowIndex, colIndex, initLength, -1);
+    public SparseMatrixWithIndexesTriplet(Map<String, Integer> rowIndex,
+                                          Map<String, Integer> colIndex,
+                                          Integer initLength) {
+        this(rowIndex, colIndex, initLength, NO_FILTERING_EPSILON);
+    }
+
+    public SparseMatrixWithIndexesTriplet(Map<String, Integer> rowIndex, String columnName, int size) {
+        this(rowIndex, Map.of(columnName, 0), size);
     }
 
     private boolean isNotZero(Double value) {

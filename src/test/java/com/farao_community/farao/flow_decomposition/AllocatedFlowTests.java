@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 class AllocatedFlowTests {
     private static final double EPSILON = 1e-3;
+    private static final boolean SAVE_INTERMEDIATE = true;
 
     static Network importNetwork(String networkResourcePath) {
         String networkName = Paths.get(networkResourcePath).getFileName().toString();
@@ -34,11 +35,11 @@ class AllocatedFlowTests {
         String loadBe = "BLOAD 11_load";
         String genFr = "FGEN1 11_generator";
         String xnecFrBee = "FGEN1 11 BLOAD 11 1";
-        String allocated = "Allocated";
+        String allocated = "Allocated Flow";
 
         Network network = importNetwork(networkFileName);
         FlowDecompositionComputer allocatedFlowComputer = new FlowDecompositionComputer();
-        FlowDecompositionResults flowDecompositionResults = allocatedFlowComputer.run(network, true);
+        FlowDecompositionResults flowDecompositionResults = allocatedFlowComputer.run(network, SAVE_INTERMEDIATE);
 
         Map<String, DecomposedFlow> decomposedFlowMap = flowDecompositionResults.getDecomposedFlowsMap();
         assertEquals(100.0935, decomposedFlowMap.get(xnecFrBee).getAllocatedFlow(), EPSILON);
@@ -56,7 +57,7 @@ class AllocatedFlowTests {
         assertEquals(-0.5, ptdfs.get(xnecFrBee).get(genBe), EPSILON);
         assertEquals(+0.5, ptdfs.get(xnecFrBee).get(genFr), EPSILON);
 
-        var optionalNodalInjections = flowDecompositionResults.getNodalInjectionsMap();
+        var optionalNodalInjections = flowDecompositionResults.getAllocatedAndLoopFlowNodalInjectionsMap();
         assertTrue(optionalNodalInjections.isPresent());
         var nodalInjections = optionalNodalInjections.get();
         assertEquals(-100.0935, nodalInjections.get(genBe).get(allocated), EPSILON);
@@ -70,11 +71,11 @@ class AllocatedFlowTests {
         String loadBe = "BLOAD 11_load";
         String genFr = "FGEN1 11_generator";
         String xnecFrBee = "BLOAD 11 FGEN1 11 1";
-        String allocated = "Allocated";
+        String allocated = "Allocated Flow";
 
         Network network = importNetwork(networkFileName);
         FlowDecompositionComputer allocatedFlowComputer = new FlowDecompositionComputer();
-        FlowDecompositionResults flowDecompositionResults = allocatedFlowComputer.run(network, true);
+        FlowDecompositionResults flowDecompositionResults = allocatedFlowComputer.run(network, SAVE_INTERMEDIATE);
 
         Map<String, DecomposedFlow> decomposedFlowMap = flowDecompositionResults.getDecomposedFlowsMap();
         assertEquals(100.0935, decomposedFlowMap.get(xnecFrBee).getAllocatedFlow(), EPSILON);
@@ -92,7 +93,7 @@ class AllocatedFlowTests {
         assertEquals(-0.5, ptdfs.get(xnecFrBee).get(genBe), EPSILON);
         assertEquals(+0.5, ptdfs.get(xnecFrBee).get(genFr), EPSILON);
 
-        var optionalNodalInjections = flowDecompositionResults.getNodalInjectionsMap();
+        var optionalNodalInjections = flowDecompositionResults.getAllocatedAndLoopFlowNodalInjectionsMap();
         assertTrue(optionalNodalInjections.isPresent());
         var nodalInjections = optionalNodalInjections.get();
         assertEquals(-100.0935, nodalInjections.get(genBe).get(allocated), EPSILON);
@@ -107,7 +108,7 @@ class AllocatedFlowTests {
         FlowDecompositionResults flowDecompositionResults = allocatedFlowComputer.run(network);
         assertTrue(flowDecompositionResults.getGlsks().isEmpty());
         assertTrue(flowDecompositionResults.getPtdfMap().isEmpty());
-        assertTrue(flowDecompositionResults.getNodalInjectionsMap().isEmpty());
+        assertTrue(flowDecompositionResults.getAllocatedAndLoopFlowNodalInjectionsMap().isEmpty());
     }
 
 }

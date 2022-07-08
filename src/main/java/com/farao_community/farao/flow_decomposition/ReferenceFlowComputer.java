@@ -6,24 +6,23 @@
  */
 package com.farao_community.farao.flow_decomposition;
 
+import com.powsybl.iidm.network.Branch;
+import com.powsybl.iidm.network.Identifiable;
+
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
  */
-abstract class AbstractSparseMatrixWithIndexes {
-    protected final Map<String, Integer> rowIndex;
-    protected final Map<String, Integer> colIndex;
-
-    protected AbstractSparseMatrixWithIndexes(Map<String, Integer> rowIndex, Map<String, Integer> colIndex) {
-        this.rowIndex = rowIndex;
-        this.colIndex = colIndex;
-    }
-
-    abstract Map<String, Map<String, Double>> toMap(boolean fillZeros);
-
-    Map<String, Map<String, Double>> toMap() {
-        return toMap(false);
+public class ReferenceFlowComputer {
+    public Map<String, Double> run(List<Branch> xnecList) {
+        return xnecList.stream()
+            .collect(Collectors.toMap(
+                Identifiable::getId,
+                branch -> branch.getTerminal1().getP()
+            ));
     }
 }
