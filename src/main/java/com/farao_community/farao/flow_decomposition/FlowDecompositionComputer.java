@@ -36,16 +36,19 @@ public class FlowDecompositionComputer {
         FlowDecompositionResults flowDecompositionResults = new FlowDecompositionResults(network, saveIntermediate);
 
         //AC LF
+        List<Branch> xnecList = new XnecSelector().run(network);
         Map<Country, Double> netPositions = getZonesNetPosition(network, flowDecompositionResults);
+        flowDecompositionResults.saveAcReferenceFlow(getXnecReferenceFlows(xnecList, flowDecompositionResults));
         compensateLosses(network);
 
         // None
-        NetworkMatrixIndexes networkMatrixIndexes = new NetworkMatrixIndexes(network);
+        NetworkMatrixIndexes networkMatrixIndexes = new NetworkMatrixIndexes(network, xnecList);
         Map<Country, Map<String, Double>> glsks = getGlsks(network, flowDecompositionResults);
 
         // DC LF
         SparseMatrixWithIndexesTriplet nodalInjectionsMatrix = getNodalInjectionsMatrix(network,
             flowDecompositionResults, netPositions, networkMatrixIndexes, glsks);
+        flowDecompositionResults.saveDcReferenceFlow(getXnecReferenceFlows(xnecList, flowDecompositionResults));
 
         // DC Sensi
         SensitivityAnalyser sensitivityAnalyser = getSensitivityAnalyser(network, networkMatrixIndexes);
@@ -78,6 +81,11 @@ public class FlowDecompositionComputer {
         Map<Country, Double> netPosition = netPositionComputer.run(network);
         flowDecompositionResults.saveACNetPosition(netPosition);
         return netPosition;
+    }
+
+    private Map<String, Double> getXnecReferenceFlows(List<Branch> xnecList, FlowDecompositionResults flowDecompositionResults) {
+        ReferenceFlowComputer referenceFlowComputer = new ReferenceFlowComputer();
+        return referenceFlowComputer.run(xnecList);
     }
 
     private void compensateLosses(Network network) {

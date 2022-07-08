@@ -15,12 +15,12 @@ public class FlowDecompositionParameters {
     private static final double DEFAULT_LOSSES_COMPENSATION_EPSILON = 1e-5;
     private static final double DEFAULT_SENSITIVITY_EPSILON = 1e-5;
     private boolean enableLossesCompensation;
-    private double lossCompensationEpsilon;
+    private double lossesCompensationEpsilon;
     private double sensitivityEpsilon;
 
     public FlowDecompositionParameters() {
         this.enableLossesCompensation = DEFAULT_ENABLE_LOSSES_COMPENSATION;
-        this.lossCompensationEpsilon = DEFAULT_LOSSES_COMPENSATION_EPSILON;
+        this.lossesCompensationEpsilon = DEFAULT_LOSSES_COMPENSATION_EPSILON;
         this.sensitivityEpsilon = DEFAULT_SENSITIVITY_EPSILON;
     }
 
@@ -32,12 +32,12 @@ public class FlowDecompositionParameters {
         return enableLossesCompensation;
     }
 
-    public double getLossCompensationEpsilon() {
-        return lossCompensationEpsilon;
+    public double getLossesCompensationEpsilon() {
+        return lossesCompensationEpsilon;
     }
 
-    public void setLossCompensationEpsilon(double lossCompensationEpsilon) {
-        this.lossCompensationEpsilon = lossCompensationEpsilon;
+    public void setLossesCompensationEpsilon(double lossesCompensationEpsilon) {
+        this.lossesCompensationEpsilon = lossesCompensationEpsilon;
     }
 
     public double getSensitivityEpsilon() {

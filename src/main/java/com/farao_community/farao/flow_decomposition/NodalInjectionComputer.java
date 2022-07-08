@@ -92,11 +92,11 @@ class NodalInjectionComputer {
             (dcInjectionId, dcInjectionValue) -> nodalInjectionMatrix.addItem(
                 dcInjectionId,
                 NetworkUtil.getLoopFlowIdFromCountry(network, dcInjectionId),
-                computeLoopFLow(nodalInjectionsForAllocatedFlow.get(dcInjectionId), dcInjectionValue)
+                computeNodalInjectionForLoopFLow(nodalInjectionsForAllocatedFlow.get(dcInjectionId), dcInjectionValue)
             ));
     }
 
-    private double computeLoopFLow(Double nodalInjectionForAllocatedFlow, Double dcInjectionValue) {
+    private double computeNodalInjectionForLoopFLow(Double nodalInjectionForAllocatedFlow, Double dcInjectionValue) {
         return dcInjectionValue - nodalInjectionForAllocatedFlow;
     }
 }

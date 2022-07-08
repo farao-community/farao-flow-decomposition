@@ -12,6 +12,7 @@ import com.powsybl.iidm.network.Network;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.*;
+
 /**
  * This class provides flow decomposition results from a network.
  * Those results are returned by a flowDecompositionComputer when run on a network.
@@ -24,13 +25,14 @@ import java.util.*;
  * @see FlowDecompositionComputer
  * @see DecomposedFlow
  */
-
 public class FlowDecompositionResults {
     private final boolean saveIntermediates;
     private final String id;
     private final String networkId;
     private SparseMatrixWithIndexesCSC allocatedAndLoopFlowsMatrix;
     private Map<String, Map<String, Double>> pstFlowMap;
+    private Map<String, Double> acReferenceFlow;
+    private Map<String, Double> dcReferenceFlow;
     private Map<Country, Double> acNetPosition;
     private Map<Country, Map<String, Double>> glsks;
     private SparseMatrixWithIndexesTriplet ptdfMatrix;
@@ -45,7 +47,6 @@ public class FlowDecompositionResults {
         String date = new SimpleDateFormat("yyyyMMdd-HHmmss").format(Date.from(Instant.now()));
         this.id = "Flow-Decomposition-Results-of-" + date + "-on-network-" + networkId;
     }
-
 
     /**
      * @return Network Id
@@ -73,7 +74,7 @@ public class FlowDecompositionResults {
         invalidateDecomposedFlowMapCache();
         Map<String, DecomposedFlow> decomposedFlowsMap = new TreeMap<>();
         allocatedAndLoopFlowsMatrix.toMap(fillZeros)
-            .forEach((xnecId, decomposedFlow) -> decomposedFlowsMap.put(xnecId, flowPartsMapToDecomposedFlow(xnecId, decomposedFlow)));
+            .forEach((xnecId, decomposedFlow) -> decomposedFlowsMap.put(xnecId, createDecomposedFlow(xnecId, decomposedFlow)));
         resetDecomposedFlowMapCache(decomposedFlowsMap, fillZeros);
         return decomposedFlowsMap;
     }
@@ -179,8 +180,8 @@ public class FlowDecompositionResults {
         decomposedFlowMapCache = new DecomposedFlowMapCache(decomposedFlowMap, fillZeros);
     }
 
-    private DecomposedFlow flowPartsMapToDecomposedFlow(String xnecId, Map<String, Double> decomposedFlow) {
-        return new DecomposedFlow(decomposedFlow, pstFlowMap.get(xnecId));
+    private DecomposedFlow createDecomposedFlow(String xnecId, Map<String, Double> decomposedFlow) {
+        return new DecomposedFlow(decomposedFlow, pstFlowMap.get(xnecId), acReferenceFlow.get(xnecId), dcReferenceFlow.get(xnecId));
     }
 
     void saveAllocatedAndLoopFlowsMatrix(SparseMatrixWithIndexesCSC allocatedAndLoopFlowsMatrix) {
@@ -191,6 +192,14 @@ public class FlowDecompositionResults {
     void savePstFlowMatrix(SparseMatrixWithIndexesCSC pstFlowMatrix) {
         this.pstFlowMap = pstFlowMatrix.toMap(true);
         invalidateDecomposedFlowMapCache();
+    }
+
+    void saveAcReferenceFlow(Map<String, Double> acReferenceFlow) {
+        this.acReferenceFlow = acReferenceFlow;
+    }
+
+    void saveDcReferenceFlow(Map<String, Double> dcReferenceFlow) {
+        this.dcReferenceFlow = dcReferenceFlow;
     }
 
     void saveACNetPosition(Map<Country, Double> acNetPosition) {

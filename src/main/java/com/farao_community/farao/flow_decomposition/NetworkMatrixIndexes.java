@@ -28,12 +28,12 @@ class NetworkMatrixIndexes {
     private final Map<String, Integer> nodeIndex;
     private final Map<String, Integer> pstIndex;
 
-    NetworkMatrixIndexes(Network network) {
-        xnecList = selectXnecs(network);
+    NetworkMatrixIndexes(Network network, List<Branch> xnecList) {
+        this.xnecList = xnecList;
         nodeList = getNodeList(network);
         nodeIdList = getNodeIdList(nodeList);
         pstList = getPstIdList(network);
-        xnecIndex = getXnecIndex(xnecList);
+        xnecIndex = getXnecIndex(this.xnecList);
         nodeIndex = NetworkUtil.getIndex(nodeIdList);
         pstIndex = NetworkUtil.getIndex(pstList);
     }
@@ -68,18 +68,6 @@ class NetworkMatrixIndexes {
 
     int getPstCount() {
         return xnecList.size();
-    }
-
-    private List<Branch> selectXnecs(Network network) {
-        return network.getBranchStream()
-            .filter(this::isAnInterconnection)
-            .collect(Collectors.toList());
-    }
-
-    private boolean isAnInterconnection(Branch<?> branch) {
-        Country country1 = NetworkUtil.getTerminalCountry(branch.getTerminal1());
-        Country country2 = NetworkUtil.getTerminalCountry(branch.getTerminal2());
-        return !country1.equals(country2);
     }
 
     private List<Injection<?>> getNodeList(Network network) {
