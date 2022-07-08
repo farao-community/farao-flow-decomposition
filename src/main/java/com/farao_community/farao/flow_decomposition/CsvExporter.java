@@ -35,7 +35,7 @@ public class CsvExporter {
      * @param dirPath path to local directory
      * @param results results to be saved
      */
-    public void export(Path dirPath, FlowDecompositionResults results, Boolean export_rescaled_results) {
+    public void export(Path dirPath, FlowDecompositionResults results, Boolean exportRescaledResults) {
         CSVFormat format = CSVFormat.RFC4180;
         String basename = results.getId();
         String networkId = results.getNetworkId();
@@ -46,7 +46,7 @@ public class CsvExporter {
             CSVPrinter printer = new CSVPrinter(writer, format);
         ) {
             Collection<DecomposedFlow> decomposedFlows;
-            if (export_rescaled_results) {
+            if (exportRescaledResults) {
                 decomposedFlows = results.getRescaledDecomposedFlowsMap(FILL_ZEROS).values();
             } else {
                 decomposedFlows = results.getDecomposedFlowsMap(FILL_ZEROS).values();

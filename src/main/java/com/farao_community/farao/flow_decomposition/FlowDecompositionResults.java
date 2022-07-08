@@ -180,7 +180,7 @@ public class FlowDecompositionResults {
         public DecomposedFlowMapCache(Map<String, DecomposedFlow> decomposedFlowMap, boolean fillZeros) {
             this.cacheValue = decomposedFlowMap;
             this.filledWithZeros = fillZeros;
-            this.rescaledCacheValue = new TreeMap<>();;
+            this.rescaledCacheValue = new TreeMap<>();
         }
     }
 

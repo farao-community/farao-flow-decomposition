@@ -92,7 +92,7 @@ public class DecomposedFlow {
     }
 
     private Double reLU(Double value) {
-        if (value<0) {
+        if (value < 0) {
             return 0.0;
         }
         return value;
@@ -101,6 +101,6 @@ public class DecomposedFlow {
     void scale(double coefficient) {
         decomposedFlowMap.keySet().stream()
             .filter(this::isNotAReferenceColumn)
-            .forEach(column -> decomposedFlowMap.put(column, decomposedFlowMap.get(column)*coefficient));
+            .forEach(column -> decomposedFlowMap.put(column, decomposedFlowMap.get(column) * coefficient));
     }
 }

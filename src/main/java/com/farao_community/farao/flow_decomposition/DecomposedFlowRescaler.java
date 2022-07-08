@@ -5,7 +5,7 @@ public class DecomposedFlowRescaler {
         DecomposedFlow rescaledDecomposedFlow = new DecomposedFlow(decomposedFlow);
         rescaledDecomposedFlow.replaceRelievingFlows();
         Double totalFlow = rescaledDecomposedFlow.getTotalFlow();
-        rescaledDecomposedFlow.scale(decomposedFlow.getAcReferenceFlow()/totalFlow);
+        rescaledDecomposedFlow.scale(decomposedFlow.getAcReferenceFlow() / totalFlow);
         return rescaledDecomposedFlow;
     }
 }
