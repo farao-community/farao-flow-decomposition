@@ -26,6 +26,7 @@ import java.util.*;
  * @see DecomposedFlow
  */
 public class FlowDecompositionResults {
+    private static final boolean NOT_FILL_ZERO = false;
     private final boolean saveIntermediates;
     private final String id;
     private final String networkId;
@@ -71,16 +72,29 @@ public class FlowDecompositionResults {
         if (isDecomposedFlowMapCacheValid(fillZeros)) {
             return decomposedFlowMapCache.cacheValue;
         }
-        invalidateDecomposedFlowMapCache();
-        Map<String, DecomposedFlow> decomposedFlowsMap = new TreeMap<>();
-        allocatedAndLoopFlowsMatrix.toMap(fillZeros)
-            .forEach((xnecId, decomposedFlow) -> decomposedFlowsMap.put(xnecId, createDecomposedFlow(xnecId, decomposedFlow)));
-        resetDecomposedFlowMapCache(decomposedFlowsMap, fillZeros);
-        return decomposedFlowsMap;
+        initializeDecomposedFlowMapCache(fillZeros);
+        return decomposedFlowMapCache.cacheValue;
     }
 
     public Map<String, DecomposedFlow> getDecomposedFlowsMap() {
-        return getDecomposedFlowsMap(false);
+        return getDecomposedFlowsMap(NOT_FILL_ZERO);
+    }
+
+    public Map<String, DecomposedFlow> getRescaledDecomposedFlowsMap(boolean fillZeros) {
+        if (!isDecomposedFlowMapCacheValid(fillZeros)) {
+            initializeDecomposedFlowMapCache(fillZeros);
+        }
+        if (decomposedFlowMapCache.rescaledCacheValue.isEmpty()) {
+            DecomposedFlowRescaler rescaler = new DecomposedFlowRescaler();
+            decomposedFlowMapCache.cacheValue.forEach(
+                (xnecId, decomposedFlow) ->
+                    decomposedFlowMapCache.rescaledCacheValue.put(xnecId, rescaler.rescale(decomposedFlow)));
+        }
+        return decomposedFlowMapCache.rescaledCacheValue;
+    }
+
+    public Map<String, DecomposedFlow> getRescaledDecomposedFlowsMap() {
+        return getRescaledDecomposedFlowsMap(NOT_FILL_ZERO);
     }
 
     /**
@@ -160,16 +174,26 @@ public class FlowDecompositionResults {
 
     static class DecomposedFlowMapCache {
         private final Map<String, DecomposedFlow> cacheValue;
+        private final Map<String, DecomposedFlow> rescaledCacheValue;
         private final boolean filledWithZeros;
 
         public DecomposedFlowMapCache(Map<String, DecomposedFlow> decomposedFlowMap, boolean fillZeros) {
             this.cacheValue = decomposedFlowMap;
             this.filledWithZeros = fillZeros;
+            this.rescaledCacheValue = new TreeMap<>();;
         }
     }
 
     private boolean isDecomposedFlowMapCacheValid(boolean fillZeros) {
         return Objects.nonNull(decomposedFlowMapCache) && fillZeros == decomposedFlowMapCache.filledWithZeros;
+    }
+
+    private void initializeDecomposedFlowMapCache(boolean fillZeros) {
+        invalidateDecomposedFlowMapCache();
+        Map<String, DecomposedFlow> decomposedFlowsMap = new TreeMap<>();
+        allocatedAndLoopFlowsMatrix.toMap(fillZeros)
+            .forEach((xnecId, decomposedFlow) -> decomposedFlowsMap.put(xnecId, createDecomposedFlow(xnecId, decomposedFlow)));
+        resetDecomposedFlowMapCache(decomposedFlowsMap, fillZeros);
     }
 
     private void invalidateDecomposedFlowMapCache() {

@@ -30,6 +30,10 @@ public class DecomposedFlow {
         this.decomposedFlowMap.put(DC_REFERENCE_FLOW_COLUMN_NAME, dcReferenceFlow);
     }
 
+    DecomposedFlow(DecomposedFlow decomposedFlow) {
+        this.decomposedFlowMap.putAll(decomposedFlow.decomposedFlowMap);
+    }
+
     public Double getAllocatedFlow() {
         return decomposedFlowMap.get(ALLOCATED_COLUMN_NAME);
     }
@@ -50,11 +54,53 @@ public class DecomposedFlow {
         return decomposedFlowMap.get(AC_REFERENCE_FLOW_COLUMN_NAME);
     }
 
+    public double getDcReferenceFlow() {
+        return decomposedFlowMap.get(DC_REFERENCE_FLOW_COLUMN_NAME);
+    }
+
     public String toString() {
         return decomposedFlowMap.toString();
     }
 
     Map<String, Double> getDecomposedFlowMap() {
         return decomposedFlowMap;
+    }
+
+    Double getTotalFlow() {
+        return decomposedFlowMap.entrySet().stream()
+            .filter(this::isNotAReferenceEntry)
+            .mapToDouble(Map.Entry::getValue)
+            .sum() * Math.signum(decomposedFlowMap.get(AC_REFERENCE_FLOW_COLUMN_NAME));
+    }
+
+    private boolean isNotAReferenceEntry(Map.Entry<String, Double> stringDoubleEntry) {
+        return isNotAReferenceColumn(stringDoubleEntry.getKey());
+    }
+
+    void replaceRelievingFlows() {
+        decomposedFlowMap.keySet().stream()
+            .filter(this::isNotAReferenceColumn)
+            .forEach(column -> decomposedFlowMap.put(column, reLU(decomposedFlowMap.get(column))));
+    }
+
+    private Boolean isReferenceColumn(String column) {
+        return column.equals(AC_REFERENCE_FLOW_COLUMN_NAME) || column.equals(DC_REFERENCE_FLOW_COLUMN_NAME);
+    }
+
+    private Boolean isNotAReferenceColumn(String column) {
+        return !isReferenceColumn(column);
+    }
+
+    private Double reLU(Double value) {
+        if (value<0) {
+            return 0.0;
+        }
+        return value;
+    }
+
+    void scale(double coefficient) {
+        decomposedFlowMap.keySet().stream()
+            .filter(this::isNotAReferenceColumn)
+            .forEach(column -> decomposedFlowMap.put(column, decomposedFlowMap.get(column)*coefficient));
     }
 }

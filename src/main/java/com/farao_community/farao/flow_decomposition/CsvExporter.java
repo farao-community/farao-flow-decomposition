@@ -17,6 +17,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
@@ -26,13 +27,15 @@ import java.util.Set;
  */
 public class CsvExporter {
     private static final Logger LOGGER = LoggerFactory.getLogger(CsvExporter.class);
+    private static final boolean EXPORT_RESCALED_RESULTS = false;
+    private static final boolean FILL_ZEROS = true;
 
     /**
      * Export to CSV
      * @param dirPath path to local directory
      * @param results results to be saved
      */
-    public void run(Path dirPath, FlowDecompositionResults results) {
+    public void export(Path dirPath, FlowDecompositionResults results, Boolean export_rescaled_results) {
         CSVFormat format = CSVFormat.RFC4180;
         String basename = results.getId();
         String networkId = results.getNetworkId();
@@ -42,15 +45,21 @@ public class CsvExporter {
             BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8);
             CSVPrinter printer = new CSVPrinter(writer, format);
         ) {
+            Collection<DecomposedFlow> decomposedFlows;
+            if (export_rescaled_results) {
+                decomposedFlows = results.getRescaledDecomposedFlowsMap(FILL_ZEROS).values();
+            } else {
+                decomposedFlows = results.getDecomposedFlowsMap(FILL_ZEROS).values();
+            }
             printer.print("");
-            for (Map.Entry<String, DecomposedFlow> entry : results.getDecomposedFlowsMap(true).entrySet()) {
+            for (Map.Entry<String, DecomposedFlow> entry : results.getDecomposedFlowsMap(FILL_ZEROS).entrySet()) {
                 printer.print(entry.getKey());
             }
             printer.println();
             Set<String> rows = results.getDecomposedFlowsMap().entrySet().iterator().next().getValue().getDecomposedFlowMap().keySet();
             for (String row : rows) {
                 printer.print(row);
-                for (DecomposedFlow decomposedFlow : results.getDecomposedFlowsMap(true).values()) {
+                for (DecomposedFlow decomposedFlow : decomposedFlows) {
                     printer.print(decomposedFlow.getDecomposedFlowMap().get(row));
                 }
                 printer.println();
@@ -58,5 +67,9 @@ public class CsvExporter {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void export(Path dirPath, FlowDecompositionResults results) {
+        export(dirPath, results, EXPORT_RESCALED_RESULTS);
     }
 }
