@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 class ReferenceNodalInjectionComputer {
     private final NetworkMatrixIndexes networkMatrixIndexes;
 
-    public ReferenceNodalInjectionComputer(NetworkMatrixIndexes networkMatrixIndexes) {
+    ReferenceNodalInjectionComputer(NetworkMatrixIndexes networkMatrixIndexes) {
         this.networkMatrixIndexes = networkMatrixIndexes;
     }
 

@@ -23,7 +23,7 @@ class NodalInjectionComputer {
     private static final String ALLOCATED_COLUMN_NAME = "Allocated Flow";
     private final NetworkMatrixIndexes networkMatrixIndexes;
 
-    public NodalInjectionComputer(NetworkMatrixIndexes networkMatrixIndexes) {
+    NodalInjectionComputer(NetworkMatrixIndexes networkMatrixIndexes) {
         this.networkMatrixIndexes = networkMatrixIndexes;
     }
 

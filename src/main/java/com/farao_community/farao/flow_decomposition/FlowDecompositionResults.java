@@ -46,7 +46,7 @@ public class FlowDecompositionResults {
         this.saveIntermediates = saveIntermediates;
         this.networkId = network.getNameOrId();
         String date = new SimpleDateFormat("yyyyMMdd-HHmmss").format(Date.from(Instant.now()));
-        this.id = "Flow-Decomposition-Results-of-" + date + "-on-network-" + networkId;
+        this.id = "FD-on-" + date + "-on-network-" + networkId;
     }
 
     /**
@@ -57,7 +57,7 @@ public class FlowDecompositionResults {
     }
 
     /**
-     * @return Id composed of a time format and the network id.
+     * @return Result id composed of a time format and the network id.
      */
     public String getId() {
         return id;
@@ -256,7 +256,7 @@ public class FlowDecompositionResults {
         }
     }
 
-    public void saveDcNodalInjections(Map<String, Double> dcNodalInjections) {
+    void saveDcNodalInjections(Map<String, Double> dcNodalInjections) {
         if (saveIntermediates) {
             this.dcNodalInjections = dcNodalInjections;
         }

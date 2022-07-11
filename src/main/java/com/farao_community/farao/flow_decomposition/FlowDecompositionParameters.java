@@ -7,8 +7,11 @@
 package com.farao_community.farao.flow_decomposition;
 
 /**
+ * This class defines the different parameters that may be used by the flow decomposition computer.
+ *
  * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
+ * @see FlowDecompositionComputer
  */
 public class FlowDecompositionParameters {
     private static final boolean DEFAULT_ENABLE_LOSSES_COMPENSATION = false;
@@ -18,6 +21,12 @@ public class FlowDecompositionParameters {
     private double lossesCompensationEpsilon;
     private double sensitivityEpsilon;
 
+    /**
+     * By default, the constructor initialize the parameters to default values:
+     * - losses compensation is disabled.
+     * - loads in losses compensation are filtered. (minimum absolute value of 1e-5)
+     * - sensitivities in PTDF and PSDF matrices are filtered. (minimum absolute value of 1e-5)
+     */
     public FlowDecompositionParameters() {
         this.enableLossesCompensation = DEFAULT_ENABLE_LOSSES_COMPENSATION;
         this.lossesCompensationEpsilon = DEFAULT_LOSSES_COMPENSATION_EPSILON;

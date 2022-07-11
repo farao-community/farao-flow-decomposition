@@ -32,7 +32,7 @@ public class CsvExporter {
 
     /**
      * Export to CSV
-     * @param dirPath path to local directory
+     * @param dirPath path to local directory. The filename will be the result id.
      * @param results results to be saved
      */
     public void export(Path dirPath, FlowDecompositionResults results, Boolean exportRescaledResults) {

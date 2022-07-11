@@ -15,8 +15,14 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 
 /**
+ * This class provides a computer that can run on a network and returns flow decomposition results.
+ * The computer parameters are managed by the flow decomposition parameters library.
+ *
  * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
+ * @see FlowDecompositionResults
+ * @see FlowDecompositionParameters
+ * @see Network
  */
 public class FlowDecompositionComputer {
     private static final Logger LOGGER = LoggerFactory.getLogger(FlowDecompositionComputer.class);
@@ -27,11 +33,23 @@ public class FlowDecompositionComputer {
         this(new FlowDecompositionParameters());
     }
 
+    /**
+     * The computer may use some predefined parameters.
+     *
+     * @param parameters flow decomposition parameters
+     */
     public FlowDecompositionComputer(FlowDecompositionParameters parameters) {
         this.parameters = parameters;
         this.loadFlowParameters = initLoadFlowParameters();
     }
 
+    /**
+     * This function will run the flow decomposition computer on a network.
+     *
+     * @param network will be modified !
+     * @param saveIntermediate when the decomposition is running, we can save or not the intermediate results.
+     * @return A flow decomposition results: FlowDecompositionResults
+     */
     public FlowDecompositionResults run(Network network, boolean saveIntermediate) {
         FlowDecompositionResults flowDecompositionResults = new FlowDecompositionResults(network, saveIntermediate);
 

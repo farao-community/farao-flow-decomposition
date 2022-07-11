@@ -13,6 +13,8 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /**
+ * This class provides a flow decomposition interface for a single XNEC.
+ *
  * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
  */
@@ -34,10 +36,17 @@ public class DecomposedFlow {
         this.decomposedFlowMap.putAll(decomposedFlow.decomposedFlowMap);
     }
 
+    /**
+     * @return the allocated flow of the XNEC.
+     */
     public Double getAllocatedFlow() {
         return decomposedFlowMap.get(ALLOCATED_COLUMN_NAME);
     }
 
+    /**
+     * @param country the origin country of the loop flow
+     * @return the loop flow of country on the XNEC
+     */
     public double getLoopFlow(Country country) {
         String columnName = NetworkUtil.getLoopFlowIdFromCountry(country);
         if (!decomposedFlowMap.containsKey(columnName)) {
@@ -46,14 +55,23 @@ public class DecomposedFlow {
         return decomposedFlowMap.get(columnName);
     }
 
+    /**
+     * @return the PST flow on the XNEC
+     */
     public double getPstFlow() {
         return decomposedFlowMap.get(PST_COLUMN_NAME);
     }
 
+    /**
+     * @return The AC reference flow on the XNEC
+     */
     public double getAcReferenceFlow() {
         return decomposedFlowMap.get(AC_REFERENCE_FLOW_COLUMN_NAME);
     }
 
+    /**
+     * @return The DC reference flow on the XNEC
+     */
     public double getDcReferenceFlow() {
         return decomposedFlowMap.get(DC_REFERENCE_FLOW_COLUMN_NAME);
     }

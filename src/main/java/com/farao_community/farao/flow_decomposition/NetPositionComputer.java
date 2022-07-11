@@ -19,11 +19,11 @@ import java.util.Map;
  */
 class NetPositionComputer extends AbstractAcLoadFlowRunner<Map<Country, Double>> {
 
-    public NetPositionComputer(LoadFlowParameters initialLoadFlowParameters) {
+    NetPositionComputer(LoadFlowParameters initialLoadFlowParameters) {
         super(initialLoadFlowParameters);
     }
 
-    public Map<Country, Double> run(Network network) {
+    Map<Country, Double> run(Network network) {
         LoadFlow.run(network, loadFlowParameters);
         return computeNetPositions(network);
     }
