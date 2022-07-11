@@ -60,27 +60,21 @@ class NetPositionComputer extends AbstractAcLoadFlowRunner<Map<Country, Double>>
     }
 
     private static void addLeavingFlow(Map<Country, Double> netPositions, DanglingLine danglingLine, Country country) {
-        Double previousValue = getPreviousValue(netPositions, country);
+        double previousValue = getPreviousValue(netPositions, country);
         netPositions.put(country, previousValue + getLeavingFlow(danglingLine));
     }
 
-    private static Double getPreviousValue(Map<Country, Double> netPositions, Country country) {
-        Double previousValue;
-        if (netPositions.get(country) != null) {
-            previousValue = netPositions.get(country);
-        } else {
-            previousValue = (double) 0;
-        }
-        return previousValue;
+    private static double getPreviousValue(Map<Country, Double> netPositions, Country country) {
+        return netPositions.get(country) != null ? netPositions.get(country) : 0.;
     }
 
     private static void addLeavingFlow(Map<Country, Double> netPositions, Line line, Country country) {
-        Double previousValue = getPreviousValue(netPositions, country);
+        double previousValue = getPreviousValue(netPositions, country);
         netPositions.put(country, previousValue + getLeavingFlow(line, country));
     }
 
     private static void addLeavingFlow(Map<Country, Double> netPositions, HvdcLine hvdcLine, Country country) {
-        Double previousValue = getPreviousValue(netPositions, country);
+        double previousValue = getPreviousValue(netPositions, country);
         netPositions.put(country, previousValue + getLeavingFlow(hvdcLine, country));
     }
 
