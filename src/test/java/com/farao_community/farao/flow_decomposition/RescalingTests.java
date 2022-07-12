@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2022, RTE (http://www.rte-france.com)
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
 package com.farao_community.farao.flow_decomposition;
 
 import com.powsybl.iidm.network.Country;
@@ -8,6 +14,10 @@ import java.util.TreeMap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+/**
+ * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
+ * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
+ */
 public class RescalingTests {
     private static final String ALLOCATED_COLUMN_NAME = "Allocated Flow";
     private static final String PST_COLUMN_NAME = "PST Flow";
