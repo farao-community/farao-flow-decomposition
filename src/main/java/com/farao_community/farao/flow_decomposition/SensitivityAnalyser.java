@@ -94,7 +94,7 @@ class SensitivityAnalyser {
                                                    Branch<?> function,
                                                    SensitivityVariableType sensitivityVariableType) {
         return new SensitivityFactor(
-            SensitivityFunctionType.BRANCH_ACTIVE_POWER_1, function.getId(),
+            SensitivityFunctionType.BRANCH_ACTIVE_POWER, function.getId(),
             sensitivityVariableType, variable,
             false,
             ContingencyContext.none()
