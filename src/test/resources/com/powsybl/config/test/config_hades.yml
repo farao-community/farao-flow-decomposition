@@ -2,10 +2,10 @@ open-load-flow-parameters:
   slackBusPMaxMismatch: 1e-5
 
 load-flow:
-  default-impl-name: OpenLoadFlow
+  default-impl-name: Hades2
 
 sensitivity-analysis:
-  default-impl-name: OpenSensitivityAnalysis
+  default-impl-name: Sensi2
 
 hades2:
   homeDir: /home/schindlerhug/apps/hades2-V6.7.1.1
