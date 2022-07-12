@@ -68,6 +68,10 @@ public class DecomposedFlow {
         return decomposedFlowMap;
     }
 
+    double get(String key) {
+        return decomposedFlowMap.get(key);
+    }
+
     double getTotalFlow() {
         return decomposedFlowMap.values().stream()
             .reduce(0., Double::sum);
@@ -77,17 +81,25 @@ public class DecomposedFlow {
         return getTotalFlow() * Math.signum(getAcReferenceFlow());
     }
 
-    void replaceRelievingFlows() {
+    DecomposedFlow replaceRelievingFlows() {
         decomposedFlowMap.keySet()
             .forEach(column -> decomposedFlowMap.put(column, reLU(decomposedFlowMap.get(column))));
+        return this;
     }
 
     private double reLU(double value) {
         return value > 0 ? value : 0.;
     }
 
-    void scale(double coefficient) {
+    DecomposedFlow scale(double coefficient) {
         decomposedFlowMap.keySet()
             .forEach(column -> decomposedFlowMap.put(column, decomposedFlowMap.get(column) * coefficient));
+        return this;
+    }
+
+    DecomposedFlow sum(DecomposedFlow otherDecomposedFlow) {
+        decomposedFlowMap.keySet()
+            .forEach(column -> decomposedFlowMap.put(column, decomposedFlowMap.get(column) + otherDecomposedFlow.get(column)));
+        return this;
     }
 }

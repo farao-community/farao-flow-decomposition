@@ -12,10 +12,11 @@ package com.farao_community.farao.flow_decomposition;
  */
 public class DecomposedFlowRescaler {
     public DecomposedFlow rescale(DecomposedFlow decomposedFlow) {
+        DecomposedFlow noRelievingScaledDecomposedFlow = new DecomposedFlow(decomposedFlow);
+        noRelievingScaledDecomposedFlow.replaceRelievingFlows();
+        double scaleFactor = (decomposedFlow.getAcReferenceFlow() - decomposedFlow.getReferenceOrientedTotalFlow()) / noRelievingScaledDecomposedFlow.getReferenceOrientedTotalFlow();
         DecomposedFlow rescaledDecomposedFlow = new DecomposedFlow(decomposedFlow);
-        rescaledDecomposedFlow.replaceRelievingFlows();
-        double totalFlow = rescaledDecomposedFlow.getReferenceOrientedTotalFlow();
-        rescaledDecomposedFlow.scale(decomposedFlow.getAcReferenceFlow() / totalFlow);
+        rescaledDecomposedFlow.sum(noRelievingScaledDecomposedFlow.scale(scaleFactor));
         return rescaledDecomposedFlow;
     }
 }
