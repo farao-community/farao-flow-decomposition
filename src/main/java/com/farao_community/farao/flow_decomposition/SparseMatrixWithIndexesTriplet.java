@@ -40,7 +40,7 @@ class SparseMatrixWithIndexesTriplet extends AbstractSparseMatrixWithIndexes {
         this(rowIndex, Map.of(columnName, 0), size);
     }
 
-    private boolean isNotZero(Double value) {
+    private boolean isNotZero(double value) {
         return Math.abs(value) > epsilon;
     }
 

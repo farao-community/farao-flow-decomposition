@@ -35,7 +35,7 @@ public class CsvExporter {
      * @param dirPath path to local directory
      * @param results results to be saved
      */
-    public void export(Path dirPath, FlowDecompositionResults results, Boolean exportRescaledResults) {
+    public void export(Path dirPath, FlowDecompositionResults results, boolean exportRescaledResults) {
         CSVFormat format = CSVFormat.RFC4180;
         String basename = results.getId();
         String networkId = results.getNetworkId();

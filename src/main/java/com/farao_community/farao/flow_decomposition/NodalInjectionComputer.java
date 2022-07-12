@@ -96,7 +96,7 @@ class NodalInjectionComputer {
             ));
     }
 
-    private double computeNodalInjectionForLoopFLow(Double nodalInjectionForAllocatedFlow, Double dcInjectionValue) {
+    private double computeNodalInjectionForLoopFLow(double nodalInjectionForAllocatedFlow, double dcInjectionValue) {
         return dcInjectionValue - nodalInjectionForAllocatedFlow;
     }
 }

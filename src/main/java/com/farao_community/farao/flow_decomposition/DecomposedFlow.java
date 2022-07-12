@@ -18,23 +18,25 @@ import java.util.TreeMap;
  */
 public class DecomposedFlow {
     private final Map<String, Double> decomposedFlowMap = new TreeMap<>();
+    private final double acReferenceFlow;
+    private final double dcReferenceFlow;
     private static final String ALLOCATED_COLUMN_NAME = "Allocated Flow";
     private static final String PST_COLUMN_NAME = "PST Flow";
-    private static final String AC_REFERENCE_FLOW_COLUMN_NAME = "Reference AC Flow";
-    private static final String DC_REFERENCE_FLOW_COLUMN_NAME = "Reference DC Flow";
 
-    DecomposedFlow(Map<String, Double> decomposedFlowMap, Map<String, Double> pst, Double acReferenceFlow, Double dcReferenceFlow) {
+    DecomposedFlow(Map<String, Double> decomposedFlowMap, Map<String, Double> pst, double acReferenceFlow, double dcReferenceFlow) {
         this.decomposedFlowMap.putAll(decomposedFlowMap);
         this.decomposedFlowMap.put(PST_COLUMN_NAME, pst.get(PST_COLUMN_NAME));
-        this.decomposedFlowMap.put(AC_REFERENCE_FLOW_COLUMN_NAME, acReferenceFlow);
-        this.decomposedFlowMap.put(DC_REFERENCE_FLOW_COLUMN_NAME, dcReferenceFlow);
+        this.acReferenceFlow = acReferenceFlow;
+        this.dcReferenceFlow = dcReferenceFlow;
     }
 
     DecomposedFlow(DecomposedFlow decomposedFlow) {
         this.decomposedFlowMap.putAll(decomposedFlow.decomposedFlowMap);
+        this.acReferenceFlow = decomposedFlow.getAcReferenceFlow();
+        this.dcReferenceFlow = decomposedFlow.getDcReferenceFlow();
     }
 
-    public Double getAllocatedFlow() {
+    public double getAllocatedFlow() {
         return decomposedFlowMap.get(ALLOCATED_COLUMN_NAME);
     }
 
@@ -51,11 +53,11 @@ public class DecomposedFlow {
     }
 
     public double getAcReferenceFlow() {
-        return decomposedFlowMap.get(AC_REFERENCE_FLOW_COLUMN_NAME);
+        return acReferenceFlow;
     }
 
     public double getDcReferenceFlow() {
-        return decomposedFlowMap.get(DC_REFERENCE_FLOW_COLUMN_NAME);
+        return dcReferenceFlow;
     }
 
     public String toString() {
@@ -66,41 +68,26 @@ public class DecomposedFlow {
         return decomposedFlowMap;
     }
 
-    Double getTotalFlow() {
-        return decomposedFlowMap.entrySet().stream()
-            .filter(this::isNotAReferenceEntry)
-            .mapToDouble(Map.Entry::getValue)
-            .sum() * Math.signum(decomposedFlowMap.get(AC_REFERENCE_FLOW_COLUMN_NAME));
+    double getTotalFlow() {
+        return decomposedFlowMap.values().stream()
+            .reduce(0., Double::sum);
     }
 
-    private boolean isNotAReferenceEntry(Map.Entry<String, Double> stringDoubleEntry) {
-        return isNotAReferenceColumn(stringDoubleEntry.getKey());
+    double getReferenceOrientedTotalFlow() {
+        return getTotalFlow() * Math.signum(getAcReferenceFlow());
     }
 
     void replaceRelievingFlows() {
-        decomposedFlowMap.keySet().stream()
-            .filter(this::isNotAReferenceColumn)
+        decomposedFlowMap.keySet()
             .forEach(column -> decomposedFlowMap.put(column, reLU(decomposedFlowMap.get(column))));
     }
 
-    private Boolean isReferenceColumn(String column) {
-        return column.equals(AC_REFERENCE_FLOW_COLUMN_NAME) || column.equals(DC_REFERENCE_FLOW_COLUMN_NAME);
-    }
-
-    private Boolean isNotAReferenceColumn(String column) {
-        return !isReferenceColumn(column);
-    }
-
-    private Double reLU(Double value) {
-        if (value < 0) {
-            return 0.0;
-        }
-        return value;
+    private double reLU(double value) {
+        return value > 0 ? value : 0.;
     }
 
     void scale(double coefficient) {
-        decomposedFlowMap.keySet().stream()
-            .filter(this::isNotAReferenceColumn)
+        decomposedFlowMap.keySet()
             .forEach(column -> decomposedFlowMap.put(column, decomposedFlowMap.get(column) * coefficient));
     }
 }

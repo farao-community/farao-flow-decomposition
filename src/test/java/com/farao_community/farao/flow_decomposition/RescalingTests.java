@@ -42,8 +42,8 @@ public class RescalingTests {
     private void rescaleSmallerFlows(double acReferenceFlow, double dcReferenceFlow, DecomposedFlow decomposedFlow) {
         DecomposedFlowRescaler rescaler = new DecomposedFlowRescaler();
         DecomposedFlow rescaledFlow = rescaler.rescale(decomposedFlow);
-        assertEquals(dcReferenceFlow, decomposedFlow.getTotalFlow(), EPSILON);
-        assertEquals(acReferenceFlow, rescaledFlow.getTotalFlow(), EPSILON);
+        assertEquals(dcReferenceFlow, decomposedFlow.getReferenceOrientedTotalFlow(), EPSILON);
+        assertEquals(acReferenceFlow, rescaledFlow.getReferenceOrientedTotalFlow(), EPSILON);
         assertEquals(150, rescaledFlow.getAllocatedFlow(), EPSILON);
         assertEquals(25, rescaledFlow.getLoopFlow(Country.BE), EPSILON);
         assertEquals(0.0, rescaledFlow.getLoopFlow(Country.FR), EPSILON);
@@ -81,8 +81,8 @@ public class RescalingTests {
     private void rescaleBiggerFlows(double acReferenceFlow, double dcReferenceFlow, DecomposedFlow decomposedFlow) {
         DecomposedFlowRescaler rescaler = new DecomposedFlowRescaler();
         DecomposedFlow rescaledFlow = rescaler.rescale(decomposedFlow);
-        assertEquals(dcReferenceFlow, decomposedFlow.getTotalFlow(), EPSILON);
-        assertEquals(acReferenceFlow, rescaledFlow.getTotalFlow(), EPSILON);
+        assertEquals(dcReferenceFlow, decomposedFlow.getReferenceOrientedTotalFlow(), EPSILON);
+        assertEquals(acReferenceFlow, rescaledFlow.getReferenceOrientedTotalFlow(), EPSILON);
         assertEquals(600, rescaledFlow.getAllocatedFlow(), EPSILON);
         assertEquals(100, rescaledFlow.getLoopFlow(Country.BE), EPSILON);
         assertEquals(0.0, rescaledFlow.getLoopFlow(Country.FR), EPSILON);
