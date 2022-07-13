@@ -13,6 +13,8 @@ import java.nio.file.Path;
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
  */
 public class FlowDecompositionParameters {
+    static final boolean SAVE_INTERMEDIATE = true;
+    static final boolean NOT_SAVE_INTERMEDIATE = false;
     static final boolean ENABLE_EXPORT_RESCALED_RESULTS = true;
     static final boolean DISABLE_EXPORT_RESCALED_RESULTS = false;
     static final double SENSITIVITY_EPSILON = 1e-5;
@@ -21,11 +23,13 @@ public class FlowDecompositionParameters {
     static final boolean ENABLE_LOSSES_COMPENSATION = true;
     static final double LOSSES_COMPENSATION_EPSILON = 1e-5;
     static final double NO_LOSSES_COMPENSATION_EPSILON = -1;
+    private static final boolean DEFAULT_SAVE_INTERMEDIATE = NOT_SAVE_INTERMEDIATE;
     private static final boolean DEFAULT_ENABLE_LOSSES_COMPENSATION = DISABLE_LOSSES_COMPENSATION;
     private static final double DEFAULT_LOSSES_COMPENSATION_EPSILON = LOSSES_COMPENSATION_EPSILON;
     private static final double DEFAULT_SENSITIVITY_EPSILON = SENSITIVITY_EPSILON;
     private static final boolean DEFAULT_ENABLE_EXPORT_RESCALED = ENABLE_EXPORT_RESCALED_RESULTS;
     private static final Path DEFAULT_EXPORT_DIR = Path.of("/tmp");
+    private boolean saveIntermediate;
     private boolean enableLossesCompensation;
     private double lossesCompensationEpsilon;
     private double sensitivityEpsilon;
@@ -33,11 +37,20 @@ public class FlowDecompositionParameters {
     private Path exportDir;
 
     public FlowDecompositionParameters() {
+        this.saveIntermediate = DEFAULT_SAVE_INTERMEDIATE;
         this.enableLossesCompensation = DEFAULT_ENABLE_LOSSES_COMPENSATION;
         this.lossesCompensationEpsilon = DEFAULT_LOSSES_COMPENSATION_EPSILON;
         this.sensitivityEpsilon = DEFAULT_SENSITIVITY_EPSILON;
         this.enableExportRescaled = DEFAULT_ENABLE_EXPORT_RESCALED;
         this.exportDir = DEFAULT_EXPORT_DIR;
+    }
+
+    public boolean isSaveIntermediate() {
+        return saveIntermediate;
+    }
+
+    public void setSaveIntermediate(boolean saveIntermediate) {
+        this.saveIntermediate = saveIntermediate;
     }
 
     public void enableLossesCompensation(boolean enableLossesCompensation) {

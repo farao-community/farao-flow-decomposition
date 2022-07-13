@@ -29,7 +29,7 @@ public class FlowDecompositionResults {
     static final boolean FILL_ZEROS = true;
     static final boolean NOT_FILL_ZEROS = false;
     private static final boolean DEFAULT_FILL_ZEROS = NOT_FILL_ZEROS;
-    private final boolean saveIntermediates;
+    private final FlowDecompositionParameters parameters;
     private String id;
     private final String networkId;
     private SparseMatrixWithIndexesCSC allocatedAndLoopFlowsMatrix;
@@ -44,15 +44,15 @@ public class FlowDecompositionResults {
     private Map<String, Double> dcNodalInjections;
     private DecomposedFlowMapCache decomposedFlowMapCache;
 
-    FlowDecompositionResults(Network network, boolean saveIntermediates) {
-        this.saveIntermediates = saveIntermediates;
+    FlowDecompositionResults(Network network, FlowDecompositionParameters parameters) {
+        this.parameters = parameters;
         this.networkId = network.getNameOrId();
         String date = new SimpleDateFormat("yyyyMMdd-HHmmss").format(Date.from(Instant.now()));
         this.id = "Flow_Decomposition_Results_of_" + date + "_on_network_" + networkId;
     }
 
     FlowDecompositionResults(FlowDecompositionResults flowDecompositionResults) {
-        this.saveIntermediates = flowDecompositionResults.saveIntermediates;
+        this.parameters = flowDecompositionResults.parameters;
         this.id = flowDecompositionResults.id;
         this.networkId = flowDecompositionResults.networkId;
         this.allocatedAndLoopFlowsMatrix = flowDecompositionResults.allocatedAndLoopFlowsMatrix;
@@ -246,37 +246,37 @@ public class FlowDecompositionResults {
     }
 
     void saveACNetPosition(Map<Country, Double> acNetPosition) {
-        if (saveIntermediates) {
+        if (parameters.isSaveIntermediate()) {
             this.acNetPosition = acNetPosition;
         }
     }
 
     void saveGlsks(Map<Country, Map<String, Double>> glsks) {
-        if (saveIntermediates) {
+        if (parameters.isSaveIntermediate()) {
             this.glsks = glsks;
         }
     }
 
     void savePtdfMatrix(SparseMatrixWithIndexesTriplet ptdfMatrix) {
-        if (saveIntermediates) {
+        if (parameters.isSaveIntermediate()) {
             this.ptdfMatrix = ptdfMatrix;
         }
     }
 
     void savePsdfMatrix(SparseMatrixWithIndexesTriplet psdfMatrix) {
-        if (saveIntermediates) {
+        if (parameters.isSaveIntermediate()) {
             this.psdfMatrix = psdfMatrix;
         }
     }
 
     void saveNodalInjectionsMatrix(SparseMatrixWithIndexesTriplet nodalInjectionsMatrix) {
-        if (saveIntermediates) {
+        if (parameters.isSaveIntermediate()) {
             this.nodalInjectionsMatrix = nodalInjectionsMatrix;
         }
     }
 
     void saveDcNodalInjections(Map<String, Double> dcNodalInjections) {
-        if (saveIntermediates) {
+        if (parameters.isSaveIntermediate()) {
             this.dcNodalInjections = dcNodalInjections;
         }
     }

@@ -32,8 +32,10 @@ class PstFlowTests {
         String x2 = "FGEN  11 BLOAD 12 1";
 
         Network network = importNetwork(networkFileName);
-        FlowDecompositionComputer flowComputer = new FlowDecompositionComputer();
-        FlowDecompositionResults flowDecompositionResults = flowComputer.run(network, FlowDecompositionComputer.SAVE_INTERMEDIATE);
+        FlowDecompositionParameters flowDecompositionParameters = new FlowDecompositionParameters();
+        flowDecompositionParameters.setSaveIntermediate(FlowDecompositionParameters.SAVE_INTERMEDIATE);
+        FlowDecompositionComputer flowComputer = new FlowDecompositionComputer(flowDecompositionParameters);
+        FlowDecompositionResults flowDecompositionResults = flowComputer.run(network);
 
         var optionalPsdfs = flowDecompositionResults.getPsdfMap();
         assertTrue(optionalPsdfs.isPresent());
@@ -56,8 +58,10 @@ class PstFlowTests {
         String x2 = "FGEN  11 BLOAD 12 1";
 
         Network network = importNetwork(networkFileName);
-        FlowDecompositionComputer flowComputer = new FlowDecompositionComputer();
-        FlowDecompositionResults flowDecompositionResults = flowComputer.run(network, FlowDecompositionComputer.SAVE_INTERMEDIATE);
+        FlowDecompositionParameters flowDecompositionParameters = new FlowDecompositionParameters();
+        flowDecompositionParameters.setSaveIntermediate(FlowDecompositionParameters.SAVE_INTERMEDIATE);
+        FlowDecompositionComputer flowComputer = new FlowDecompositionComputer(flowDecompositionParameters);
+        FlowDecompositionResults flowDecompositionResults = flowComputer.run(network);
 
         var optionalPsdfs = flowDecompositionResults.getPsdfMap();
         assertTrue(optionalPsdfs.isPresent());

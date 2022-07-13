@@ -37,8 +37,10 @@ class AllocatedFlowTests {
         String allocated = "Allocated Flow";
 
         Network network = importNetwork(networkFileName);
-        FlowDecompositionComputer allocatedFlowComputer = new FlowDecompositionComputer();
-        FlowDecompositionResults flowDecompositionResults = allocatedFlowComputer.run(network, FlowDecompositionComputer.SAVE_INTERMEDIATE);
+        FlowDecompositionParameters flowDecompositionParameters = new FlowDecompositionParameters();
+        flowDecompositionParameters.setSaveIntermediate(FlowDecompositionParameters.SAVE_INTERMEDIATE);
+        FlowDecompositionComputer allocatedFlowComputer = new FlowDecompositionComputer(flowDecompositionParameters);
+        FlowDecompositionResults flowDecompositionResults = allocatedFlowComputer.run(network);
 
         Map<String, DecomposedFlow> decomposedFlowMap = flowDecompositionResults.getDecomposedFlowsMap();
         assertEquals(100.0935, decomposedFlowMap.get(xnecFrBee).getAllocatedFlow(), EPSILON);
@@ -73,8 +75,10 @@ class AllocatedFlowTests {
         String allocated = "Allocated Flow";
 
         Network network = importNetwork(networkFileName);
-        FlowDecompositionComputer allocatedFlowComputer = new FlowDecompositionComputer();
-        FlowDecompositionResults flowDecompositionResults = allocatedFlowComputer.run(network, FlowDecompositionComputer.SAVE_INTERMEDIATE);
+        FlowDecompositionParameters flowDecompositionParameters = new FlowDecompositionParameters();
+        flowDecompositionParameters.setSaveIntermediate(FlowDecompositionParameters.SAVE_INTERMEDIATE);
+        FlowDecompositionComputer allocatedFlowComputer = new FlowDecompositionComputer(flowDecompositionParameters);
+        FlowDecompositionResults flowDecompositionResults = allocatedFlowComputer.run(network);
 
         Map<String, DecomposedFlow> decomposedFlowMap = flowDecompositionResults.getDecomposedFlowsMap();
         assertEquals(100.0935, decomposedFlowMap.get(xnecFrBee).getAllocatedFlow(), EPSILON);
