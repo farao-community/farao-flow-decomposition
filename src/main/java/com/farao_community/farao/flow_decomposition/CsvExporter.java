@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -26,38 +27,51 @@ import java.util.Set;
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
  */
 class CsvExporter {
+    public static final Charset CHARSET = StandardCharsets.UTF_8;
+    public static final CSVFormat FORMAT = CSVFormat.RFC4180;
     private static final Logger LOGGER = LoggerFactory.getLogger(CsvExporter.class);
 
     /**
      * Export to CSV
      * @param dirPath path to local directory
-     * @param results results to be saved
+     * @param decomposedFlowMap decomposedFlowMap to be saved
      */
-    void export(Path dirPath, String basename, Map<String, DecomposedFlow> results) {
-        CSVFormat format = CSVFormat.RFC4180;
+    void export(Path dirPath, String basename, Map<String, DecomposedFlow> decomposedFlowMap) {
         Path path = Paths.get(dirPath.toString(), basename + ".csv");
-        LOGGER.debug("Saving flow decomposition results in file {}", path);
+        LOGGER.debug("Saving flow decomposition decomposedFlowMap in file {}", path);
         try (
-            BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8);
-            CSVPrinter printer = new CSVPrinter(writer, format);
+            BufferedWriter writer = Files.newBufferedWriter(path, CHARSET);
+            CSVPrinter printer = new CSVPrinter(writer, FORMAT);
         ) {
-            Collection<DecomposedFlow> decomposedFlows = results.values();
-            printer.print("");
-            for (Map.Entry<String, DecomposedFlow> xnecId : results.entrySet()) {
-                printer.print(xnecId.getKey());
-            }
-            printer.println();
-            Set<String> columns = results.entrySet().iterator().next().getValue().keySet();
-            for (String key : columns) {
-                printer.print(key);
-                for (DecomposedFlow decomposedFlow : decomposedFlows) {
-                    printer.print(decomposedFlow.get(key));
-                }
-                printer.println();
-            }
+            printHeaderRow(decomposedFlowMap, printer);
+            printContentRows(decomposedFlowMap, printer);
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private void printHeaderRow(Map<String, DecomposedFlow> decomposedFlowMap, CSVPrinter printer) throws IOException {
+        printer.print("");
+        for (Map.Entry<String, DecomposedFlow> xnecId : decomposedFlowMap.entrySet()) {
+            printer.print(xnecId.getKey());
+        }
+        printer.println();
+    }
+
+    private void printContentRows(Map<String, DecomposedFlow> decomposedFlowMap, CSVPrinter printer) throws IOException {
+        Collection<DecomposedFlow> decomposedFlows = decomposedFlowMap.values();
+        Set<String> columnKeys = getInnerKeySet(decomposedFlowMap);
+        for (String columnKey : columnKeys) {
+            printer.print(columnKey);
+            for (DecomposedFlow decomposedFlow : decomposedFlows) {
+                printer.print(decomposedFlow.get(columnKey));
+            }
+            printer.println();
+        }
+    }
+
+    private Set<String> getInnerKeySet(Map<String, DecomposedFlow> decomposedFlowMap) {
+        return decomposedFlowMap.entrySet().iterator().next().getValue().keySet();
     }
 
     void export(FlowDecompositionParameters parameters, FlowDecompositionResults flowDecompositionResults) {

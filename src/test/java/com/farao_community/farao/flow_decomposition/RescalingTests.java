@@ -133,8 +133,12 @@ class RescalingTests {
     }
 
     @Test
-    void testNormalizationWithFlowDecompositionResults() {
+    void testNormalizationWithFlowDecompositionResultsWithPstNetwork() {
         String networkFileName = "NETWORK_PST_FLOW_WITH_COUNTRIES.uct";
+        testNormalizationWithFlowDecompositionResults(networkFileName);
+    }
+
+    static void testNormalizationWithFlowDecompositionResults(String networkFileName) {
         Network network = AllocatedFlowTests.importNetwork(networkFileName);
 
         FlowDecompositionParameters flowDecompositionParameters = new FlowDecompositionParameters();
@@ -144,18 +148,16 @@ class RescalingTests {
         flowDecompositionParameters.setEnableExportRescaled(FlowDecompositionParameters.DISABLE_EXPORT_RESCALED_RESULTS);
 
         FlowDecompositionComputer flowDecompositionComputer = new FlowDecompositionComputer(flowDecompositionParameters);
-        FlowDecompositionResults flowDecompositionResults = flowDecompositionComputer.run(network, true);
-        DecomposedFlow decomposedFlow = getFirstDecomposedFlow(flowDecompositionResults);
-        assertEquals(decomposedFlow.getDcReferenceFlow(), decomposedFlow.getReferenceOrientedTotalFlow(), EPSILON);
+        FlowDecompositionResults flowDecompositionResults = flowDecompositionComputer.run(network);
 
         DecompositionRescaler rescaler = new DecompositionRescaler();
         FlowDecompositionResults rescaledFlowDecompositionResults = rescaler.rescale(flowDecompositionResults);
-        DecomposedFlow rescaledDecomposedFlow = getFirstDecomposedFlow(rescaledFlowDecompositionResults);
 
-        assertEquals(rescaledDecomposedFlow.getAcReferenceFlow(), rescaledDecomposedFlow.getReferenceOrientedTotalFlow(), EPSILON);
-    }
-
-    private DecomposedFlow getFirstDecomposedFlow(FlowDecompositionResults flowDecompositionResults) {
-        return flowDecompositionResults.getDecomposedFlowsMap().values().iterator().next();
+        for (String xnecId: flowDecompositionResults.getDecomposedFlowsMap().keySet()) {
+            DecomposedFlow decomposedFlow = flowDecompositionResults.getDecomposedFlowsMap().get(xnecId);
+            assertEquals(decomposedFlow.getDcReferenceFlow(), decomposedFlow.getReferenceOrientedTotalFlow(), EPSILON);
+            DecomposedFlow rescaledDecomposedFlow = rescaledFlowDecompositionResults.getDecomposedFlowsMap().get(xnecId);
+            assertEquals(rescaledDecomposedFlow.getAcReferenceFlow(), rescaledDecomposedFlow.getReferenceOrientedTotalFlow(), EPSILON);
+        }
     }
 }

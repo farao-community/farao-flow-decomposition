@@ -13,14 +13,14 @@ import java.nio.file.Path;
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
  */
 public class FlowDecompositionParameters {
-    public static final boolean ENABLE_EXPORT_RESCALED_RESULTS = true;
-    public static final boolean DISABLE_EXPORT_RESCALED_RESULTS = false;
-    public static final double SENSITIVITY_EPSILON = 1e-5;
-    public static final double NO_SENSITIVITY_EPSILON = -1;
-    public static final boolean DISABLE_LOSSES_COMPENSATION = false;
-    public static final boolean ENABLE_LOSSES_COMPENSATION = true;
-    public static final double LOSSES_COMPENSATION_EPSILON = 1e-5;
-    public static final double NO_LOSSES_COMPENSATION_EPSILON = -1;
+    static final boolean ENABLE_EXPORT_RESCALED_RESULTS = true;
+    static final boolean DISABLE_EXPORT_RESCALED_RESULTS = false;
+    static final double SENSITIVITY_EPSILON = 1e-5;
+    static final double NO_SENSITIVITY_EPSILON = -1;
+    static final boolean DISABLE_LOSSES_COMPENSATION = false;
+    static final boolean ENABLE_LOSSES_COMPENSATION = true;
+    static final double LOSSES_COMPENSATION_EPSILON = 1e-5;
+    static final double NO_LOSSES_COMPENSATION_EPSILON = -1;
     private static final boolean DEFAULT_ENABLE_LOSSES_COMPENSATION = DISABLE_LOSSES_COMPENSATION;
     private static final double DEFAULT_LOSSES_COMPENSATION_EPSILON = LOSSES_COMPENSATION_EPSILON;
     private static final double DEFAULT_SENSITIVITY_EPSILON = SENSITIVITY_EPSILON;
