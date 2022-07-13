@@ -140,7 +140,7 @@ class RescalingTests {
         Network network = AllocatedFlowTests.importNetwork(networkFileName);
 
         FlowDecompositionParameters flowDecompositionParameters = new FlowDecompositionParameters();
-        flowDecompositionParameters.enableLossesCompensation(FlowDecompositionParameters.ENABLE_LOSSES_COMPENSATION);
+        flowDecompositionParameters.setEnableLossesCompensation(FlowDecompositionParameters.ENABLE_LOSSES_COMPENSATION);
         flowDecompositionParameters.setLossesCompensationEpsilon(FlowDecompositionParameters.NO_LOSSES_COMPENSATION_EPSILON);
         flowDecompositionParameters.setSensitivityEpsilon(FlowDecompositionParameters.NO_SENSITIVITY_EPSILON);
         flowDecompositionParameters.setEnableExportRescaled(FlowDecompositionParameters.DISABLE_EXPORT_RESCALED_RESULTS);

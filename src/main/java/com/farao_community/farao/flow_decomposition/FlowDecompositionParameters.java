@@ -53,7 +53,7 @@ public class FlowDecompositionParameters {
         this.saveIntermediate = saveIntermediate;
     }
 
-    public void enableLossesCompensation(boolean enableLossesCompensation) {
+    public void setEnableLossesCompensation(boolean enableLossesCompensation) {
         this.enableLossesCompensation = enableLossesCompensation;
     }
 

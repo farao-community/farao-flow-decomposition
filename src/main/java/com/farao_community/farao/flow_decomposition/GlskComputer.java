@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 class GlskComputer {
     static final double DEFAULT_GLSK_FACTOR = 0.0;
 
-    public Map<Country, Map<String, Double>> run(Network network) {
+    Map<Country, Map<String, Double>> run(Network network) {
         return buildAutoGlsks(network);
     }
 

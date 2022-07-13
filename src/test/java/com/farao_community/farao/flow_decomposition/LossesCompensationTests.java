@@ -113,7 +113,7 @@ class LossesCompensationTests {
         Network network = importNetwork(networkFileName);
 
         FlowDecompositionParameters flowDecompositionParameters = new FlowDecompositionParameters();
-        flowDecompositionParameters.enableLossesCompensation(FlowDecompositionParameters.ENABLE_LOSSES_COMPENSATION);
+        flowDecompositionParameters.setEnableLossesCompensation(FlowDecompositionParameters.ENABLE_LOSSES_COMPENSATION);
         FlowDecompositionComputer flowDecompositionComputer = new FlowDecompositionComputer(flowDecompositionParameters);
         FlowDecompositionResults flowDecompositionResults = flowDecompositionComputer.run(network);
 
@@ -128,7 +128,7 @@ class LossesCompensationTests {
         Network network = importNetwork(networkFileName);
 
         FlowDecompositionParameters flowDecompositionParameters = new FlowDecompositionParameters();
-        flowDecompositionParameters.enableLossesCompensation(FlowDecompositionParameters.DISABLE_LOSSES_COMPENSATION);
+        flowDecompositionParameters.setEnableLossesCompensation(FlowDecompositionParameters.DISABLE_LOSSES_COMPENSATION);
         FlowDecompositionComputer flowDecompositionComputer = new FlowDecompositionComputer(flowDecompositionParameters);
         FlowDecompositionResults flowDecompositionResults = flowDecompositionComputer.run(network);
 

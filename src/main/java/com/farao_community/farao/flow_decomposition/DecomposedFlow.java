@@ -65,7 +65,7 @@ public class DecomposedFlow {
         return getAllKeyMap().toString();
     }
 
-    public Set<String> keySet() {
+    Set<String> keySet() {
         return getAllKeyMap().keySet();
     }
 
@@ -114,7 +114,7 @@ public class DecomposedFlow {
         return this;
     }
 
-    public DecomposedFlow copy() {
+    DecomposedFlow copy() {
         return new DecomposedFlow(this);
     }
 }

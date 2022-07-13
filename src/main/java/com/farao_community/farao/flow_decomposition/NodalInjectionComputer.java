@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 class NodalInjectionComputer {
     private final NetworkMatrixIndexes networkMatrixIndexes;
 
-    public NodalInjectionComputer(NetworkMatrixIndexes networkMatrixIndexes) {
+    NodalInjectionComputer(NetworkMatrixIndexes networkMatrixIndexes) {
         this.networkMatrixIndexes = networkMatrixIndexes;
     }
 
