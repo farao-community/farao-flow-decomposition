@@ -7,6 +7,7 @@
 package com.farao_community.farao.flow_decomposition;
 
 import com.powsybl.iidm.network.Country;
+import com.powsybl.iidm.network.Network;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
@@ -37,7 +38,7 @@ class RescalingTests {
         DecomposedFlow decomposedFlow = new DecomposedFlow(allocatedAndLoopFlows, pstFlow, acReferenceFlow, dcReferenceFlow);
         assertEquals(dcReferenceFlow, decomposedFlow.getReferenceOrientedTotalFlow(), EPSILON);
 
-        DecomposedFlowRescaler rescaler = new DecomposedFlowRescaler();
+        DecompositionRescaler rescaler = new DecompositionRescaler();
         DecomposedFlow rescaledFlow = rescaler.rescale(decomposedFlow);
         assertEquals(acReferenceFlow, rescaledFlow.getReferenceOrientedTotalFlow(), EPSILON);
         assertEquals(120, rescaledFlow.getAllocatedFlow(), EPSILON);
@@ -64,7 +65,7 @@ class RescalingTests {
         DecomposedFlow decomposedFlow = new DecomposedFlow(allocatedAndLoopFlows, pstFlow, acReferenceFlow, dcReferenceFlow);
         assertEquals(dcReferenceFlow, decomposedFlow.getReferenceOrientedTotalFlow(), EPSILON);
 
-        DecomposedFlowRescaler rescaler = new DecomposedFlowRescaler();
+        DecompositionRescaler rescaler = new DecompositionRescaler();
         DecomposedFlow rescaledFlow = rescaler.rescale(decomposedFlow);
         assertEquals(acReferenceFlow, rescaledFlow.getReferenceOrientedTotalFlow(), EPSILON);
         assertEquals(80, rescaledFlow.getAllocatedFlow(), EPSILON);
@@ -91,7 +92,7 @@ class RescalingTests {
         DecomposedFlow decomposedFlow = new DecomposedFlow(allocatedAndLoopFlows, pstFlow, acReferenceFlow, dcReferenceFlow);
         assertEquals(dcReferenceFlow, decomposedFlow.getReferenceOrientedTotalFlow(), EPSILON);
 
-        DecomposedFlowRescaler rescaler = new DecomposedFlowRescaler();
+        DecompositionRescaler rescaler = new DecompositionRescaler();
         DecomposedFlow rescaledFlow = rescaler.rescale(decomposedFlow);
         assertEquals(acReferenceFlow, rescaledFlow.getReferenceOrientedTotalFlow(), EPSILON);
         assertEquals(120, rescaledFlow.getAllocatedFlow(), EPSILON);
@@ -118,7 +119,7 @@ class RescalingTests {
         DecomposedFlow decomposedFlow = new DecomposedFlow(allocatedAndLoopFlows, pstFlow, acReferenceFlow, dcReferenceFlow);
         assertEquals(dcReferenceFlow, decomposedFlow.getReferenceOrientedTotalFlow(), EPSILON);
 
-        DecomposedFlowRescaler rescaler = new DecomposedFlowRescaler();
+        DecompositionRescaler rescaler = new DecompositionRescaler();
         DecomposedFlow rescaledFlow = rescaler.rescale(decomposedFlow);
         assertEquals(acReferenceFlow, rescaledFlow.getReferenceOrientedTotalFlow(), EPSILON);
         assertEquals(80, rescaledFlow.getAllocatedFlow(), EPSILON);
@@ -129,5 +130,32 @@ class RescalingTests {
         assertEquals(560, rescaledFlow.getLoopFlow(Country.ES), EPSILON);
         assertEquals(acReferenceFlow, rescaledFlow.getAcReferenceFlow(), EPSILON);
         assertEquals(dcReferenceFlow, rescaledFlow.getDcReferenceFlow(), EPSILON);
+    }
+
+    @Test
+    void testNormalizationWithFlowDecompositionResults() {
+        String networkFileName = "NETWORK_PST_FLOW_WITH_COUNTRIES.uct";
+        Network network = AllocatedFlowTests.importNetwork(networkFileName);
+
+        FlowDecompositionParameters flowDecompositionParameters = new FlowDecompositionParameters();
+        flowDecompositionParameters.enableLossesCompensation(FlowDecompositionParameters.ENABLE_LOSSES_COMPENSATION);
+        flowDecompositionParameters.setLossesCompensationEpsilon(FlowDecompositionParameters.NO_LOSSES_COMPENSATION_EPSILON);
+        flowDecompositionParameters.setSensitivityEpsilon(FlowDecompositionParameters.NO_SENSITIVITY_EPSILON);
+        flowDecompositionParameters.setEnableExportRescaled(FlowDecompositionParameters.DISABLE_EXPORT_RESCALED_RESULTS);
+
+        FlowDecompositionComputer flowDecompositionComputer = new FlowDecompositionComputer(flowDecompositionParameters);
+        FlowDecompositionResults flowDecompositionResults = flowDecompositionComputer.run(network, true);
+        DecomposedFlow decomposedFlow = getFirstDecomposedFlow(flowDecompositionResults);
+        assertEquals(decomposedFlow.getDcReferenceFlow(), decomposedFlow.getReferenceOrientedTotalFlow(), EPSILON);
+
+        DecompositionRescaler rescaler = new DecompositionRescaler();
+        FlowDecompositionResults rescaledFlowDecompositionResults = rescaler.rescale(flowDecompositionResults);
+        DecomposedFlow rescaledDecomposedFlow = getFirstDecomposedFlow(rescaledFlowDecompositionResults);
+
+        assertEquals(rescaledDecomposedFlow.getAcReferenceFlow(), rescaledDecomposedFlow.getReferenceOrientedTotalFlow(), EPSILON);
+    }
+
+    private DecomposedFlow getFirstDecomposedFlow(FlowDecompositionResults flowDecompositionResults) {
+        return flowDecompositionResults.getDecomposedFlowsMap().values().iterator().next();
     }
 }

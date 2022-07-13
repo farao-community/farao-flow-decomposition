@@ -64,4 +64,8 @@ final class NetworkUtil {
                 Function.identity()
             ));
     }
+
+    static boolean isTerminalInMainSynchronousComponent(Terminal terminal) {
+        return terminal.getBusBreakerView().getBus().isInMainSynchronousComponent();
+    }
 }

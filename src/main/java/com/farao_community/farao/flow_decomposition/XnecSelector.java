@@ -24,8 +24,19 @@ class XnecSelector {
 
     private List<Branch> selectXnecs(Network network) {
         return network.getBranchStream()
+            .filter(this::isConnected)
+            .filter(this::isInMainSynchronousComponent)
             .filter(this::isAnInterconnection)
             .collect(Collectors.toList());
+    }
+
+    private boolean isConnected(Branch branch) {
+        return branch.getTerminal1().isConnected() && branch.getTerminal2().isConnected();
+    }
+
+    private boolean isInMainSynchronousComponent(Branch branch) {
+        return NetworkUtil.isTerminalInMainSynchronousComponent(branch.getTerminal1())
+            && NetworkUtil.isTerminalInMainSynchronousComponent(branch.getTerminal2());
     }
 
     private boolean isAnInterconnection(Branch<?> branch) {

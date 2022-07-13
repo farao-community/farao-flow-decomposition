@@ -88,7 +88,7 @@ class NetworkMatrixIndexes {
     }
 
     private boolean isInjectionInMainSynchronousComponent(Injection<?> injection) {
-        return injection.getTerminal().getBusBreakerView().getBus().isInMainSynchronousComponent();
+        return NetworkUtil.isTerminalInMainSynchronousComponent(injection.getTerminal());
     }
 
     private List<String> getNodeIdList(List<Injection<?>> nodeList) {
@@ -99,17 +99,18 @@ class NetworkMatrixIndexes {
 
     private List<String> getPstIdList(Network network) {
         return network.getTwoWindingsTransformerStream()
+            .filter(this::isPst)
             .filter(this::hasNeutralStep)
             .map(Identifiable::getId)
             .collect(Collectors.toList());
     }
 
+    private boolean isPst(TwoWindingsTransformer twt) {
+        return twt.getPhaseTapChanger() != null;
+    }
+
     private boolean hasNeutralStep(TwoWindingsTransformer pst) {
-        PhaseTapChanger phaseTapChanger = pst.getPhaseTapChanger();
-        if (phaseTapChanger == null) {
-            return false;
-        }
-        return phaseTapChanger.getNeutralStep().isPresent();
+        return pst.getPhaseTapChanger().getNeutralStep().isPresent();
     }
 
     private Map<String, Integer> getXnecIndex(List<Branch> xnecList) {

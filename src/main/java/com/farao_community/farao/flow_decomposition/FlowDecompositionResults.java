@@ -49,6 +49,23 @@ public class FlowDecompositionResults {
         this.id = "Flow-Decomposition-Results-of-" + date + "-on-network-" + networkId;
     }
 
+    FlowDecompositionResults(FlowDecompositionResults flowDecompositionResults) {
+        this.saveIntermediates = flowDecompositionResults.saveIntermediates;
+        this.id = flowDecompositionResults.id;
+        this.networkId = flowDecompositionResults.networkId;
+        this.allocatedAndLoopFlowsMatrix = flowDecompositionResults.allocatedAndLoopFlowsMatrix;
+        this.pstFlowMap = flowDecompositionResults.pstFlowMap;
+        this.acReferenceFlow = flowDecompositionResults.acReferenceFlow;
+        this.dcReferenceFlow = flowDecompositionResults.dcReferenceFlow;
+        this.acNetPosition = flowDecompositionResults.acNetPosition;
+        this.glsks = flowDecompositionResults.glsks;
+        this.ptdfMatrix = flowDecompositionResults.ptdfMatrix;
+        this.psdfMatrix = flowDecompositionResults.psdfMatrix;
+        this.nodalInjectionsMatrix = flowDecompositionResults.nodalInjectionsMatrix;
+        this.dcNodalInjections = flowDecompositionResults.dcNodalInjections;
+        this.decomposedFlowMapCache = flowDecompositionResults.decomposedFlowMapCache.copy();
+    }
+
     /**
      * @return Network Id
      */
@@ -69,32 +86,14 @@ public class FlowDecompositionResults {
      * @return A flow decomposition map. The keys are the XNEC ids and the values are {@code DecomposedFlow} objects.
      */
     public Map<String, DecomposedFlow> getDecomposedFlowsMap(boolean fillZeros) {
-        if (isDecomposedFlowMapCacheValid(fillZeros)) {
-            return decomposedFlowMapCache.cacheValue;
+        if (!isDecomposedFlowMapCacheValid(fillZeros)) {
+            initializeDecomposedFlowMapCache(fillZeros);
         }
-        initializeDecomposedFlowMapCache(fillZeros);
         return decomposedFlowMapCache.cacheValue;
     }
 
     public Map<String, DecomposedFlow> getDecomposedFlowsMap() {
         return getDecomposedFlowsMap(NOT_FILL_ZERO);
-    }
-
-    public Map<String, DecomposedFlow> getRescaledDecomposedFlowsMap(boolean fillZeros) {
-        if (!isDecomposedFlowMapCacheValid(fillZeros)) {
-            initializeDecomposedFlowMapCache(fillZeros);
-        }
-        if (decomposedFlowMapCache.rescaledCacheValue.isEmpty()) {
-            DecomposedFlowRescaler rescaler = new DecomposedFlowRescaler();
-            decomposedFlowMapCache.cacheValue.forEach(
-                (xnecId, decomposedFlow) ->
-                    decomposedFlowMapCache.rescaledCacheValue.put(xnecId, rescaler.rescale(decomposedFlow)));
-        }
-        return decomposedFlowMapCache.rescaledCacheValue;
-    }
-
-    public Map<String, DecomposedFlow> getRescaledDecomposedFlowsMap() {
-        return getRescaledDecomposedFlowsMap(NOT_FILL_ZERO);
     }
 
     /**
@@ -148,7 +147,8 @@ public class FlowDecompositionResults {
      * They are represented as a sparse map of map.
      * The first key is a node id, the second key is a column identifier and the value is the nodal injection.
      * The one of the column id is the {@code "Allocated Flow"}. It corresponds to the allocated nodal injection.
-     * The other column ids are Zone Ids as Strings with a prefix {@code "Loop Flow from XX"}. Each column corresponds to the nodal injection in this zone.
+     * The other column ids are Zone Ids as Strings with a prefix {@code "Loop Flow from XX"}.
+     * Each column corresponds to the nodal injection in this zone.
      * @param fillZeros Ignore the sparse property of the nodal injections.
      *                  It fills blanks with zeros.
      * @return An optional containing nodal injections
@@ -172,15 +172,27 @@ public class FlowDecompositionResults {
         return Optional.ofNullable(dcNodalInjections);
     }
 
+    /**
+     * Copy the Results. Will only create a copy of the flow decomposition map results.
+     * @return a copy
+     */
+    public FlowDecompositionResults copy() {
+        return new FlowDecompositionResults(this);
+    }
+
     static class DecomposedFlowMapCache {
         private final Map<String, DecomposedFlow> cacheValue;
-        private final Map<String, DecomposedFlow> rescaledCacheValue;
         private final boolean filledWithZeros;
 
-        public DecomposedFlowMapCache(Map<String, DecomposedFlow> decomposedFlowMap, boolean fillZeros) {
+        DecomposedFlowMapCache(Map<String, DecomposedFlow> decomposedFlowMap, boolean fillZeros) {
             this.cacheValue = decomposedFlowMap;
             this.filledWithZeros = fillZeros;
-            this.rescaledCacheValue = new TreeMap<>();
+        }
+
+        DecomposedFlowMapCache copy() {
+            TreeMap<String, DecomposedFlow> decomposedFlowMap = new TreeMap<>();
+            cacheValue.forEach((s, decomposedFlow) -> decomposedFlowMap.put(s, decomposedFlow.copy()));
+            return new DecomposedFlowMapCache(decomposedFlowMap, filledWithZeros);
         }
     }
 
@@ -205,7 +217,8 @@ public class FlowDecompositionResults {
     }
 
     private DecomposedFlow createDecomposedFlow(String xnecId, Map<String, Double> decomposedFlow) {
-        return new DecomposedFlow(decomposedFlow, pstFlowMap.get(xnecId), acReferenceFlow.get(xnecId), dcReferenceFlow.get(xnecId));
+        return new DecomposedFlow(decomposedFlow, pstFlowMap.get(xnecId),
+            acReferenceFlow.get(xnecId), dcReferenceFlow.get(xnecId));
     }
 
     void saveAllocatedAndLoopFlowsMatrix(SparseMatrixWithIndexesCSC allocatedAndLoopFlowsMatrix) {

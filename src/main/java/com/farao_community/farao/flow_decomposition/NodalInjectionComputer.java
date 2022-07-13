@@ -19,8 +19,6 @@ import java.util.stream.Collectors;
  * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
  */
 class NodalInjectionComputer {
-    private static final double DEFAULT_GLSK_FACTOR = 0.0;
-    private static final String ALLOCATED_COLUMN_NAME = "Allocated Flow";
     private final NetworkMatrixIndexes networkMatrixIndexes;
 
     public NodalInjectionComputer(NetworkMatrixIndexes networkMatrixIndexes) {
@@ -52,7 +50,7 @@ class NodalInjectionComputer {
         Map<Country, Map<String, Double>> glsks,
         Map<Country, Double> netPositions) {
         Country injectionCountry = NetworkUtil.getInjectionCountry(injection);
-        return glsks.get(injectionCountry).getOrDefault(injection.getId(), DEFAULT_GLSK_FACTOR)
+        return glsks.get(injectionCountry).getOrDefault(injection.getId(), GlskComputer.DEFAULT_GLSK_FACTOR)
             * netPositions.get(injectionCountry);
     }
 
@@ -60,7 +58,7 @@ class NodalInjectionComputer {
         List<String> columns = glsks.keySet().stream()
             .map(NetworkUtil::getLoopFlowIdFromCountry)
             .collect(Collectors.toList());
-        columns.add(ALLOCATED_COLUMN_NAME);
+        columns.add(DecomposedFlow.ALLOCATED_COLUMN_NAME);
         return new SparseMatrixWithIndexesTriplet(
             networkMatrixIndexes.getNodeIndex(), NetworkUtil.getIndex(columns), size);
     }
@@ -80,7 +78,8 @@ class NodalInjectionComputer {
     private void fillNodalInjectionsWithAllocatedFlow(Map<String, Double> nodalInjectionsForAllocatedFlow,
                                                       SparseMatrixWithIndexesTriplet nodalInjectionMatrix) {
         nodalInjectionsForAllocatedFlow.forEach(
-            (injectionId, injectionValue) -> nodalInjectionMatrix.addItem(injectionId, ALLOCATED_COLUMN_NAME, injectionValue)
+            (injectionId, injectionValue) -> nodalInjectionMatrix.addItem(injectionId,
+                DecomposedFlow.ALLOCATED_COLUMN_NAME, injectionValue)
         );
     }
 

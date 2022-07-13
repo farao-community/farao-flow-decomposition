@@ -9,8 +9,7 @@ package com.farao_community.farao.flow_decomposition;
 import com.powsybl.commons.PowsyblException;
 import com.powsybl.iidm.network.Country;
 
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 /**
  * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
@@ -20,8 +19,10 @@ public class DecomposedFlow {
     private final Map<String, Double> decomposedFlowMap = new TreeMap<>();
     private final double acReferenceFlow;
     private final double dcReferenceFlow;
-    private static final String ALLOCATED_COLUMN_NAME = "Allocated Flow";
-    private static final String PST_COLUMN_NAME = "PST Flow";
+    static final String ALLOCATED_COLUMN_NAME = "Allocated Flow";
+    static final String PST_COLUMN_NAME = "PST Flow";
+    static final String AC_REFERENCE_FLOW_COLUMN_NAME = "Reference AC Flow";
+    static final String DC_REFERENCE_FLOW_COLUMN_NAME = "Reference DC Flow";
 
     DecomposedFlow(Map<String, Double> decomposedFlowMap, Map<String, Double> pst, double acReferenceFlow, double dcReferenceFlow) {
         this.decomposedFlowMap.putAll(decomposedFlowMap);
@@ -37,7 +38,7 @@ public class DecomposedFlow {
     }
 
     public double getAllocatedFlow() {
-        return decomposedFlowMap.get(ALLOCATED_COLUMN_NAME);
+        return get(ALLOCATED_COLUMN_NAME);
     }
 
     public double getLoopFlow(Country country) {
@@ -45,11 +46,11 @@ public class DecomposedFlow {
         if (!decomposedFlowMap.containsKey(columnName)) {
             throw new PowsyblException("Country has to be present in the network");
         }
-        return decomposedFlowMap.get(columnName);
+        return get(columnName);
     }
 
     public double getPstFlow() {
-        return decomposedFlowMap.get(PST_COLUMN_NAME);
+        return get(PST_COLUMN_NAME);
     }
 
     public double getAcReferenceFlow() {
@@ -61,15 +62,25 @@ public class DecomposedFlow {
     }
 
     public String toString() {
-        return decomposedFlowMap.toString();
+        return getAllKeyMap().toString();
     }
 
-    Map<String, Double> getDecomposedFlowMap() {
-        return decomposedFlowMap;
+    public Set<String> keySet() {
+        return getAllKeyMap().keySet();
     }
 
     double get(String key) {
-        return decomposedFlowMap.get(key);
+        if (decomposedFlowMap.containsKey(key)) {
+            return decomposedFlowMap.get(key);
+        }
+        return getAllKeyMap().getOrDefault(key, 0.);
+    }
+
+    private TreeMap<String, Double> getAllKeyMap() {
+        TreeMap<String, Double> localDecomposedFlowMap = new TreeMap<>(decomposedFlowMap);
+        localDecomposedFlowMap.put(AC_REFERENCE_FLOW_COLUMN_NAME, getAcReferenceFlow());
+        localDecomposedFlowMap.put(DC_REFERENCE_FLOW_COLUMN_NAME, getDcReferenceFlow());
+        return localDecomposedFlowMap;
     }
 
     double getTotalFlow() {
@@ -83,7 +94,7 @@ public class DecomposedFlow {
 
     DecomposedFlow replaceRelievingFlows() {
         decomposedFlowMap.keySet()
-            .forEach(column -> decomposedFlowMap.put(column, reLU(decomposedFlowMap.get(column))));
+            .forEach(key -> decomposedFlowMap.put(key, reLU(get(key))));
         return this;
     }
 
@@ -93,13 +104,17 @@ public class DecomposedFlow {
 
     DecomposedFlow scale(double coefficient) {
         decomposedFlowMap.keySet()
-            .forEach(column -> decomposedFlowMap.put(column, decomposedFlowMap.get(column) * coefficient));
+            .forEach(key -> decomposedFlowMap.put(key, get(key) * coefficient));
         return this;
     }
 
     DecomposedFlow sum(DecomposedFlow otherDecomposedFlow) {
         decomposedFlowMap.keySet()
-            .forEach(column -> decomposedFlowMap.put(column, decomposedFlowMap.get(column) + otherDecomposedFlow.get(column)));
+            .forEach(key -> decomposedFlowMap.put(key, get(key) + otherDecomposedFlow.get(key)));
         return this;
+    }
+
+    public DecomposedFlow copy() {
+        return new DecomposedFlow(this);
     }
 }

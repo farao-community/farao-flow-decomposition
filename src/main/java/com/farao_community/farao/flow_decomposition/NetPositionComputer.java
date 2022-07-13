@@ -9,6 +9,9 @@ package com.farao_community.farao.flow_decomposition;
 import com.powsybl.iidm.network.*;
 import com.powsybl.loadflow.LoadFlow;
 import com.powsybl.loadflow.LoadFlowParameters;
+import com.powsybl.loadflow.LoadFlowResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -18,13 +21,17 @@ import java.util.Map;
  * @author Hugo Schindler{@literal <hugo.schindler@rte-france.com>}
  */
 class NetPositionComputer extends AbstractAcLoadFlowRunner<Map<Country, Double>> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(NetPositionComputer.class);
 
     public NetPositionComputer(LoadFlowParameters initialLoadFlowParameters) {
         super(initialLoadFlowParameters);
     }
 
     public Map<Country, Double> run(Network network) {
-        LoadFlow.run(network, loadFlowParameters);
+        LoadFlowResult loadFlowResult = LoadFlow.run(network, loadFlowParameters);
+        if (!loadFlowResult.isOk()) {
+            LOGGER.error("AC Load Flow diverged !");
+        }
         return computeNetPositions(network);
     }
 

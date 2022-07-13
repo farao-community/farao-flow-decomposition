@@ -61,6 +61,8 @@ public class FlowDecompositionComputer {
         computeAllocatedAndLoopFlows(flowDecompositionResults, nodalInjectionsMatrix, ptdfMatrix);
         computePstFlows(network, flowDecompositionResults, networkMatrixIndexes, psdfMatrix);
 
+        exportResults(flowDecompositionResults);
+
         return flowDecompositionResults;
     }
 
@@ -89,7 +91,7 @@ public class FlowDecompositionComputer {
     }
 
     private void compensateLosses(Network network) {
-        if (parameters.lossesCompensationEnabled()) {
+        if (parameters.isLossesCompensationEnabled()) {
             LossesCompensator lossesCompensator = new LossesCompensator(loadFlowParameters, parameters);
             lossesCompensator.run(network);
         }
@@ -111,7 +113,8 @@ public class FlowDecompositionComputer {
         NodalInjectionComputer nodalInjectionComputer = new NodalInjectionComputer(networkMatrixIndexes);
         Map<String, Double> dcNodalInjection = getDcNodalInjection(network, flowDecompositionResults, networkMatrixIndexes);
 
-        return getNodalInjectionsMatrix(network, flowDecompositionResults, netPositions, glsks, nodalInjectionComputer, dcNodalInjection);
+        return getNodalInjectionsMatrix(network, flowDecompositionResults, netPositions, glsks,
+            nodalInjectionComputer, dcNodalInjection);
     }
 
     private Map<String, Double> getDcNodalInjection(Network network,
@@ -173,7 +176,18 @@ public class FlowDecompositionComputer {
                                  FlowDecompositionResults flowDecompositionResults,
                                  NetworkMatrixIndexes networkMatrixIndexes,
                                  SparseMatrixWithIndexesTriplet psdfMatrix) {
-        SparseMatrixWithIndexesCSC pstFlowMatrix = PstFlowComputer.run(network, networkMatrixIndexes, psdfMatrix);
+        PstFlowComputer pstFlowComputer = new PstFlowComputer();
+        SparseMatrixWithIndexesCSC pstFlowMatrix = pstFlowComputer.run(network, networkMatrixIndexes, psdfMatrix);
         flowDecompositionResults.savePstFlowMatrix(pstFlowMatrix);
+    }
+
+    private void exportResults(FlowDecompositionResults flowDecompositionResults) {
+        CsvExporter csvExporter = new CsvExporter();
+        csvExporter.export(parameters, flowDecompositionResults);
+        if (parameters.isEnableExportRescaled()) {
+            DecompositionRescaler decompositionRescaler = new DecompositionRescaler();
+            FlowDecompositionResults rescaledFlowDecomposition = decompositionRescaler.rescale(flowDecompositionResults);
+            csvExporter.export(parameters, rescaledFlowDecomposition, "Rescaled-");
+        }
     }
 }

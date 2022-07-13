@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
  * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
  */
 class GlskComputer {
+    static final double DEFAULT_GLSK_FACTOR = 0.0;
     public Map<Country, Map<String, Double>> run(Network network) {
         return buildAutoGlsks(network);
     }

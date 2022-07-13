@@ -25,42 +25,33 @@ import java.util.Set;
  * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
  */
-public class CsvExporter {
+class CsvExporter {
     private static final Logger LOGGER = LoggerFactory.getLogger(CsvExporter.class);
-    private static final boolean EXPORT_RESCALED_RESULTS = false;
-    private static final boolean FILL_ZEROS = true;
 
     /**
      * Export to CSV
      * @param dirPath path to local directory
      * @param results results to be saved
      */
-    public void export(Path dirPath, FlowDecompositionResults results, boolean exportRescaledResults) {
+    void export(Path dirPath, String basename, Map<String, DecomposedFlow> results) {
         CSVFormat format = CSVFormat.RFC4180;
-        String basename = results.getId();
-        String networkId = results.getNetworkId();
         Path path = Paths.get(dirPath.toString(), basename + ".csv");
-        LOGGER.debug("Saving network {} in file {}", networkId, path);
+        LOGGER.debug("Saving flow decomposition results in file {}", path);
         try (
             BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8);
             CSVPrinter printer = new CSVPrinter(writer, format);
         ) {
-            Collection<DecomposedFlow> decomposedFlows;
-            if (exportRescaledResults) {
-                decomposedFlows = results.getRescaledDecomposedFlowsMap(FILL_ZEROS).values();
-            } else {
-                decomposedFlows = results.getDecomposedFlowsMap(FILL_ZEROS).values();
-            }
+            Collection<DecomposedFlow> decomposedFlows = results.values();
             printer.print("");
-            for (Map.Entry<String, DecomposedFlow> entry : results.getDecomposedFlowsMap(FILL_ZEROS).entrySet()) {
-                printer.print(entry.getKey());
+            for (Map.Entry<String, DecomposedFlow> xnecId : results.entrySet()) {
+                printer.print(xnecId.getKey());
             }
             printer.println();
-            Set<String> rows = results.getDecomposedFlowsMap().entrySet().iterator().next().getValue().getDecomposedFlowMap().keySet();
-            for (String row : rows) {
-                printer.print(row);
+            Set<String> columns = results.entrySet().iterator().next().getValue().keySet();
+            for (String key : columns) {
+                printer.print(key);
                 for (DecomposedFlow decomposedFlow : decomposedFlows) {
-                    printer.print(decomposedFlow.getDecomposedFlowMap().get(row));
+                    printer.print(decomposedFlow.get(key));
                 }
                 printer.println();
             }
@@ -69,7 +60,12 @@ public class CsvExporter {
         }
     }
 
-    public void export(Path dirPath, FlowDecompositionResults results) {
-        export(dirPath, results, EXPORT_RESCALED_RESULTS);
+    void export(FlowDecompositionParameters parameters, FlowDecompositionResults flowDecompositionResults) {
+        export(parameters.getExportDir(), flowDecompositionResults.getId(), flowDecompositionResults.getDecomposedFlowsMap());
+    }
+
+    void export(FlowDecompositionParameters parameters, FlowDecompositionResults flowDecompositionResults, String prefix) {
+        export(parameters.getExportDir(), prefix + flowDecompositionResults.getId(),
+            flowDecompositionResults.getDecomposedFlowsMap());
     }
 }

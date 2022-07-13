@@ -114,7 +114,8 @@ class SensitivityAnalyser {
         }
     }
 
-    private void fillSensitivityMatrixCell(SparseMatrixWithIndexesTriplet sensitivityMatrixTriplet, List<SensitivityFactor> factors, SensitivityValue sensitivityValue) {
+    private void fillSensitivityMatrixCell(SparseMatrixWithIndexesTriplet sensitivityMatrixTriplet,
+                                           List<SensitivityFactor> factors, SensitivityValue sensitivityValue) {
         SensitivityFactor factor = factors.get(sensitivityValue.getFactorIndex());
         double sensitivity = sensitivityValue.getValue();
         double referenceOrientedSensitivity = sensitivityValue.getFunctionReference() < 0 ?
