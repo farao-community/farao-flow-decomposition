@@ -20,15 +20,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
  */
 class RescalingTests {
-    private static final String ALLOCATED_COLUMN_NAME = "Allocated Flow";
-    private static final String PST_COLUMN_NAME = "PST Flow";
     private static final double EPSILON = 1e-5;
 
     @Test
     void testAcerNormalizationWithPositiveBiggerReferenceFlows() {
         Map<String, Double> allocatedAndLoopFlows = new TreeMap<>();
-        allocatedAndLoopFlows.put(ALLOCATED_COLUMN_NAME, 100.);
-        Map<String, Double> pstFlow = Map.of(PST_COLUMN_NAME, 200.);
+        allocatedAndLoopFlows.put(DecomposedFlow.ALLOCATED_COLUMN_NAME, 100.);
+        Map<String, Double> pstFlow = Map.of(DecomposedFlow.PST_COLUMN_NAME, 200.);
         allocatedAndLoopFlows.put(NetworkUtil.getLoopFlowIdFromCountry(Country.BE), 500.);
         allocatedAndLoopFlows.put(NetworkUtil.getLoopFlowIdFromCountry(Country.FR), -300.);
         allocatedAndLoopFlows.put(NetworkUtil.getLoopFlowIdFromCountry(Country.GE), -100.);
@@ -54,8 +52,8 @@ class RescalingTests {
     @Test
     void testAcerNormalizationWithPositiveSmallerReferenceFlows() {
         Map<String, Double> allocatedAndLoopFlows = new TreeMap<>();
-        allocatedAndLoopFlows.put(ALLOCATED_COLUMN_NAME, 100.);
-        Map<String, Double> pstFlow = Map.of(PST_COLUMN_NAME, 200.);
+        allocatedAndLoopFlows.put(DecomposedFlow.ALLOCATED_COLUMN_NAME, 100.);
+        Map<String, Double> pstFlow = Map.of(DecomposedFlow.PST_COLUMN_NAME, 200.);
         allocatedAndLoopFlows.put(NetworkUtil.getLoopFlowIdFromCountry(Country.BE), 500.);
         allocatedAndLoopFlows.put(NetworkUtil.getLoopFlowIdFromCountry(Country.FR), -300.);
         allocatedAndLoopFlows.put(NetworkUtil.getLoopFlowIdFromCountry(Country.GE), -100.);
@@ -81,8 +79,8 @@ class RescalingTests {
     @Test
     void testAcerNormalizationWithNegativeBiggerReferenceFlows() {
         Map<String, Double> allocatedAndLoopFlows = new TreeMap<>();
-        allocatedAndLoopFlows.put(ALLOCATED_COLUMN_NAME, 100.);
-        Map<String, Double> pstFlow = Map.of(PST_COLUMN_NAME, 200.);
+        allocatedAndLoopFlows.put(DecomposedFlow.ALLOCATED_COLUMN_NAME, 100.);
+        Map<String, Double> pstFlow = Map.of(DecomposedFlow.PST_COLUMN_NAME, 200.);
         allocatedAndLoopFlows.put(NetworkUtil.getLoopFlowIdFromCountry(Country.BE), 500.);
         allocatedAndLoopFlows.put(NetworkUtil.getLoopFlowIdFromCountry(Country.FR), -300.);
         allocatedAndLoopFlows.put(NetworkUtil.getLoopFlowIdFromCountry(Country.GE), -100.);
@@ -108,8 +106,8 @@ class RescalingTests {
     @Test
     void testAcerNormalizationWithNegativeSmallerReferenceFlows() {
         Map<String, Double> allocatedAndLoopFlows = new TreeMap<>();
-        allocatedAndLoopFlows.put(ALLOCATED_COLUMN_NAME, 100.);
-        Map<String, Double> pstFlow = Map.of(PST_COLUMN_NAME, 200.);
+        allocatedAndLoopFlows.put(DecomposedFlow.ALLOCATED_COLUMN_NAME, 100.);
+        Map<String, Double> pstFlow = Map.of(DecomposedFlow.PST_COLUMN_NAME, 200.);
         allocatedAndLoopFlows.put(NetworkUtil.getLoopFlowIdFromCountry(Country.BE), 500.);
         allocatedAndLoopFlows.put(NetworkUtil.getLoopFlowIdFromCountry(Country.FR), -300.);
         allocatedAndLoopFlows.put(NetworkUtil.getLoopFlowIdFromCountry(Country.GE), -100.);

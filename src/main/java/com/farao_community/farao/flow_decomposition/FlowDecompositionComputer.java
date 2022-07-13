@@ -19,7 +19,12 @@ import java.util.*;
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
  */
 public class FlowDecompositionComputer {
+    static final boolean SAVE_INTERMEDIATE = true;
+    static final boolean NOT_SAVE_INTERMEDIATE = false;
+    static final boolean DC_LOAD_FLOW = true;
+    static final boolean AC_LOAD_FLOW = false;
     private static final Logger LOGGER = LoggerFactory.getLogger(FlowDecompositionComputer.class);
+    private static final boolean DEFAULT_SAVE_INTERMEDIATE = NOT_SAVE_INTERMEDIATE;
     private final LoadFlowParameters loadFlowParameters;
     private final FlowDecompositionParameters parameters;
 
@@ -67,12 +72,12 @@ public class FlowDecompositionComputer {
     }
 
     public FlowDecompositionResults run(Network network) {
-        return run(network, false);
+        return run(network, DEFAULT_SAVE_INTERMEDIATE);
     }
 
     private static LoadFlowParameters initLoadFlowParameters() {
         LoadFlowParameters parameters = LoadFlowParameters.load();
-        parameters.setDc(true);
+        parameters.setDc(DC_LOAD_FLOW);
         LOGGER.debug("Using following load flow parameters: {}", parameters);
         return parameters;
     }

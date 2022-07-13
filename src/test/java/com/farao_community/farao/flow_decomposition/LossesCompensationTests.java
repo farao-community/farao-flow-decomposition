@@ -22,8 +22,6 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 class LossesCompensationTests {
     private static final double EPSILON = 1e-3;
-    private static final double NO_LOSSES_COMPENSATION_FILTERING = -1;
-    private static final boolean SAVE_INTERMEDIATE = true;
 
     static Network importNetwork(String networkResourcePath) {
         String networkName = Paths.get(networkResourcePath).getFileName().toString();
@@ -35,10 +33,11 @@ class LossesCompensationTests {
         String networkFileName = "NETWORK_SINGLE_LOAD_TWO_GENERATORS_WITH_COUNTRIES.uct";
 
         LoadFlowParameters loadFlowParameters = new LoadFlowParameters();
-        loadFlowParameters.setDc(false);
+        loadFlowParameters.setDc(FlowDecompositionComputer.AC_LOAD_FLOW);
 
         Network network = importNetwork(networkFileName);
-        LossesCompensator lossesCompensator = new LossesCompensator(loadFlowParameters, NO_LOSSES_COMPENSATION_FILTERING);
+        LossesCompensator lossesCompensator = new LossesCompensator(loadFlowParameters,
+            FlowDecompositionParameters.NO_LOSSES_COMPENSATION_EPSILON);
         lossesCompensator.run(network);
 
         assessSingleLoadTwoGeneratorsNetworkLossesCompensation(network);
@@ -49,10 +48,11 @@ class LossesCompensationTests {
         String networkFileName = "NETWORK_SINGLE_LOAD_TWO_GENERATORS_WITH_COUNTRIES.uct";
 
         LoadFlowParameters loadFlowParameters = new LoadFlowParameters();
-        loadFlowParameters.setDc(true);
+        loadFlowParameters.setDc(FlowDecompositionComputer.DC_LOAD_FLOW);
 
         Network network = importNetwork(networkFileName);
-        LossesCompensator lossesCompensator = new LossesCompensator(loadFlowParameters, NO_LOSSES_COMPENSATION_FILTERING);
+        LossesCompensator lossesCompensator = new LossesCompensator(loadFlowParameters,
+            FlowDecompositionParameters.NO_LOSSES_COMPENSATION_EPSILON);
         lossesCompensator.run(network);
 
         assessSingleLoadTwoGeneratorsNetworkLossesCompensation(network);
@@ -74,10 +74,11 @@ class LossesCompensationTests {
         String networkFileName = "NETWORK_SINGLE_LOAD_TWO_GENERATORS_WITH_XNODE.uct";
 
         LoadFlowParameters loadFlowParameters = new LoadFlowParameters();
-        loadFlowParameters.setDc(false);
+        loadFlowParameters.setDc(FlowDecompositionComputer.AC_LOAD_FLOW);
 
         Network network = importNetwork(networkFileName);
-        LossesCompensator lossesCompensator = new LossesCompensator(loadFlowParameters, NO_LOSSES_COMPENSATION_FILTERING);
+        LossesCompensator lossesCompensator = new LossesCompensator(loadFlowParameters,
+            FlowDecompositionParameters.NO_LOSSES_COMPENSATION_EPSILON);
         lossesCompensator.run(network);
 
         Load lossesFgenBload = network.getLoad("LOSSES FGEN1 11 X     11 1 + X     11 BLOAD 11 1");
@@ -112,7 +113,7 @@ class LossesCompensationTests {
         Network network = importNetwork(networkFileName);
 
         FlowDecompositionParameters flowDecompositionParameters = new FlowDecompositionParameters();
-        flowDecompositionParameters.enableLossesCompensation(true);
+        flowDecompositionParameters.enableLossesCompensation(FlowDecompositionParameters.ENABLE_LOSSES_COMPENSATION);
         FlowDecompositionComputer flowDecompositionComputer = new FlowDecompositionComputer(flowDecompositionParameters);
         FlowDecompositionResults flowDecompositionResults = flowDecompositionComputer.run(network);
 
@@ -127,7 +128,7 @@ class LossesCompensationTests {
         Network network = importNetwork(networkFileName);
 
         FlowDecompositionParameters flowDecompositionParameters = new FlowDecompositionParameters();
-        flowDecompositionParameters.enableLossesCompensation(false);
+        flowDecompositionParameters.enableLossesCompensation(FlowDecompositionParameters.DISABLE_LOSSES_COMPENSATION);
         FlowDecompositionComputer flowDecompositionComputer = new FlowDecompositionComputer(flowDecompositionParameters);
         FlowDecompositionResults flowDecompositionResults = flowDecompositionComputer.run(network);
 

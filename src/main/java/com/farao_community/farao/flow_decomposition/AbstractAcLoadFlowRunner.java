@@ -21,7 +21,7 @@ abstract class AbstractAcLoadFlowRunner<T> {
 
     protected LoadFlowParameters enforceAcLoadFlowCalculation(LoadFlowParameters initialLoadFlowParameters) {
         LoadFlowParameters acEnforcedParameters = initialLoadFlowParameters.copy();
-        acEnforcedParameters.setDc(false);
+        acEnforcedParameters.setDc(FlowDecompositionComputer.AC_LOAD_FLOW);
         return acEnforcedParameters;
     }
 

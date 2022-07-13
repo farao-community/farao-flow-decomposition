@@ -24,6 +24,6 @@ abstract class AbstractSparseMatrixWithIndexes {
     abstract Map<String, Map<String, Double>> toMap(boolean fillZeros);
 
     Map<String, Map<String, Double>> toMap() {
-        return toMap(false);
+        return toMap(FlowDecompositionResults.NOT_FILL_ZEROS);
     }
 }

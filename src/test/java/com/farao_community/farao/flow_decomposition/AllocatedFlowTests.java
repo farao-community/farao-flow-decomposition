@@ -21,7 +21,6 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 class AllocatedFlowTests {
     private static final double EPSILON = 1e-3;
-    private static final boolean SAVE_INTERMEDIATE = true;
 
     static Network importNetwork(String networkResourcePath) {
         String networkName = Paths.get(networkResourcePath).getFileName().toString();
@@ -39,7 +38,7 @@ class AllocatedFlowTests {
 
         Network network = importNetwork(networkFileName);
         FlowDecompositionComputer allocatedFlowComputer = new FlowDecompositionComputer();
-        FlowDecompositionResults flowDecompositionResults = allocatedFlowComputer.run(network, SAVE_INTERMEDIATE);
+        FlowDecompositionResults flowDecompositionResults = allocatedFlowComputer.run(network, FlowDecompositionComputer.SAVE_INTERMEDIATE);
 
         Map<String, DecomposedFlow> decomposedFlowMap = flowDecompositionResults.getDecomposedFlowsMap();
         assertEquals(100.0935, decomposedFlowMap.get(xnecFrBee).getAllocatedFlow(), EPSILON);
@@ -75,7 +74,7 @@ class AllocatedFlowTests {
 
         Network network = importNetwork(networkFileName);
         FlowDecompositionComputer allocatedFlowComputer = new FlowDecompositionComputer();
-        FlowDecompositionResults flowDecompositionResults = allocatedFlowComputer.run(network, SAVE_INTERMEDIATE);
+        FlowDecompositionResults flowDecompositionResults = allocatedFlowComputer.run(network, FlowDecompositionComputer.SAVE_INTERMEDIATE);
 
         Map<String, DecomposedFlow> decomposedFlowMap = flowDecompositionResults.getDecomposedFlowsMap();
         assertEquals(100.0935, decomposedFlowMap.get(xnecFrBee).getAllocatedFlow(), EPSILON);

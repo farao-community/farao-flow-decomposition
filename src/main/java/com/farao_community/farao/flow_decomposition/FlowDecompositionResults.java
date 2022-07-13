@@ -26,7 +26,9 @@ import java.util.*;
  * @see DecomposedFlow
  */
 public class FlowDecompositionResults {
-    private static final boolean NOT_FILL_ZERO = false;
+    static final boolean FILL_ZEROS = true;
+    static final boolean NOT_FILL_ZEROS = false;
+    private static final boolean DEFAULT_FILL_ZEROS = NOT_FILL_ZEROS;
     private final boolean saveIntermediates;
     private String id;
     private final String networkId;
@@ -93,7 +95,7 @@ public class FlowDecompositionResults {
     }
 
     public Map<String, DecomposedFlow> getDecomposedFlowsMap() {
-        return getDecomposedFlowsMap(NOT_FILL_ZERO);
+        return getDecomposedFlowsMap(DEFAULT_FILL_ZEROS);
     }
 
     /**
@@ -158,7 +160,7 @@ public class FlowDecompositionResults {
     }
 
     public Optional<Map<String, Map<String, Double>>> getAllocatedAndLoopFlowNodalInjectionsMap() {
-        return getAllocatedAndLoopFlowNodalInjectionsMap(false);
+        return getAllocatedAndLoopFlowNodalInjectionsMap(DEFAULT_FILL_ZEROS);
     }
 
     /**
@@ -176,7 +178,7 @@ public class FlowDecompositionResults {
      * Copy the Results. Will only create a copy of the flow decomposition map results.
      * @return a copy
      */
-    public FlowDecompositionResults copy() {
+    FlowDecompositionResults copy() {
         return new FlowDecompositionResults(this);
     }
 
@@ -231,7 +233,7 @@ public class FlowDecompositionResults {
     }
 
     void savePstFlowMatrix(SparseMatrixWithIndexesCSC pstFlowMatrix) {
-        this.pstFlowMap = pstFlowMatrix.toMap(true);
+        this.pstFlowMap = pstFlowMatrix.toMap(FILL_ZEROS);
         invalidateDecomposedFlowMapCache();
     }
 
@@ -273,7 +275,7 @@ public class FlowDecompositionResults {
         }
     }
 
-    public void saveDcNodalInjections(Map<String, Double> dcNodalInjections) {
+    void saveDcNodalInjections(Map<String, Double> dcNodalInjections) {
         if (saveIntermediates) {
             this.dcNodalInjections = dcNodalInjections;
         }
