@@ -46,7 +46,7 @@ public class FlowDecompositionResults {
         this.saveIntermediates = saveIntermediates;
         this.networkId = network.getNameOrId();
         String date = new SimpleDateFormat("yyyyMMdd-HHmmss").format(Date.from(Instant.now()));
-        this.id = "Flow-Decomposition-Results-of-" + date + "-on-network-" + networkId;
+        this.id = "Flow_Decomposition_Results_of_" + date + "_on_network_" + networkId;
     }
 
     FlowDecompositionResults(FlowDecompositionResults flowDecompositionResults) {
