@@ -31,11 +31,10 @@ class CsvExporter {
     public static final CSVFormat FORMAT = CSVFormat.RFC4180;
     private static final Logger LOGGER = LoggerFactory.getLogger(CsvExporter.class);
 
-    /**
-     * Export to CSV
-     * @param dirPath path to local directory
-     * @param decomposedFlowMap decomposedFlowMap to be saved
-     */
+    void export(FlowDecompositionParameters parameters, FlowDecompositionResults flowDecompositionResults) {
+        export(parameters.getExportDir(), flowDecompositionResults.getId(), flowDecompositionResults.getDecomposedFlowsMap());
+    }
+
     void export(Path dirPath, String basename, Map<String, DecomposedFlow> decomposedFlowMap) {
         Path path = Paths.get(dirPath.toString(), basename + ".csv");
         LOGGER.debug("Saving flow decomposition decomposedFlowMap in file {}", path);
@@ -72,14 +71,5 @@ class CsvExporter {
 
     private Set<String> getInnerKeySet(Map<String, DecomposedFlow> decomposedFlowMap) {
         return decomposedFlowMap.entrySet().iterator().next().getValue().keySet();
-    }
-
-    void export(FlowDecompositionParameters parameters, FlowDecompositionResults flowDecompositionResults) {
-        export(parameters.getExportDir(), flowDecompositionResults.getId(), flowDecompositionResults.getDecomposedFlowsMap());
-    }
-
-    void export(FlowDecompositionParameters parameters, FlowDecompositionResults flowDecompositionResults, String prefix) {
-        export(parameters.getExportDir(), prefix + flowDecompositionResults.getId(),
-            flowDecompositionResults.getDecomposedFlowsMap());
     }
 }

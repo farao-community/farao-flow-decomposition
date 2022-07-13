@@ -13,6 +13,9 @@ import java.util.Map;
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
  */
 public class DecompositionRescaler {
+
+    public static final String RESCALE_PREFIX = "Rescaled_";
+
     public DecomposedFlow rescale(DecomposedFlow decomposedFlow) {
         DecomposedFlow noRelievingScaledDecomposedFlow = new DecomposedFlow(decomposedFlow);
         noRelievingScaledDecomposedFlow.replaceRelievingFlows();
@@ -25,6 +28,7 @@ public class DecompositionRescaler {
 
     public FlowDecompositionResults rescale(FlowDecompositionResults flowDecompositionResults) {
         FlowDecompositionResults newFlowDecompositionResults = flowDecompositionResults.copy();
+        newFlowDecompositionResults.setId(RESCALE_PREFIX + newFlowDecompositionResults.getId());
         Map<String, DecomposedFlow> decomposedFlowsMap = newFlowDecompositionResults.getDecomposedFlowsMap();
         decomposedFlowsMap.forEach((s, decomposedFlow) -> decomposedFlowsMap.put(s, rescale(decomposedFlow)));
         return newFlowDecompositionResults;

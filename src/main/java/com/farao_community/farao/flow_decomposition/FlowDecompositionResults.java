@@ -28,7 +28,7 @@ import java.util.*;
 public class FlowDecompositionResults {
     private static final boolean NOT_FILL_ZERO = false;
     private final boolean saveIntermediates;
-    private final String id;
+    private String id;
     private final String networkId;
     private SparseMatrixWithIndexesCSC allocatedAndLoopFlowsMatrix;
     private Map<String, Map<String, Double>> pstFlowMap;
@@ -219,6 +219,10 @@ public class FlowDecompositionResults {
     private DecomposedFlow createDecomposedFlow(String xnecId, Map<String, Double> decomposedFlow) {
         return new DecomposedFlow(decomposedFlow, pstFlowMap.get(xnecId),
             acReferenceFlow.get(xnecId), dcReferenceFlow.get(xnecId));
+    }
+
+    void setId(String id) {
+        this.id = id;
     }
 
     void saveAllocatedAndLoopFlowsMatrix(SparseMatrixWithIndexesCSC allocatedAndLoopFlowsMatrix) {

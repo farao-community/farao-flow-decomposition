@@ -187,7 +187,7 @@ public class FlowDecompositionComputer {
         if (parameters.isEnableExportRescaled()) {
             DecompositionRescaler decompositionRescaler = new DecompositionRescaler();
             FlowDecompositionResults rescaledFlowDecomposition = decompositionRescaler.rescale(flowDecompositionResults);
-            csvExporter.export(parameters, rescaledFlowDecomposition, "Rescaled_");
+            csvExporter.export(parameters, rescaledFlowDecomposition);
         }
     }
 }
