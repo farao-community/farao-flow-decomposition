@@ -6,7 +6,6 @@
  */
 package com.farao_community.farao.flow_decomposition;
 
-import com.powsybl.commons.PowsyblException;
 import com.powsybl.iidm.network.Country;
 
 import java.util.*;
@@ -16,6 +15,7 @@ import java.util.*;
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
  */
 public class DecomposedFlow {
+    public static final double DEFAULT_FLOW = 0.;
     private final Map<String, Double> decomposedFlowMap = new TreeMap<>();
     private final double acReferenceFlow;
     private final double dcReferenceFlow;
@@ -42,11 +42,7 @@ public class DecomposedFlow {
     }
 
     public double getLoopFlow(Country country) {
-        String columnName = NetworkUtil.getLoopFlowIdFromCountry(country);
-        if (!decomposedFlowMap.containsKey(columnName)) {
-            throw new PowsyblException("Country has to be present in the network");
-        }
-        return get(columnName);
+        return get(NetworkUtil.getLoopFlowIdFromCountry(country));
     }
 
     public double getPstFlow() {
@@ -73,7 +69,7 @@ public class DecomposedFlow {
         if (decomposedFlowMap.containsKey(key)) {
             return decomposedFlowMap.get(key);
         }
-        return getAllKeyMap().getOrDefault(key, 0.);
+        return getAllKeyMap().getOrDefault(key, DEFAULT_FLOW);
     }
 
     private TreeMap<String, Double> getAllKeyMap() {
@@ -112,9 +108,5 @@ public class DecomposedFlow {
         decomposedFlowMap.keySet()
             .forEach(key -> decomposedFlowMap.put(key, get(key) + otherDecomposedFlow.get(key)));
         return this;
-    }
-
-    DecomposedFlow copy() {
-        return new DecomposedFlow(this);
     }
 }

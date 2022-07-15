@@ -83,7 +83,7 @@ class LoopFlowTests {
         assertEquals(-100, nodalInjections.get(lEs).get(NetworkUtil.getLoopFlowIdFromCountry(Country.ES)), EPSILON);
         assertEquals(-100, nodalInjections.get(lFr).get(NetworkUtil.getLoopFlowIdFromCountry(Country.FR)), EPSILON);
 
-        Map<String, DecomposedFlow> decomposedFlowMap = flowDecompositionResults.getDecomposedFlowsMap(FlowDecompositionResults.FILL_ZEROS);
+        Map<String, DecomposedFlow> decomposedFlowMap = flowDecompositionResults.getDecomposedFlowMap();
         assertEquals(0, decomposedFlowMap.get(x1).getAllocatedFlow(), EPSILON);
         assertEquals(0, decomposedFlowMap.get(x2).getAllocatedFlow(), EPSILON);
         assertEquals(0, decomposedFlowMap.get(x4).getAllocatedFlow(), EPSILON);

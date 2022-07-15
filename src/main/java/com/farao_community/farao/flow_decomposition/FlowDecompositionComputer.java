@@ -183,7 +183,7 @@ public class FlowDecompositionComputer {
     }
 
     private Map<String, DecomposedFlow> getRescaledDecomposedFlowMap(FlowDecompositionResults flowDecompositionResults) {
-        Map<String, DecomposedFlow> decomposedFlowMap = flowDecompositionResults.getDecomposedFlowsMap();
+        Map<String, DecomposedFlow> decomposedFlowMap = flowDecompositionResults.getDecomposedFlowMapBeforeRescaling();
         if (parameters.isRescaleEnabled()) {
             DecompositionRescaler decompositionRescaler = new DecompositionRescaler();
             return decompositionRescaler.rescale(decomposedFlowMap);

@@ -43,7 +43,7 @@ class PstFlowTests {
         assertEquals(-420.042573, psdf.get(x1).get(pst), EPSILON);
         assertEquals(420.042573, psdf.get(x2).get(pst), EPSILON);
 
-        Map<String, DecomposedFlow> decomposedFlowMap = flowDecompositionResults.getDecomposedFlowsMap(FlowDecompositionResults.FILL_ZEROS);
+        Map<String, DecomposedFlow> decomposedFlowMap = flowDecompositionResults.getDecomposedFlowMap();
         assertEquals(0, decomposedFlowMap.get(x1).getPstFlow(), EPSILON);
         assertEquals(0, decomposedFlowMap.get(x2).getPstFlow(), EPSILON);
     }
@@ -69,7 +69,7 @@ class PstFlowTests {
         assertEquals(-420.042573, psdf.get(x1).get(pst), EPSILON);
         assertEquals(-420.042573, psdf.get(x2).get(pst), EPSILON);
 
-        Map<String, DecomposedFlow> decomposedFlowMap = flowDecompositionResults.getDecomposedFlowsMap(FlowDecompositionResults.FILL_ZEROS);
+        Map<String, DecomposedFlow> decomposedFlowMap = flowDecompositionResults.getDecomposedFlowMap();
         assertEquals(163.652702605, decomposedFlowMap.get(x1).getPstFlow(), EPSILON);
         assertEquals(163.652702605, decomposedFlowMap.get(x2).getPstFlow(), EPSILON);
     }

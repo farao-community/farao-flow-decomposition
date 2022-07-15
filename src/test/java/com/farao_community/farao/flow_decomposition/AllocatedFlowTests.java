@@ -42,7 +42,7 @@ class AllocatedFlowTests {
         FlowDecompositionComputer allocatedFlowComputer = new FlowDecompositionComputer(flowDecompositionParameters);
         FlowDecompositionResults flowDecompositionResults = allocatedFlowComputer.run(network);
 
-        Map<String, DecomposedFlow> decomposedFlowMap = flowDecompositionResults.getDecomposedFlowsMap();
+        Map<String, DecomposedFlow> decomposedFlowMap = flowDecompositionResults.getDecomposedFlowMap();
         assertEquals(100.0935, decomposedFlowMap.get(xnecFrBee).getAllocatedFlow(), EPSILON);
 
         var optionalGlsks = flowDecompositionResults.getGlsks();
@@ -50,6 +50,12 @@ class AllocatedFlowTests {
         var glsks = optionalGlsks.get();
         assertEquals(1.0, glsks.get(Country.FR).get(genFr), EPSILON);
         assertEquals(1.0, glsks.get(Country.BE).get(genBe), EPSILON);
+
+        var optionalNetPositions = flowDecompositionResults.getAcNetPositions();
+        assertTrue(optionalNetPositions.isPresent());
+        var netPositions = optionalNetPositions.get();
+        assertEquals(100.0935, netPositions.get(Country.FR), EPSILON);
+        assertEquals(-100.0935, netPositions.get(Country.BE), EPSILON);
 
         var optionalPtdfs = flowDecompositionResults.getPtdfMap();
         assertTrue(optionalPtdfs.isPresent());
@@ -80,7 +86,7 @@ class AllocatedFlowTests {
         FlowDecompositionComputer allocatedFlowComputer = new FlowDecompositionComputer(flowDecompositionParameters);
         FlowDecompositionResults flowDecompositionResults = allocatedFlowComputer.run(network);
 
-        Map<String, DecomposedFlow> decomposedFlowMap = flowDecompositionResults.getDecomposedFlowsMap();
+        Map<String, DecomposedFlow> decomposedFlowMap = flowDecompositionResults.getDecomposedFlowMap();
         assertEquals(100.0935, decomposedFlowMap.get(xnecFrBee).getAllocatedFlow(), EPSILON);
 
         var optionalGlsks = flowDecompositionResults.getGlsks();
@@ -88,6 +94,12 @@ class AllocatedFlowTests {
         var glsks = optionalGlsks.get();
         assertEquals(1.0, glsks.get(Country.FR).get(genFr), EPSILON);
         assertEquals(1.0, glsks.get(Country.BE).get(genBe), EPSILON);
+
+        var optionalNetPositions = flowDecompositionResults.getAcNetPositions();
+        assertTrue(optionalNetPositions.isPresent());
+        var netPositions = optionalNetPositions.get();
+        assertEquals(100.0935, netPositions.get(Country.FR), EPSILON);
+        assertEquals(-100.0935, netPositions.get(Country.BE), EPSILON);
 
         var optionalPtdfs = flowDecompositionResults.getPtdfMap();
         assertTrue(optionalPtdfs.isPresent());

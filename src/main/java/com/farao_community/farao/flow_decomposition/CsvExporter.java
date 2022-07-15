@@ -32,17 +32,18 @@ public class CsvExporter {
     public static final CSVFormat FORMAT = CSVFormat.RFC4180;
     private static final Logger LOGGER = LoggerFactory.getLogger(CsvExporter.class);
 
-    public void export(FlowDecompositionParameters parameters, FlowDecompositionResults flowDecompositionResults) {
-        export(DEFAULT_EXPORT_DIR, flowDecompositionResults.getId(), flowDecompositionResults.getDecomposedFlowsMap());
+    public void export(FlowDecompositionResults flowDecompositionResults) {
+        export(DEFAULT_EXPORT_DIR, flowDecompositionResults);
     }
 
-    public void export(Path dirPath, FlowDecompositionParameters parameters, FlowDecompositionResults flowDecompositionResults) {
-        export(dirPath, flowDecompositionResults.getId(), flowDecompositionResults.getDecomposedFlowsMap());
+    public void export(Path dirPath, FlowDecompositionResults flowDecompositionResults) {
+        LOGGER.debug("Saving rescaled flow decomposition (id: {}) of network {} in directory {}",
+            flowDecompositionResults.getId(), flowDecompositionResults.getNetworkId(), dirPath);
+        export(dirPath, flowDecompositionResults.getId(), flowDecompositionResults.getDecomposedFlowMap());
     }
 
     void export(Path dirPath, String basename, Map<String, DecomposedFlow> decomposedFlowMap) {
         Path path = Paths.get(dirPath.toString(), basename + ".csv");
-        LOGGER.debug("Saving flow decomposition decomposedFlowMap in file {}", path);
         try (
             BufferedWriter writer = Files.newBufferedWriter(path, CHARSET);
             CSVPrinter printer = new CSVPrinter(writer, FORMAT);

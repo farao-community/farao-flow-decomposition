@@ -23,7 +23,7 @@ public class FlowDecompositionParameters {
     private static final boolean DEFAULT_ENABLE_LOSSES_COMPENSATION = DISABLE_LOSSES_COMPENSATION;
     private static final double DEFAULT_LOSSES_COMPENSATION_EPSILON = 1e-5;
     private static final double DEFAULT_SENSITIVITY_EPSILON = 1e-5;
-    private static final boolean DEFAULT_RESCALE_ENABLE = ENABLE_RESCALED_RESULTS;
+    private static final boolean DEFAULT_RESCALE_MODE = DISABLE_RESCALED_RESULTS;
     private boolean saveIntermediate;
     private boolean enableLossesCompensation;
     private double lossesCompensationEpsilon;
@@ -35,7 +35,7 @@ public class FlowDecompositionParameters {
         this.enableLossesCompensation = DEFAULT_ENABLE_LOSSES_COMPENSATION;
         this.lossesCompensationEpsilon = DEFAULT_LOSSES_COMPENSATION_EPSILON;
         this.sensitivityEpsilon = DEFAULT_SENSITIVITY_EPSILON;
-        this.rescaleEnabled = DEFAULT_RESCALE_ENABLE;
+        this.rescaleEnabled = DEFAULT_RESCALE_MODE;
     }
 
     public boolean isSaveIntermediate() {

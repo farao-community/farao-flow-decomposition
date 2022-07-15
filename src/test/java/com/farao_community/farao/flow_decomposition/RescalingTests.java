@@ -154,11 +154,11 @@ class RescalingTests {
         FlowDecompositionComputer flowDecompositionComputer = new FlowDecompositionComputer(flowDecompositionParameters);
         FlowDecompositionResults flowDecompositionResults = flowDecompositionComputer.run(network);
 
-        for (String xnecId: flowDecompositionResults.getDecomposedFlowsMap().keySet()) {
-            DecomposedFlow decomposedFlow = flowDecompositionResults.getDecomposedFlowsMap().get(xnecId);
+        for (String xnecId: flowDecompositionResults.getDecomposedFlowMap().keySet()) {
+            DecomposedFlow decomposedFlow = flowDecompositionResults.getDecomposedFlowMapBeforeRescaling().get(xnecId);
             assertEquals(decomposedFlow.getDcReferenceFlow(), decomposedFlow.getReferenceOrientedTotalFlow(), EPSILON);
             if (enableRescaledResults) {
-                DecomposedFlow rescaledDecomposedFlow = flowDecompositionResults.getRescaledDecomposedFlowsMap().get(xnecId);
+                DecomposedFlow rescaledDecomposedFlow = flowDecompositionResults.getDecomposedFlowMap().get(xnecId);
                 assertEquals(rescaledDecomposedFlow.getAcReferenceFlow(), rescaledDecomposedFlow.getReferenceOrientedTotalFlow(), EPSILON);
             }
         }

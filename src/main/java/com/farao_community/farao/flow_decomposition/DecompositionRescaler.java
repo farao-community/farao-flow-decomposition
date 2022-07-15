@@ -20,8 +20,7 @@ class DecompositionRescaler {
         double scaleFactor = (decomposedFlow.getAcReferenceFlow() - decomposedFlow.getReferenceOrientedTotalFlow())
             / noRelievingScaledDecomposedFlow.getReferenceOrientedTotalFlow();
         DecomposedFlow rescaledDecomposedFlow = new DecomposedFlow(decomposedFlow);
-        rescaledDecomposedFlow.sum(noRelievingScaledDecomposedFlow.scale(scaleFactor));
-        return rescaledDecomposedFlow;
+        return rescaledDecomposedFlow.sum(noRelievingScaledDecomposedFlow.scale(scaleFactor));
     }
 
     Map<String, DecomposedFlow> rescale(Map<String, DecomposedFlow> decomposedFlowMap) {
