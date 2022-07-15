@@ -76,6 +76,6 @@ public class CsvExporter {
     }
 
     private Set<String> getInnerKeySet(Map<String, DecomposedFlow> decomposedFlowMap) {
-        return decomposedFlowMap.entrySet().iterator().next().getValue().keySet();
+        return decomposedFlowMap.entrySet().iterator().next().getValue().allKeySet();
     }
 }

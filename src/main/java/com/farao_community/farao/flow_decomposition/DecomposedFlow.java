@@ -57,12 +57,29 @@ public class DecomposedFlow {
         return dcReferenceFlow;
     }
 
+    double getTotalFlow() {
+        return decomposedFlowMap.values().stream()
+            .reduce(0., Double::sum);
+    }
+
+    double getReferenceOrientedTotalFlow() {
+        return getTotalFlow() * Math.signum(getAcReferenceFlow());
+    }
+
     public String toString() {
         return getAllKeyMap().toString();
     }
 
-    Set<String> keySet() {
+    Set<String> allKeySet() {
         return getAllKeyMap().keySet();
+    }
+
+    Set<String> keySet() {
+        return decomposedFlowMap.keySet();
+    }
+
+    void put(String key, double value) {
+        decomposedFlowMap.put(key, value);
     }
 
     double get(String key) {
@@ -75,36 +92,5 @@ public class DecomposedFlow {
         localDecomposedFlowMap.put(AC_REFERENCE_FLOW_COLUMN_NAME, getAcReferenceFlow());
         localDecomposedFlowMap.put(DC_REFERENCE_FLOW_COLUMN_NAME, getDcReferenceFlow());
         return localDecomposedFlowMap;
-    }
-
-    double getTotalFlow() {
-        return decomposedFlowMap.values().stream()
-            .reduce(0., Double::sum);
-    }
-
-    double getReferenceOrientedTotalFlow() {
-        return getTotalFlow() * Math.signum(getAcReferenceFlow());
-    }
-
-    DecomposedFlow replaceRelievingFlows() {
-        decomposedFlowMap.keySet()
-            .forEach(key -> decomposedFlowMap.put(key, reLU(get(key))));
-        return this;
-    }
-
-    private double reLU(double value) {
-        return value > 0 ? value : 0.;
-    }
-
-    DecomposedFlow scale(double coefficient) {
-        decomposedFlowMap.keySet()
-            .forEach(key -> decomposedFlowMap.put(key, get(key) * coefficient));
-        return this;
-    }
-
-    DecomposedFlow sum(DecomposedFlow otherDecomposedFlow) {
-        decomposedFlowMap.keySet()
-            .forEach(key -> decomposedFlowMap.put(key, get(key) + otherDecomposedFlow.get(key)));
-        return this;
     }
 }

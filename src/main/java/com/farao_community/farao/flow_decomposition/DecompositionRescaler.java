@@ -15,17 +15,40 @@ import java.util.TreeMap;
  */
 class DecompositionRescaler {
     DecomposedFlow rescale(DecomposedFlow decomposedFlow) {
-        DecomposedFlow noRelievingScaledDecomposedFlow = new DecomposedFlow(decomposedFlow);
-        noRelievingScaledDecomposedFlow.replaceRelievingFlows();
+        DecomposedFlow noRelievingScaledDecomposedFlow = replaceRelievingFlows(decomposedFlow);
         double scaleFactor = (decomposedFlow.getAcReferenceFlow() - decomposedFlow.getReferenceOrientedTotalFlow())
             / noRelievingScaledDecomposedFlow.getReferenceOrientedTotalFlow();
-        DecomposedFlow rescaledDecomposedFlow = new DecomposedFlow(decomposedFlow);
-        return rescaledDecomposedFlow.sum(noRelievingScaledDecomposedFlow.scale(scaleFactor));
+        return sum(decomposedFlow, scale(noRelievingScaledDecomposedFlow, scaleFactor));
     }
 
     Map<String, DecomposedFlow> rescale(Map<String, DecomposedFlow> decomposedFlowMap) {
         Map<String, DecomposedFlow> rescaledDecomposedFlowMap = new TreeMap<>();
         decomposedFlowMap.forEach((s, decomposedFlow) -> rescaledDecomposedFlowMap.put(s, rescale(decomposedFlow)));
         return rescaledDecomposedFlowMap;
+    }
+
+    DecomposedFlow replaceRelievingFlows(DecomposedFlow decomposedFlow) {
+        DecomposedFlow newDecomposedFlow = new DecomposedFlow(decomposedFlow);
+        decomposedFlow.keySet()
+            .forEach(key -> newDecomposedFlow.put(key, reLU(decomposedFlow.get(key))));
+        return newDecomposedFlow;
+    }
+
+    private double reLU(double value) {
+        return value > 0 ? value : 0.;
+    }
+
+    DecomposedFlow scale(DecomposedFlow decomposedFlow, double coefficient) {
+        DecomposedFlow newDecomposedFlow = new DecomposedFlow(decomposedFlow);
+        decomposedFlow.keySet()
+            .forEach(key -> newDecomposedFlow.put(key, decomposedFlow.get(key) * coefficient));
+        return newDecomposedFlow;
+    }
+
+    DecomposedFlow sum(DecomposedFlow decomposedFlow, DecomposedFlow otherDecomposedFlow) {
+        DecomposedFlow newDecomposedFlow = new DecomposedFlow(decomposedFlow);
+        decomposedFlow.keySet()
+            .forEach(key -> newDecomposedFlow.put(key, decomposedFlow.get(key) + otherDecomposedFlow.get(key)));
+        return newDecomposedFlow;
     }
 }

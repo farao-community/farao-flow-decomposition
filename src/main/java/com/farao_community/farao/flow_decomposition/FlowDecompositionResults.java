@@ -17,7 +17,7 @@ import java.util.*;
  * This class provides flow decomposition results from a network.
  * Those results are returned by a flowDecompositionComputer when run on a network.
  * By default, the results only contain the flow decomposition of the XNECs.
- * If this runner has its argument {@code saveIntermediate} set to {@code true},
+ * If this runner has its argument {@code saveIntermediates} set to {@code true},
  * then the results will contain supplementary information.
  *
  * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
@@ -29,7 +29,7 @@ public class FlowDecompositionResults {
     static final boolean FILL_ZEROS = true;
     static final boolean NOT_FILL_ZEROS = false;
     private static final boolean DEFAULT_FILL_ZEROS = NOT_FILL_ZEROS;
-    private final boolean saveIntermediate;
+    private final boolean saveIntermediates;
     private String id;
     private final String networkId;
     private SparseMatrixWithIndexesCSC allocatedAndLoopFlowsMatrix;
@@ -46,7 +46,7 @@ public class FlowDecompositionResults {
     private Map<String, DecomposedFlow> decomposedFlowMapAfterRescaling;
 
     FlowDecompositionResults(Network network, FlowDecompositionParameters parameters) {
-        this.saveIntermediate = parameters.isSaveIntermediate();
+        this.saveIntermediates = parameters.isSaveIntermediate();
         this.networkId = network.getNameOrId();
         String date = new SimpleDateFormat("yyyyMMdd-HHmmss").format(Date.from(Instant.now()));
         this.id = "Flow_Decomposition_Results_of_" + date + "_on_network_" + networkId;
@@ -87,7 +87,7 @@ public class FlowDecompositionResults {
      * GLSKs are an intermediate results.
      * They are represented as a sparse map of map.
      * The first key is a zone, the second key is a node id and the value is the GLSK of the node in the country.
-     * They will be saved if this runner has its argument {@code saveIntermediate} set to {@code true}.
+     * They will be saved if this runner has its argument {@code saveIntermediates} set to {@code true}.
      *
      * @return An optional containing GLSKs.
      */
@@ -99,7 +99,7 @@ public class FlowDecompositionResults {
      * GLSKs are an intermediate results.
      * They are represented as a sparse map of map.
      * The first key is a zone, the second key is a node id and the value is the GLSK of the node in the country.
-     * They will be saved if this runner has its argument {@code saveIntermediate} set to {@code true}.
+     * They will be saved if this runner has its argument {@code saveIntermediates} set to {@code true}.
      * @return An optional containing GLSKs.
      */
     public Optional<Map<Country, Map<String, Double>>> getGlsks() {
@@ -108,7 +108,7 @@ public class FlowDecompositionResults {
 
     /**
      * PTDFs are an intermediate results.
-     * They will be saved if this runner has its argument {@code saveIntermediate} set to {@code true}.
+     * They will be saved if this runner has its argument {@code saveIntermediates} set to {@code true}.
      * They are represented as a sparse map of map.
      * The first key is a XNEC id, the second key is a node id and the value is the PTDF.
      * @return An optional containing PTDFs
@@ -119,7 +119,7 @@ public class FlowDecompositionResults {
 
     /**
      * PSDFs are an intermediate results.
-     * They will be saved if this runner has its argument {@code saveIntermediate} set to {@code true}.
+     * They will be saved if this runner has its argument {@code saveIntermediates} set to {@code true}.
      * They are represented as a sparse map of map.
      * The first key is a XNEC id, the second key is a node id and the value is the PSDF.
      * @return An optional containing PSDFs
@@ -130,7 +130,7 @@ public class FlowDecompositionResults {
 
     /**
      * Nodal injections are an intermediate results.
-     * They will be saved if this runner has its argument {@code saveIntermediate} set to {@code true}.
+     * They will be saved if this runner has its argument {@code saveIntermediates} set to {@code true}.
      * They are represented as a sparse map of map.
      * The first key is a node id, the second key is a column identifier and the value is the nodal injection.
      * The one of the column id is the {@code "Allocated Flow"}. It corresponds to the allocated nodal injection.
@@ -150,7 +150,7 @@ public class FlowDecompositionResults {
 
     /**
      * DC Nodal injections are an intermediate results.
-     * They will be saved if this runner has its argument {@code saveIntermediate} set to {@code true}.
+     * They will be saved if this runner has its argument {@code saveIntermediates} set to {@code true}.
      * They are represented as a map.
      * The key is a node id and the value is the DC nodal injection.
      * @return An optional containing DC nodal injections
@@ -204,37 +204,37 @@ public class FlowDecompositionResults {
     }
 
     void saveACNetPosition(Map<Country, Double> acNetPosition) {
-        if (saveIntermediate) {
+        if (saveIntermediates) {
             this.acNetPosition = acNetPosition;
         }
     }
 
     void saveGlsks(Map<Country, Map<String, Double>> glsks) {
-        if (saveIntermediate) {
+        if (saveIntermediates) {
             this.glsks = glsks;
         }
     }
 
     void savePtdfMatrix(SparseMatrixWithIndexesTriplet ptdfMatrix) {
-        if (saveIntermediate) {
+        if (saveIntermediates) {
             this.ptdfMatrix = ptdfMatrix;
         }
     }
 
     void savePsdfMatrix(SparseMatrixWithIndexesTriplet psdfMatrix) {
-        if (saveIntermediate) {
+        if (saveIntermediates) {
             this.psdfMatrix = psdfMatrix;
         }
     }
 
     void saveNodalInjectionsMatrix(SparseMatrixWithIndexesTriplet nodalInjectionsMatrix) {
-        if (saveIntermediate) {
+        if (saveIntermediates) {
             this.nodalInjectionsMatrix = nodalInjectionsMatrix;
         }
     }
 
     void saveDcNodalInjections(Map<String, Double> dcNodalInjections) {
-        if (saveIntermediate) {
+        if (saveIntermediates) {
             this.dcNodalInjections = dcNodalInjections;
         }
     }
