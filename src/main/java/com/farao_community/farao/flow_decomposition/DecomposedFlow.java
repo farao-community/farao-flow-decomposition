@@ -66,10 +66,8 @@ public class DecomposedFlow {
     }
 
     double get(String key) {
-        if (decomposedFlowMap.containsKey(key)) {
-            return decomposedFlowMap.get(key);
-        }
-        return getAllKeyMap().getOrDefault(key, DEFAULT_FLOW);
+        return decomposedFlowMap.getOrDefault(key,
+            getAllKeyMap().getOrDefault(key, DEFAULT_FLOW));
     }
 
     private TreeMap<String, Double> getAllKeyMap() {
