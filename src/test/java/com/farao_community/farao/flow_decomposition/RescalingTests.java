@@ -133,29 +133,34 @@ class RescalingTests {
     @Test
     void testNormalizationWithFlowDecompositionResultsWithPstNetwork() {
         String networkFileName = "NETWORK_PST_FLOW_WITH_COUNTRIES.uct";
-        testNormalizationWithFlowDecompositionResults(networkFileName);
+        testNormalizationWithFlowDecompositionResults(networkFileName, FlowDecompositionParameters.ENABLE_RESCALED_RESULTS);
     }
 
-    static void testNormalizationWithFlowDecompositionResults(String networkFileName) {
+    @Test
+    void testNoNormalizationWithFlowDecompositionResultsWithPstNetwork() {
+        String networkFileName = "NETWORK_PST_FLOW_WITH_COUNTRIES.uct";
+        testNormalizationWithFlowDecompositionResults(networkFileName, FlowDecompositionParameters.DISABLE_RESCALED_RESULTS);
+    }
+
+    static void testNormalizationWithFlowDecompositionResults(String networkFileName, boolean enableRescaledResults) {
         Network network = AllocatedFlowTests.importNetwork(networkFileName);
 
         FlowDecompositionParameters flowDecompositionParameters = new FlowDecompositionParameters();
         flowDecompositionParameters.setEnableLossesCompensation(FlowDecompositionParameters.ENABLE_LOSSES_COMPENSATION);
-        flowDecompositionParameters.setLossesCompensationEpsilon(FlowDecompositionParameters.NO_LOSSES_COMPENSATION_EPSILON);
-        flowDecompositionParameters.setSensitivityEpsilon(FlowDecompositionParameters.NO_SENSITIVITY_EPSILON);
-        flowDecompositionParameters.setEnableExportRescaled(FlowDecompositionParameters.DISABLE_EXPORT_RESCALED_RESULTS);
+        flowDecompositionParameters.setLossesCompensationEpsilon(FlowDecompositionParameters.DISABLE_LOSSES_COMPENSATION_EPSILON);
+        flowDecompositionParameters.setSensitivityEpsilon(FlowDecompositionParameters.DISABLE_SENSITIVITY_EPSILON);
+        flowDecompositionParameters.setRescaleEnabled(enableRescaledResults);
 
         FlowDecompositionComputer flowDecompositionComputer = new FlowDecompositionComputer(flowDecompositionParameters);
         FlowDecompositionResults flowDecompositionResults = flowDecompositionComputer.run(network);
 
-        DecompositionRescaler rescaler = new DecompositionRescaler();
-        FlowDecompositionResults rescaledFlowDecompositionResults = rescaler.rescale(flowDecompositionResults);
-
         for (String xnecId: flowDecompositionResults.getDecomposedFlowsMap().keySet()) {
             DecomposedFlow decomposedFlow = flowDecompositionResults.getDecomposedFlowsMap().get(xnecId);
             assertEquals(decomposedFlow.getDcReferenceFlow(), decomposedFlow.getReferenceOrientedTotalFlow(), EPSILON);
-            DecomposedFlow rescaledDecomposedFlow = rescaledFlowDecompositionResults.getDecomposedFlowsMap().get(xnecId);
-            assertEquals(rescaledDecomposedFlow.getAcReferenceFlow(), rescaledDecomposedFlow.getReferenceOrientedTotalFlow(), EPSILON);
+            if (enableRescaledResults) {
+                DecomposedFlow rescaledDecomposedFlow = flowDecompositionResults.getRescaledDecomposedFlowsMap().get(xnecId);
+                assertEquals(rescaledDecomposedFlow.getAcReferenceFlow(), rescaledDecomposedFlow.getReferenceOrientedTotalFlow(), EPSILON);
+            }
         }
     }
 }

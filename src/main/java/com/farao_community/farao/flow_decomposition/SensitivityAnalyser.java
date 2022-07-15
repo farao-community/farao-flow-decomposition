@@ -25,7 +25,7 @@ import java.util.Map;
 class SensitivityAnalyser {
     private static final int SENSITIVITY_VARIABLE_BATCH_SIZE = 15000;
     private static final Logger LOGGER = LoggerFactory.getLogger(SensitivityAnalyser.class);
-    static final boolean SENSITIVITY_VARIABLE_SET = false;
+    private static final boolean SENSITIVITY_VARIABLE_SET = false;
     private final SensitivityAnalysisParameters sensitivityAnalysisParameters;
     private final Network network;
     private final List<Branch> functionList;

@@ -20,7 +20,6 @@ import java.util.*;
  */
 public class FlowDecompositionComputer {
     static final boolean DC_LOAD_FLOW = true;
-    static final boolean AC_LOAD_FLOW = false;
     private static final Logger LOGGER = LoggerFactory.getLogger(FlowDecompositionComputer.class);
     private final LoadFlowParameters loadFlowParameters;
     private final FlowDecompositionParameters parameters;
@@ -63,7 +62,7 @@ public class FlowDecompositionComputer {
         computeAllocatedAndLoopFlows(flowDecompositionResults, nodalInjectionsMatrix, ptdfMatrix);
         computePstFlows(network, flowDecompositionResults, networkMatrixIndexes, psdfMatrix);
 
-        exportResults(flowDecompositionResults);
+        rescale(flowDecompositionResults);
 
         return flowDecompositionResults;
     }
@@ -179,13 +178,16 @@ public class FlowDecompositionComputer {
         flowDecompositionResults.savePstFlowMatrix(pstFlowMatrix);
     }
 
-    private void exportResults(FlowDecompositionResults flowDecompositionResults) {
-        CsvExporter csvExporter = new CsvExporter();
-        csvExporter.export(parameters, flowDecompositionResults);
-        if (parameters.isEnableExportRescaled()) {
+    private void rescale(FlowDecompositionResults flowDecompositionResults) {
+        flowDecompositionResults.saveRescaledDecomposedFlowMap(getRescaledDecomposedFlowMap(flowDecompositionResults));
+    }
+
+    private Map<String, DecomposedFlow> getRescaledDecomposedFlowMap(FlowDecompositionResults flowDecompositionResults) {
+        Map<String, DecomposedFlow> decomposedFlowMap = flowDecompositionResults.getDecomposedFlowsMap();
+        if (parameters.isRescaleEnabled()) {
             DecompositionRescaler decompositionRescaler = new DecompositionRescaler();
-            FlowDecompositionResults rescaledFlowDecomposition = decompositionRescaler.rescale(flowDecompositionResults);
-            csvExporter.export(parameters, rescaledFlowDecomposition);
+            return decompositionRescaler.rescale(decomposedFlowMap);
         }
+        return decomposedFlowMap;
     }
 }

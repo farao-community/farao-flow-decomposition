@@ -26,13 +26,18 @@ import java.util.Set;
  * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
  */
-class CsvExporter {
+public class CsvExporter {
+    public static final Path DEFAULT_EXPORT_DIR = Path.of("/tmp");
     public static final Charset CHARSET = StandardCharsets.UTF_8;
     public static final CSVFormat FORMAT = CSVFormat.RFC4180;
     private static final Logger LOGGER = LoggerFactory.getLogger(CsvExporter.class);
 
-    void export(FlowDecompositionParameters parameters, FlowDecompositionResults flowDecompositionResults) {
-        export(parameters.getExportDir(), flowDecompositionResults.getId(), flowDecompositionResults.getDecomposedFlowsMap());
+    public void export(FlowDecompositionParameters parameters, FlowDecompositionResults flowDecompositionResults) {
+        export(DEFAULT_EXPORT_DIR, flowDecompositionResults.getId(), flowDecompositionResults.getDecomposedFlowsMap());
+    }
+
+    public void export(Path dirPath, FlowDecompositionParameters parameters, FlowDecompositionResults flowDecompositionResults) {
+        export(dirPath, flowDecompositionResults.getId(), flowDecompositionResults.getDecomposedFlowsMap());
     }
 
     void export(Path dirPath, String basename, Map<String, DecomposedFlow> decomposedFlowMap) {

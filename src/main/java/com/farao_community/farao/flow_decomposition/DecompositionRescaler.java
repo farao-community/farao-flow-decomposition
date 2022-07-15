@@ -7,16 +7,14 @@
 package com.farao_community.farao.flow_decomposition;
 
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
  */
-public class DecompositionRescaler {
-
-    public static final String RESCALE_PREFIX = "Rescaled_";
-
-    public DecomposedFlow rescale(DecomposedFlow decomposedFlow) {
+class DecompositionRescaler {
+    DecomposedFlow rescale(DecomposedFlow decomposedFlow) {
         DecomposedFlow noRelievingScaledDecomposedFlow = new DecomposedFlow(decomposedFlow);
         noRelievingScaledDecomposedFlow.replaceRelievingFlows();
         double scaleFactor = (decomposedFlow.getAcReferenceFlow() - decomposedFlow.getReferenceOrientedTotalFlow())
@@ -26,11 +24,9 @@ public class DecompositionRescaler {
         return rescaledDecomposedFlow;
     }
 
-    public FlowDecompositionResults rescale(FlowDecompositionResults flowDecompositionResults) {
-        FlowDecompositionResults newFlowDecompositionResults = flowDecompositionResults.copy();
-        newFlowDecompositionResults.setId(RESCALE_PREFIX + newFlowDecompositionResults.getId());
-        Map<String, DecomposedFlow> decomposedFlowsMap = newFlowDecompositionResults.getDecomposedFlowsMap();
-        decomposedFlowsMap.forEach((s, decomposedFlow) -> decomposedFlowsMap.put(s, rescale(decomposedFlow)));
-        return newFlowDecompositionResults;
+    Map<String, DecomposedFlow> rescale(Map<String, DecomposedFlow> decomposedFlowMap) {
+        Map<String, DecomposedFlow> rescaledDecomposedFlowMap = new TreeMap<>();
+        decomposedFlowMap.forEach((s, decomposedFlow) -> rescaledDecomposedFlowMap.put(s, rescale(decomposedFlow)));
+        return rescaledDecomposedFlowMap;
     }
 }
