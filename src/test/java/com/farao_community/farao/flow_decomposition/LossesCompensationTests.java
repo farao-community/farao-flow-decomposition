@@ -22,8 +22,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 class LossesCompensationTests {
     private static final double EPSILON = 1e-3;
-    private static final double NO_LOSSES_COMPENSATION_FILTERING = -1;
-    private static final boolean SAVE_INTERMEDIATE = true;
+    private static final boolean AC_LOAD_FLOW = false;
 
     static Network importNetwork(String networkResourcePath) {
         String networkName = Paths.get(networkResourcePath).getFileName().toString();
@@ -35,10 +34,11 @@ class LossesCompensationTests {
         String networkFileName = "NETWORK_SINGLE_LOAD_TWO_GENERATORS_WITH_COUNTRIES.uct";
 
         LoadFlowParameters loadFlowParameters = new LoadFlowParameters();
-        loadFlowParameters.setDc(false);
+        loadFlowParameters.setDc(AC_LOAD_FLOW);
 
         Network network = importNetwork(networkFileName);
-        LossesCompensator lossesCompensator = new LossesCompensator(loadFlowParameters, NO_LOSSES_COMPENSATION_FILTERING);
+        LossesCompensator lossesCompensator = new LossesCompensator(loadFlowParameters,
+            FlowDecompositionParameters.DISABLE_LOSSES_COMPENSATION_EPSILON);
         lossesCompensator.run(network);
 
         assessSingleLoadTwoGeneratorsNetworkLossesCompensation(network);
@@ -49,10 +49,11 @@ class LossesCompensationTests {
         String networkFileName = "NETWORK_SINGLE_LOAD_TWO_GENERATORS_WITH_COUNTRIES.uct";
 
         LoadFlowParameters loadFlowParameters = new LoadFlowParameters();
-        loadFlowParameters.setDc(true);
+        loadFlowParameters.setDc(FlowDecompositionComputer.DC_LOAD_FLOW);
 
         Network network = importNetwork(networkFileName);
-        LossesCompensator lossesCompensator = new LossesCompensator(loadFlowParameters, NO_LOSSES_COMPENSATION_FILTERING);
+        LossesCompensator lossesCompensator = new LossesCompensator(loadFlowParameters,
+            FlowDecompositionParameters.DISABLE_LOSSES_COMPENSATION_EPSILON);
         lossesCompensator.run(network);
 
         assessSingleLoadTwoGeneratorsNetworkLossesCompensation(network);
@@ -74,10 +75,11 @@ class LossesCompensationTests {
         String networkFileName = "NETWORK_SINGLE_LOAD_TWO_GENERATORS_WITH_XNODE.uct";
 
         LoadFlowParameters loadFlowParameters = new LoadFlowParameters();
-        loadFlowParameters.setDc(false);
+        loadFlowParameters.setDc(AC_LOAD_FLOW);
 
         Network network = importNetwork(networkFileName);
-        LossesCompensator lossesCompensator = new LossesCompensator(loadFlowParameters, NO_LOSSES_COMPENSATION_FILTERING);
+        LossesCompensator lossesCompensator = new LossesCompensator(loadFlowParameters,
+            FlowDecompositionParameters.DISABLE_LOSSES_COMPENSATION_EPSILON);
         lossesCompensator.run(network);
 
         Load lossesFgenBload = network.getLoad("LOSSES FGEN1 11 X     11 1 + X     11 BLOAD 11 1");
@@ -101,9 +103,9 @@ class LossesCompensationTests {
         FlowDecompositionComputer flowDecompositionComputer = new FlowDecompositionComputer();
         FlowDecompositionResults flowDecompositionResults = flowDecompositionComputer.run(network);
 
-        assertEquals(99.813, flowDecompositionResults.getDecomposedFlowsMap().get("FLOAD 11 BLOAD 11 1").getAllocatedFlow(), EPSILON);
-        assertEquals(0.0936, flowDecompositionResults.getDecomposedFlowsMap().get("FLOAD 11 BLOAD 11 1").getLoopFlow(Country.FR), EPSILON);
-        assertEquals(0.0936, flowDecompositionResults.getDecomposedFlowsMap().get("FLOAD 11 BLOAD 11 1").getLoopFlow(Country.BE), EPSILON);
+        assertEquals(99.813, flowDecompositionResults.getDecomposedFlowMap().get("FLOAD 11 BLOAD 11 1").getAllocatedFlow(), EPSILON);
+        assertEquals(0.0936, flowDecompositionResults.getDecomposedFlowMap().get("FLOAD 11 BLOAD 11 1").getLoopFlow(Country.FR), EPSILON);
+        assertEquals(0.0936, flowDecompositionResults.getDecomposedFlowMap().get("FLOAD 11 BLOAD 11 1").getLoopFlow(Country.BE), EPSILON);
     }
 
     @Test
@@ -112,13 +114,13 @@ class LossesCompensationTests {
         Network network = importNetwork(networkFileName);
 
         FlowDecompositionParameters flowDecompositionParameters = new FlowDecompositionParameters();
-        flowDecompositionParameters.enableLossesCompensation(true);
+        flowDecompositionParameters.setEnableLossesCompensation(FlowDecompositionParameters.ENABLE_LOSSES_COMPENSATION);
         FlowDecompositionComputer flowDecompositionComputer = new FlowDecompositionComputer(flowDecompositionParameters);
         FlowDecompositionResults flowDecompositionResults = flowDecompositionComputer.run(network);
 
-        assertEquals(99.813, flowDecompositionResults.getDecomposedFlowsMap().get("FLOAD 11 BLOAD 11 1").getAllocatedFlow(), EPSILON);
-        assertEquals(-0.609, flowDecompositionResults.getDecomposedFlowsMap().get("FLOAD 11 BLOAD 11 1").getLoopFlow(Country.FR), EPSILON);
-        assertEquals(-0.609, flowDecompositionResults.getDecomposedFlowsMap().get("FLOAD 11 BLOAD 11 1").getLoopFlow(Country.BE), EPSILON);
+        assertEquals(99.813, flowDecompositionResults.getDecomposedFlowMap().get("FLOAD 11 BLOAD 11 1").getAllocatedFlow(), EPSILON);
+        assertEquals(-0.609, flowDecompositionResults.getDecomposedFlowMap().get("FLOAD 11 BLOAD 11 1").getLoopFlow(Country.FR), EPSILON);
+        assertEquals(-0.609, flowDecompositionResults.getDecomposedFlowMap().get("FLOAD 11 BLOAD 11 1").getLoopFlow(Country.BE), EPSILON);
     }
 
     @Test
@@ -127,12 +129,12 @@ class LossesCompensationTests {
         Network network = importNetwork(networkFileName);
 
         FlowDecompositionParameters flowDecompositionParameters = new FlowDecompositionParameters();
-        flowDecompositionParameters.enableLossesCompensation(false);
+        flowDecompositionParameters.setEnableLossesCompensation(FlowDecompositionParameters.DISABLE_LOSSES_COMPENSATION);
         FlowDecompositionComputer flowDecompositionComputer = new FlowDecompositionComputer(flowDecompositionParameters);
         FlowDecompositionResults flowDecompositionResults = flowDecompositionComputer.run(network);
 
-        assertEquals(99.813, flowDecompositionResults.getDecomposedFlowsMap().get("FLOAD 11 BLOAD 11 1").getAllocatedFlow(), EPSILON);
-        assertEquals(0.0936, flowDecompositionResults.getDecomposedFlowsMap().get("FLOAD 11 BLOAD 11 1").getLoopFlow(Country.FR), EPSILON);
-        assertEquals(0.0936, flowDecompositionResults.getDecomposedFlowsMap().get("FLOAD 11 BLOAD 11 1").getLoopFlow(Country.BE), EPSILON);
+        assertEquals(99.813, flowDecompositionResults.getDecomposedFlowMap().get("FLOAD 11 BLOAD 11 1").getAllocatedFlow(), EPSILON);
+        assertEquals(0.0936, flowDecompositionResults.getDecomposedFlowMap().get("FLOAD 11 BLOAD 11 1").getLoopFlow(Country.FR), EPSILON);
+        assertEquals(0.0936, flowDecompositionResults.getDecomposedFlowMap().get("FLOAD 11 BLOAD 11 1").getLoopFlow(Country.BE), EPSILON);
     }
 }

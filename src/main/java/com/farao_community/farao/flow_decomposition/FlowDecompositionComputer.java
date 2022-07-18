@@ -19,6 +19,7 @@ import java.util.*;
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
  */
 public class FlowDecompositionComputer {
+    static final boolean DC_LOAD_FLOW = true;
     private static final Logger LOGGER = LoggerFactory.getLogger(FlowDecompositionComputer.class);
     private final LoadFlowParameters loadFlowParameters;
     private final FlowDecompositionParameters parameters;
@@ -32,8 +33,8 @@ public class FlowDecompositionComputer {
         this.loadFlowParameters = initLoadFlowParameters();
     }
 
-    public FlowDecompositionResults run(Network network, boolean saveIntermediate) {
-        FlowDecompositionResults flowDecompositionResults = new FlowDecompositionResults(network, saveIntermediate);
+    public FlowDecompositionResults run(Network network) {
+        FlowDecompositionResults flowDecompositionResults = new FlowDecompositionResults(network, parameters);
 
         //AC LF
         List<Branch> xnecList = new XnecSelector().run(network);
@@ -61,16 +62,14 @@ public class FlowDecompositionComputer {
         computeAllocatedAndLoopFlows(flowDecompositionResults, nodalInjectionsMatrix, ptdfMatrix);
         computePstFlows(network, flowDecompositionResults, networkMatrixIndexes, psdfMatrix);
 
-        return flowDecompositionResults;
-    }
+        rescale(flowDecompositionResults);
 
-    public FlowDecompositionResults run(Network network) {
-        return run(network, false);
+        return flowDecompositionResults;
     }
 
     private static LoadFlowParameters initLoadFlowParameters() {
         LoadFlowParameters parameters = LoadFlowParameters.load();
-        parameters.setDc(true);
+        parameters.setDc(DC_LOAD_FLOW);
         LOGGER.debug("Using following load flow parameters: {}", parameters);
         return parameters;
     }
@@ -89,7 +88,7 @@ public class FlowDecompositionComputer {
     }
 
     private void compensateLosses(Network network) {
-        if (parameters.lossesCompensationEnabled()) {
+        if (parameters.isLossesCompensationEnabled()) {
             LossesCompensator lossesCompensator = new LossesCompensator(loadFlowParameters, parameters);
             lossesCompensator.run(network);
         }
@@ -111,7 +110,8 @@ public class FlowDecompositionComputer {
         NodalInjectionComputer nodalInjectionComputer = new NodalInjectionComputer(networkMatrixIndexes);
         Map<String, Double> dcNodalInjection = getDcNodalInjection(network, flowDecompositionResults, networkMatrixIndexes);
 
-        return getNodalInjectionsMatrix(network, flowDecompositionResults, netPositions, glsks, nodalInjectionComputer, dcNodalInjection);
+        return getNodalInjectionsMatrix(network, flowDecompositionResults, netPositions, glsks,
+            nodalInjectionComputer, dcNodalInjection);
     }
 
     private Map<String, Double> getDcNodalInjection(Network network,
@@ -173,7 +173,21 @@ public class FlowDecompositionComputer {
                                  FlowDecompositionResults flowDecompositionResults,
                                  NetworkMatrixIndexes networkMatrixIndexes,
                                  SparseMatrixWithIndexesTriplet psdfMatrix) {
-        SparseMatrixWithIndexesCSC pstFlowMatrix = PstFlowComputer.run(network, networkMatrixIndexes, psdfMatrix);
+        PstFlowComputer pstFlowComputer = new PstFlowComputer();
+        SparseMatrixWithIndexesCSC pstFlowMatrix = pstFlowComputer.run(network, networkMatrixIndexes, psdfMatrix);
         flowDecompositionResults.savePstFlowMatrix(pstFlowMatrix);
+    }
+
+    private void rescale(FlowDecompositionResults flowDecompositionResults) {
+        flowDecompositionResults.saveRescaledDecomposedFlowMap(getRescaledDecomposedFlowMap(flowDecompositionResults));
+    }
+
+    private Map<String, DecomposedFlow> getRescaledDecomposedFlowMap(FlowDecompositionResults flowDecompositionResults) {
+        Map<String, DecomposedFlow> decomposedFlowMap = flowDecompositionResults.getDecomposedFlowMapBeforeRescaling();
+        if (parameters.isRescaleEnabled()) {
+            DecomposedFlowsRescaler decomposedFlowsRescaler = new DecomposedFlowsRescaler();
+            return decomposedFlowsRescaler.rescale(decomposedFlowMap);
+        }
+        return decomposedFlowMap;
     }
 }

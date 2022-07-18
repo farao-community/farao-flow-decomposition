@@ -20,10 +20,9 @@ import java.util.stream.Collectors;
  */
 class NodalInjectionComputer {
     private static final double DEFAULT_GLSK_FACTOR = 0.0;
-    private static final String ALLOCATED_COLUMN_NAME = "Allocated Flow";
     private final NetworkMatrixIndexes networkMatrixIndexes;
 
-    public NodalInjectionComputer(NetworkMatrixIndexes networkMatrixIndexes) {
+    NodalInjectionComputer(NetworkMatrixIndexes networkMatrixIndexes) {
         this.networkMatrixIndexes = networkMatrixIndexes;
     }
 
@@ -60,7 +59,7 @@ class NodalInjectionComputer {
         List<String> columns = glsks.keySet().stream()
             .map(NetworkUtil::getLoopFlowIdFromCountry)
             .collect(Collectors.toList());
-        columns.add(ALLOCATED_COLUMN_NAME);
+        columns.add(DecomposedFlow.ALLOCATED_COLUMN_NAME);
         return new SparseMatrixWithIndexesTriplet(
             networkMatrixIndexes.getNodeIndex(), NetworkUtil.getIndex(columns), size);
     }
@@ -80,7 +79,8 @@ class NodalInjectionComputer {
     private void fillNodalInjectionsWithAllocatedFlow(Map<String, Double> nodalInjectionsForAllocatedFlow,
                                                       SparseMatrixWithIndexesTriplet nodalInjectionMatrix) {
         nodalInjectionsForAllocatedFlow.forEach(
-            (injectionId, injectionValue) -> nodalInjectionMatrix.addItem(injectionId, ALLOCATED_COLUMN_NAME, injectionValue)
+            (injectionId, injectionValue) -> nodalInjectionMatrix.addItem(injectionId,
+                DecomposedFlow.ALLOCATED_COLUMN_NAME, injectionValue)
         );
     }
 
@@ -96,7 +96,7 @@ class NodalInjectionComputer {
             ));
     }
 
-    private double computeNodalInjectionForLoopFLow(Double nodalInjectionForAllocatedFlow, Double dcInjectionValue) {
+    private double computeNodalInjectionForLoopFLow(double nodalInjectionForAllocatedFlow, double dcInjectionValue) {
         return dcInjectionValue - nodalInjectionForAllocatedFlow;
     }
 }

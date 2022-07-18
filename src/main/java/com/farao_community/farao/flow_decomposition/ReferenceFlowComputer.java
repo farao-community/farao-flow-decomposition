@@ -17,8 +17,8 @@ import java.util.stream.Collectors;
  * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
  */
-public class ReferenceFlowComputer {
-    public Map<String, Double> run(List<Branch> xnecList) {
+class ReferenceFlowComputer {
+    Map<String, Double> run(List<Branch> xnecList) {
         return xnecList.stream()
             .collect(Collectors.toMap(
                 Identifiable::getId,

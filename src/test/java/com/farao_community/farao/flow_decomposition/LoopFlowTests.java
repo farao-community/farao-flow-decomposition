@@ -22,8 +22,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class LoopFlowTests {
     private static final double EPSILON = 1e-3;
-    private static final boolean FILL_ZEROS = true;
-    private static final boolean SAVE_INTERMEDIATE = true;
 
     @Test
     void checkThatLoopFlowsAreExtractedForEachXnecAndForEachCountryGivenABasicNetwork() {
@@ -44,8 +42,10 @@ class LoopFlowTests {
         String allocated = "Allocated Flow";
 
         Network network = importNetwork(networkFileName);
-        FlowDecompositionComputer flowComputer = new FlowDecompositionComputer();
-        FlowDecompositionResults flowDecompositionResults = flowComputer.run(network, SAVE_INTERMEDIATE);
+        FlowDecompositionParameters flowDecompositionParameters = new FlowDecompositionParameters();
+        flowDecompositionParameters.setSaveIntermediates(FlowDecompositionParameters.SAVE_INTERMEDIATES);
+        FlowDecompositionComputer flowComputer = new FlowDecompositionComputer(flowDecompositionParameters);
+        FlowDecompositionResults flowDecompositionResults = flowComputer.run(network);
 
         var optionalGlsks = flowDecompositionResults.getGlsks();
         assertTrue(optionalGlsks.isPresent());
@@ -67,7 +67,7 @@ class LoopFlowTests {
         assertEquals(-100, referenceNodalInjections.get(lEs));
         assertEquals(-100, referenceNodalInjections.get(lFr));
 
-        var optionalNodalInjections = flowDecompositionResults.getAllocatedAndLoopFlowNodalInjectionsMap(FILL_ZEROS);
+        var optionalNodalInjections = flowDecompositionResults.getAllocatedAndLoopFlowNodalInjectionsMap(FlowDecompositionResults.FILL_ZEROS);
         assertTrue(optionalNodalInjections.isPresent());
         var nodalInjections = optionalNodalInjections.get();
         assertEquals(0, nodalInjections.get(gBe).get(allocated), EPSILON);
@@ -83,7 +83,7 @@ class LoopFlowTests {
         assertEquals(-100, nodalInjections.get(lEs).get(NetworkUtil.getLoopFlowIdFromCountry(Country.ES)), EPSILON);
         assertEquals(-100, nodalInjections.get(lFr).get(NetworkUtil.getLoopFlowIdFromCountry(Country.FR)), EPSILON);
 
-        Map<String, DecomposedFlow> decomposedFlowMap = flowDecompositionResults.getDecomposedFlowsMap(FILL_ZEROS);
+        Map<String, DecomposedFlow> decomposedFlowMap = flowDecompositionResults.getDecomposedFlowMap();
         assertEquals(0, decomposedFlowMap.get(x1).getAllocatedFlow(), EPSILON);
         assertEquals(0, decomposedFlowMap.get(x2).getAllocatedFlow(), EPSILON);
         assertEquals(0, decomposedFlowMap.get(x4).getAllocatedFlow(), EPSILON);

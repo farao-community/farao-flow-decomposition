@@ -21,7 +21,7 @@ class SparseMatrixWithIndexesTriplet extends AbstractSparseMatrixWithIndexes {
     private final DMatrixSparseTriplet tripletMatrix;
     private final double epsilon;
 
-    public SparseMatrixWithIndexesTriplet(Map<String, Integer> rowIndex,
+    SparseMatrixWithIndexesTriplet(Map<String, Integer> rowIndex,
                                           Map<String, Integer> colIndex,
                                           Integer initLength,
                                           double epsilon) {
@@ -30,32 +30,32 @@ class SparseMatrixWithIndexesTriplet extends AbstractSparseMatrixWithIndexes {
         this.epsilon = epsilon;
     }
 
-    public SparseMatrixWithIndexesTriplet(Map<String, Integer> rowIndex,
+    SparseMatrixWithIndexesTriplet(Map<String, Integer> rowIndex,
                                           Map<String, Integer> colIndex,
                                           Integer initLength) {
         this(rowIndex, colIndex, initLength, NO_FILTERING_EPSILON);
     }
 
-    public SparseMatrixWithIndexesTriplet(Map<String, Integer> rowIndex, String columnName, int size) {
+    SparseMatrixWithIndexesTriplet(Map<String, Integer> rowIndex, String columnName, int size) {
         this(rowIndex, Map.of(columnName, 0), size);
     }
 
-    private boolean isNotZero(Double value) {
+    private boolean isNotZero(double value) {
         return Math.abs(value) > epsilon;
     }
 
-    public void addItem(String row, String col, double value) {
+    void addItem(String row, String col, double value) {
         if (!Double.isNaN(value) && isNotZero(value)) {
             tripletMatrix.addItem(rowIndex.get(row), colIndex.get(col), value);
         }
     }
 
-    public SparseMatrixWithIndexesCSC toCSCMatrix() {
+    SparseMatrixWithIndexesCSC toCSCMatrix() {
         DMatrixSparseCSC cscMatrix = DConvertMatrixStruct.convert(tripletMatrix, (DMatrixSparseCSC) null);
         return new SparseMatrixWithIndexesCSC(this.rowIndex, this.colIndex, cscMatrix);
     }
 
-    public Map<String, Map<String, Double>> toMap(boolean fillZeros) {
+    Map<String, Map<String, Double>> toMap(boolean fillZeros) {
         return toCSCMatrix().toMap(fillZeros);
     }
 }

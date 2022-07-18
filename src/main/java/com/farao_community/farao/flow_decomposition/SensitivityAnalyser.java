@@ -25,6 +25,7 @@ import java.util.Map;
 class SensitivityAnalyser {
     private static final int SENSITIVITY_VARIABLE_BATCH_SIZE = 15000;
     private static final Logger LOGGER = LoggerFactory.getLogger(SensitivityAnalyser.class);
+    private static final boolean SENSITIVITY_VARIABLE_SET = false;
     private final SensitivityAnalysisParameters sensitivityAnalysisParameters;
     private final Network network;
     private final List<Branch> functionList;
@@ -96,7 +97,7 @@ class SensitivityAnalyser {
         return new SensitivityFactor(
             SensitivityFunctionType.BRANCH_ACTIVE_POWER_1, function.getId(),
             sensitivityVariableType, variable,
-            false,
+            SENSITIVITY_VARIABLE_SET,
             ContingencyContext.none()
         );
     }
@@ -114,7 +115,8 @@ class SensitivityAnalyser {
         }
     }
 
-    private void fillSensitivityMatrixCell(SparseMatrixWithIndexesTriplet sensitivityMatrixTriplet, List<SensitivityFactor> factors, SensitivityValue sensitivityValue) {
+    private void fillSensitivityMatrixCell(SparseMatrixWithIndexesTriplet sensitivityMatrixTriplet,
+                                           List<SensitivityFactor> factors, SensitivityValue sensitivityValue) {
         SensitivityFactor factor = factors.get(sensitivityValue.getFactorIndex());
         double sensitivity = sensitivityValue.getValue();
         double referenceOrientedSensitivity = sensitivityValue.getFunctionReference() < 0 ?

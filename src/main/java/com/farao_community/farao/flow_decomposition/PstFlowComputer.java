@@ -16,23 +16,18 @@ import java.util.Optional;
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
  * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
  */
-final class PstFlowComputer {
-    private static final String PST_COLUMN_NAME = "PST Flow";
-
-    private PstFlowComputer() {
-        throw new AssertionError("Static class should not be instantiated");
-    }
-
-    static SparseMatrixWithIndexesCSC run(Network network,
-                                          NetworkMatrixIndexes networkMatrixIndexes,
-                                          SparseMatrixWithIndexesTriplet psdfMatrix) {
+class PstFlowComputer {
+    SparseMatrixWithIndexesCSC run(Network network,
+                                   NetworkMatrixIndexes networkMatrixIndexes,
+                                   SparseMatrixWithIndexesTriplet psdfMatrix) {
         SparseMatrixWithIndexesTriplet deltaTapMatrix = getDeltaTapMatrix(network, networkMatrixIndexes);
         return SparseMatrixWithIndexesCSC.mult(psdfMatrix.toCSCMatrix(), deltaTapMatrix.toCSCMatrix());
     }
 
-    private static SparseMatrixWithIndexesTriplet getDeltaTapMatrix(Network network, NetworkMatrixIndexes networkMatrixIndexes) {
+    private SparseMatrixWithIndexesTriplet getDeltaTapMatrix(Network network, NetworkMatrixIndexes networkMatrixIndexes) {
         SparseMatrixWithIndexesTriplet deltaTapMatrix =
-            new SparseMatrixWithIndexesTriplet(networkMatrixIndexes.getPstIndex(), PST_COLUMN_NAME, networkMatrixIndexes.getPstCount());
+            new SparseMatrixWithIndexesTriplet(networkMatrixIndexes.getPstIndex(),
+                DecomposedFlow.PST_COLUMN_NAME, networkMatrixIndexes.getPstCount());
         for (String pst: networkMatrixIndexes.getPstList()) {
             PhaseTapChanger phaseTapChanger = network.getTwoWindingsTransformer(pst).getPhaseTapChanger();
             Optional<PhaseTapChangerStep> neutralStep = phaseTapChanger.getNeutralStep();
@@ -40,7 +35,7 @@ final class PstFlowComputer {
             if (neutralStep.isPresent()) {
                 deltaTap = phaseTapChanger.getCurrentStep().getAlpha() - neutralStep.get().getAlpha();
             }
-            deltaTapMatrix.addItem(pst, PST_COLUMN_NAME, deltaTap);
+            deltaTapMatrix.addItem(pst, DecomposedFlow.PST_COLUMN_NAME, deltaTap);
         }
         return deltaTapMatrix;
     }
