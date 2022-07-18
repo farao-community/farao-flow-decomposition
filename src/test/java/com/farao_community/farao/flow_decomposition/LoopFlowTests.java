@@ -43,7 +43,7 @@ class LoopFlowTests {
 
         Network network = importNetwork(networkFileName);
         FlowDecompositionParameters flowDecompositionParameters = new FlowDecompositionParameters();
-        flowDecompositionParameters.setSaveIntermediate(FlowDecompositionParameters.SAVE_INTERMEDIATE);
+        flowDecompositionParameters.setSaveIntermediates(FlowDecompositionParameters.SAVE_INTERMEDIATES);
         FlowDecompositionComputer flowComputer = new FlowDecompositionComputer(flowDecompositionParameters);
         FlowDecompositionResults flowDecompositionResults = flowComputer.run(network);
 

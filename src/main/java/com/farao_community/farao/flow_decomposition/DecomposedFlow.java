@@ -16,7 +16,9 @@ import java.util.*;
  */
 public class DecomposedFlow {
     public static final double DEFAULT_FLOW = 0.;
-    private final Map<String, Double> decomposedFlowMap = new TreeMap<>();
+    private final Map<String, Double> loopFlowsMap = new TreeMap<>();
+    private final double allocatedFlow;
+    private final double pstFlow;
     private final double acReferenceFlow;
     private final double dcReferenceFlow;
     static final String ALLOCATED_COLUMN_NAME = "Allocated Flow";
@@ -24,29 +26,28 @@ public class DecomposedFlow {
     static final String AC_REFERENCE_FLOW_COLUMN_NAME = "Reference AC Flow";
     static final String DC_REFERENCE_FLOW_COLUMN_NAME = "Reference DC Flow";
 
-    DecomposedFlow(Map<String, Double> decomposedFlowMap, Map<String, Double> pst, double acReferenceFlow, double dcReferenceFlow) {
-        this.decomposedFlowMap.putAll(decomposedFlowMap);
-        this.decomposedFlowMap.put(PST_COLUMN_NAME, pst.get(PST_COLUMN_NAME));
+    DecomposedFlow(Map<String, Double> loopFlowsMap, double allocatedFlow, double pstFlow, double acReferenceFlow, double dcReferenceFlow) {
+        this.loopFlowsMap.putAll(loopFlowsMap);
+        this.allocatedFlow = allocatedFlow;
+        this.pstFlow = pstFlow;
         this.acReferenceFlow = acReferenceFlow;
         this.dcReferenceFlow = dcReferenceFlow;
     }
 
-    DecomposedFlow(DecomposedFlow decomposedFlow) {
-        this.decomposedFlowMap.putAll(decomposedFlow.decomposedFlowMap);
-        this.acReferenceFlow = decomposedFlow.getAcReferenceFlow();
-        this.dcReferenceFlow = decomposedFlow.getDcReferenceFlow();
-    }
-
     public double getAllocatedFlow() {
-        return get(ALLOCATED_COLUMN_NAME);
+        return allocatedFlow;
     }
 
     public double getLoopFlow(Country country) {
-        return get(NetworkUtil.getLoopFlowIdFromCountry(country));
+        return loopFlowsMap.getOrDefault(NetworkUtil.getLoopFlowIdFromCountry(country), DEFAULT_FLOW);
+    }
+
+    public Map<String, Double> getLoopFlows() {
+        return Collections.unmodifiableMap(loopFlowsMap);
     }
 
     public double getPstFlow() {
-        return get(PST_COLUMN_NAME);
+        return pstFlow;
     }
 
     public double getAcReferenceFlow() {
@@ -58,37 +59,27 @@ public class DecomposedFlow {
     }
 
     double getTotalFlow() {
-        return decomposedFlowMap.values().stream()
-            .reduce(0., Double::sum);
+        return getAllocatedFlow() + getPstFlow() + getTotalLoopFlow();
     }
 
+    private double getTotalLoopFlow() {
+        return loopFlowsMap.values().stream().reduce(0., Double::sum);
+    }
+
+    @Deprecated
     double getReferenceOrientedTotalFlow() {
         return getTotalFlow() * Math.signum(getAcReferenceFlow());
     }
 
+    @Override
     public String toString() {
         return getAllKeyMap().toString();
     }
 
-    Set<String> allKeySet() {
-        return getAllKeyMap().keySet();
-    }
-
-    Set<String> keySet() {
-        return decomposedFlowMap.keySet();
-    }
-
-    void put(String key, double value) {
-        decomposedFlowMap.put(key, value);
-    }
-
-    double get(String key) {
-        return decomposedFlowMap.getOrDefault(key,
-            getAllKeyMap().getOrDefault(key, DEFAULT_FLOW));
-    }
-
     private TreeMap<String, Double> getAllKeyMap() {
-        TreeMap<String, Double> localDecomposedFlowMap = new TreeMap<>(decomposedFlowMap);
+        TreeMap<String, Double> localDecomposedFlowMap = new TreeMap<>(loopFlowsMap);
+        localDecomposedFlowMap.put(ALLOCATED_COLUMN_NAME, getAllocatedFlow());
+        localDecomposedFlowMap.put(PST_COLUMN_NAME, getPstFlow());
         localDecomposedFlowMap.put(AC_REFERENCE_FLOW_COLUMN_NAME, getAcReferenceFlow());
         localDecomposedFlowMap.put(DC_REFERENCE_FLOW_COLUMN_NAME, getDcReferenceFlow());
         return localDecomposedFlowMap;

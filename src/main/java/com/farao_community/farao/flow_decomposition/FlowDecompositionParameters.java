@@ -11,39 +11,39 @@ package com.farao_community.farao.flow_decomposition;
  * @author Hugo Schindler {@literal <hugo.schindler at rte-france.com>}
  */
 public class FlowDecompositionParameters {
-    static final boolean SAVE_INTERMEDIATE = true;
-    static final boolean DO_NOT_SAVE_INTERMEDIATE = false;
+    static final boolean SAVE_INTERMEDIATES = true;
+    static final boolean DO_NOT_SAVE_INTERMEDIATES = false;
     static final boolean ENABLE_RESCALED_RESULTS = true;
     static final boolean DISABLE_RESCALED_RESULTS = false;
     static final double DISABLE_SENSITIVITY_EPSILON = -1;
     static final boolean DISABLE_LOSSES_COMPENSATION = false;
     static final boolean ENABLE_LOSSES_COMPENSATION = true;
     static final double DISABLE_LOSSES_COMPENSATION_EPSILON = -1;
-    private static final boolean DEFAULT_SAVE_INTERMEDIATE = DO_NOT_SAVE_INTERMEDIATE;
+    private static final boolean DEFAULT_SAVE_INTERMEDIATES = DO_NOT_SAVE_INTERMEDIATES;
     private static final boolean DEFAULT_ENABLE_LOSSES_COMPENSATION = DISABLE_LOSSES_COMPENSATION;
     private static final double DEFAULT_LOSSES_COMPENSATION_EPSILON = 1e-5;
     private static final double DEFAULT_SENSITIVITY_EPSILON = 1e-5;
     private static final boolean DEFAULT_RESCALE_MODE = DISABLE_RESCALED_RESULTS;
-    private boolean saveIntermediate;
+    private boolean saveIntermediates;
     private boolean enableLossesCompensation;
     private double lossesCompensationEpsilon;
     private double sensitivityEpsilon;
     private boolean rescaleEnabled;
 
     public FlowDecompositionParameters() {
-        this.saveIntermediate = DEFAULT_SAVE_INTERMEDIATE;
+        this.saveIntermediates = DEFAULT_SAVE_INTERMEDIATES;
         this.enableLossesCompensation = DEFAULT_ENABLE_LOSSES_COMPENSATION;
         this.lossesCompensationEpsilon = DEFAULT_LOSSES_COMPENSATION_EPSILON;
         this.sensitivityEpsilon = DEFAULT_SENSITIVITY_EPSILON;
         this.rescaleEnabled = DEFAULT_RESCALE_MODE;
     }
 
-    public boolean isSaveIntermediate() {
-        return saveIntermediate;
+    public boolean doesSaveIntermediates() {
+        return saveIntermediates;
     }
 
-    public void setSaveIntermediate(boolean saveIntermediate) {
-        this.saveIntermediate = saveIntermediate;
+    public void setSaveIntermediates(boolean saveIntermediates) {
+        this.saveIntermediates = saveIntermediates;
     }
 
     public void setEnableLossesCompensation(boolean enableLossesCompensation) {

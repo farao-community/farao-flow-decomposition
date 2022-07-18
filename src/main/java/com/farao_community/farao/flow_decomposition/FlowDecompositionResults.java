@@ -12,6 +12,7 @@ import com.powsybl.iidm.network.Network;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * This class provides flow decomposition results from a network.
@@ -30,7 +31,7 @@ public class FlowDecompositionResults {
     static final boolean NOT_FILL_ZEROS = false;
     private static final boolean DEFAULT_FILL_ZEROS = NOT_FILL_ZEROS;
     private final boolean saveIntermediates;
-    private String id;
+    private final String id;
     private final String networkId;
     private SparseMatrixWithIndexesCSC allocatedAndLoopFlowsMatrix;
     private Map<String, Map<String, Double>> pstFlowMap;
@@ -46,7 +47,7 @@ public class FlowDecompositionResults {
     private Map<String, DecomposedFlow> decomposedFlowMapAfterRescaling;
 
     FlowDecompositionResults(Network network, FlowDecompositionParameters parameters) {
-        this.saveIntermediates = parameters.isSaveIntermediate();
+        this.saveIntermediates = parameters.doesSaveIntermediates();
         this.networkId = network.getNameOrId();
         String date = new SimpleDateFormat("yyyyMMdd-HHmmss").format(Date.from(Instant.now()));
         this.id = "Flow_Decomposition_Results_of_" + date + "_on_network_" + networkId;
@@ -174,8 +175,13 @@ public class FlowDecompositionResults {
         this.decomposedFlowsMapBeforeRescaling = null;
     }
 
-    private DecomposedFlow createDecomposedFlow(String xnecId, Map<String, Double> decomposedFlow) {
-        return new DecomposedFlow(decomposedFlow, pstFlowMap.get(xnecId),
+    private DecomposedFlow createDecomposedFlow(String xnecId, Map<String, Double> allocatedAndLoopFlowMap) {
+        Map<String, Double> loopFlowsMap = allocatedAndLoopFlowMap.entrySet().stream()
+                .filter(entry -> entry.getKey().startsWith(NetworkUtil.LOOP_FLOWS_COLUMN_PREFIX))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        double allocatedFlow = allocatedAndLoopFlowMap.get(DecomposedFlow.ALLOCATED_COLUMN_NAME);
+        double pstFlow = pstFlowMap.get(xnecId).get(DecomposedFlow.PST_COLUMN_NAME);
+        return new DecomposedFlow(loopFlowsMap, allocatedFlow, pstFlow,
             acReferenceFlow.get(xnecId), dcReferenceFlow.get(xnecId));
     }
 

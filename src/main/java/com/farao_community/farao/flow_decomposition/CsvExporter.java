@@ -13,14 +13,15 @@ import org.slf4j.LoggerFactory;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Sebastien Murgey {@literal <sebastien.murgey at rte-france.com>}
@@ -31,13 +32,14 @@ public class CsvExporter {
     public static final Charset CHARSET = StandardCharsets.UTF_8;
     public static final CSVFormat FORMAT = CSVFormat.RFC4180;
     private static final Logger LOGGER = LoggerFactory.getLogger(CsvExporter.class);
+    public static final String EMPTY_CELL_VALUE = "";
 
     public void export(FlowDecompositionResults flowDecompositionResults) {
         export(DEFAULT_EXPORT_DIR, flowDecompositionResults);
     }
 
     public void export(Path dirPath, FlowDecompositionResults flowDecompositionResults) {
-        LOGGER.debug("Saving rescaled flow decomposition (id: {}) of network {} in directory {}",
+        LOGGER.info("Saving rescaled flow decomposition (id: {}) of network {} in directory {}",
             flowDecompositionResults.getId(), flowDecompositionResults.getNetworkId(), dirPath);
         export(dirPath, flowDecompositionResults.getId(), flowDecompositionResults.getDecomposedFlowMap());
     }
@@ -46,36 +48,57 @@ public class CsvExporter {
         Path path = Paths.get(dirPath.toString(), basename + ".csv");
         try (
             BufferedWriter writer = Files.newBufferedWriter(path, CHARSET);
-            CSVPrinter printer = new CSVPrinter(writer, FORMAT);
+            CSVPrinter printer = new CSVPrinter(writer, FORMAT)
         ) {
-            printHeaderRow(decomposedFlowMap, printer);
-            printContentRows(decomposedFlowMap, printer);
+            Set<String> allLoopFlowKeys = aggregateAllLoopFlowKeys(decomposedFlowMap);
+            printHeaderRow(allLoopFlowKeys, printer);
+            printContentRows(decomposedFlowMap, allLoopFlowKeys, printer);
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new UncheckedIOException(e);
         }
     }
 
-    private void printHeaderRow(Map<String, DecomposedFlow> decomposedFlowMap, CSVPrinter printer) throws IOException {
-        printer.print("");
-        for (Map.Entry<String, DecomposedFlow> xnecId : decomposedFlowMap.entrySet()) {
-            printer.print(xnecId.getKey());
-        }
-        printer.println();
+    private Set<String> aggregateAllLoopFlowKeys(Map<String, DecomposedFlow> decomposedFlowMap) {
+        return decomposedFlowMap.values().stream().flatMap(decomposedFlow -> decomposedFlow.getLoopFlows().keySet().stream()).collect(Collectors.toSet());
     }
 
-    private void printContentRows(Map<String, DecomposedFlow> decomposedFlowMap, CSVPrinter printer) throws IOException {
-        Collection<DecomposedFlow> decomposedFlows = decomposedFlowMap.values();
-        Set<String> columnKeys = getInnerKeySet(decomposedFlowMap);
-        for (String columnKey : columnKeys) {
-            printer.print(columnKey);
-            for (DecomposedFlow decomposedFlow : decomposedFlows) {
-                printer.print(decomposedFlow.get(columnKey));
-            }
+    private void failSilentlyPrint(CSVPrinter printer, Object valueToPrint) {
+        try {
+            printer.print(valueToPrint);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    private void failSilentlyPrintLn(CSVPrinter printer) {
+        try {
             printer.println();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
     }
 
-    private Set<String> getInnerKeySet(Map<String, DecomposedFlow> decomposedFlowMap) {
-        return decomposedFlowMap.entrySet().iterator().next().getValue().allKeySet();
+    private void printHeaderRow(Set<String> loopFlowKeys, CSVPrinter printer) {
+        failSilentlyPrint(printer, EMPTY_CELL_VALUE);
+        failSilentlyPrint(printer, DecomposedFlow.ALLOCATED_COLUMN_NAME);
+        failSilentlyPrint(printer, DecomposedFlow.PST_COLUMN_NAME);
+        loopFlowKeys.stream().sorted().forEach(loopFlowKey -> failSilentlyPrint(printer, loopFlowKey));
+        failSilentlyPrint(printer, DecomposedFlow.AC_REFERENCE_FLOW_COLUMN_NAME);
+        failSilentlyPrint(printer, DecomposedFlow.DC_REFERENCE_FLOW_COLUMN_NAME);
+        failSilentlyPrintLn(printer);
+    }
+
+    private void printContentRows(Map<String, DecomposedFlow> decomposedFlowMap, Set<String> allLoopFlowKeys, CSVPrinter printer) {
+        decomposedFlowMap.forEach((xnecId, decomposedFlow) -> printContentRow(xnecId, decomposedFlow, allLoopFlowKeys, printer));
+    }
+
+    private void printContentRow(String xnecId, DecomposedFlow decomposedFlow, Set<String> allLoopFlowKeys, CSVPrinter printer) {
+        failSilentlyPrint(printer, xnecId);
+        failSilentlyPrint(printer, decomposedFlow.getAllocatedFlow());
+        failSilentlyPrint(printer, decomposedFlow.getPstFlow());
+        allLoopFlowKeys.stream().sorted().forEach(loopFlowKey -> failSilentlyPrint(printer, decomposedFlow.getLoopFlows().getOrDefault(loopFlowKey, DecomposedFlow.DEFAULT_FLOW)));
+        failSilentlyPrint(printer, decomposedFlow.getAcReferenceFlow());
+        failSilentlyPrint(printer, decomposedFlow.getDcReferenceFlow());
+        failSilentlyPrintLn(printer);
     }
 }

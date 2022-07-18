@@ -38,7 +38,7 @@ class AllocatedFlowTests {
 
         Network network = importNetwork(networkFileName);
         FlowDecompositionParameters flowDecompositionParameters = new FlowDecompositionParameters();
-        flowDecompositionParameters.setSaveIntermediate(FlowDecompositionParameters.SAVE_INTERMEDIATE);
+        flowDecompositionParameters.setSaveIntermediates(FlowDecompositionParameters.SAVE_INTERMEDIATES);
         FlowDecompositionComputer allocatedFlowComputer = new FlowDecompositionComputer(flowDecompositionParameters);
         FlowDecompositionResults flowDecompositionResults = allocatedFlowComputer.run(network);
 
@@ -82,7 +82,7 @@ class AllocatedFlowTests {
 
         Network network = importNetwork(networkFileName);
         FlowDecompositionParameters flowDecompositionParameters = new FlowDecompositionParameters();
-        flowDecompositionParameters.setSaveIntermediate(FlowDecompositionParameters.SAVE_INTERMEDIATE);
+        flowDecompositionParameters.setSaveIntermediates(FlowDecompositionParameters.SAVE_INTERMEDIATES);
         FlowDecompositionComputer allocatedFlowComputer = new FlowDecompositionComputer(flowDecompositionParameters);
         FlowDecompositionResults flowDecompositionResults = allocatedFlowComputer.run(network);
 
